@@ -87,15 +87,42 @@ export const listeningMarathon = {
       questions: 20,
       href: `/marathon/listening/day-${n}.html`,
       pdf: `/marathon/listening/day-${n}.pdf`,
+      storagePrefix: `lm_day${i + 1}_`,
     };
   }),
 };
 
-// No Reading Marathon days published yet — the view shows an empty state.
+// Reading pages are self-contained CDI exam simulators; they keep no saved
+// progress, so these days have no `storagePrefix`.
 export const readingMarathon = {
   title: 'Reading Marathon',
-  subtitle: 'One recently tested passage a day',
-  days: [],
+  subtitle: 'Read the passage with its Uzbek translation, then take the test in CDI format',
+  days: [
+    [1, 'The History of Pencil'],
+    [2, 'The Origin of Paper'],
+    [3, 'The Tuatara of New Zealand'],
+    [4, 'Keeping the water away'],
+    [5, 'The fashion industry'],
+    [6, 'The Tasmanian tiger'],
+    [7, 'The internal body clock'],
+    [8, 'Why do singers lose their voices?'],
+    [9, 'The fascinating world of attine ants'],
+    [10, 'The women scientists of Bologna'],
+    [11, 'Thinking for themselves'],
+    [12, 'Science and Filmmaking'],
+    [14, 'Are we born able to imitate?'],
+    [15, 'Is artificial intelligence a threat?'],
+    [16, 'Mind Music'],
+    [17, 'Solving the problem of waste disposal'],
+    [18, 'A unique golden textile'],
+    [19, 'Flower Power'],
+    [20, 'Mercator the Map Maker'],
+  ].map(([day, title]) => ({
+    day,
+    title,
+    questions: 13,
+    href: `/marathon/reading/day-${String(day).padStart(2, '0')}.html`,
+  })),
 };
 
 // Hours of study per skill, per month — drives the stacked activity chart.

@@ -15,6 +15,7 @@ npm run build
 
 - `src/App.jsx` — page layout (sidebar · main · profile panel)
 - `src/components/` — `Sidebar`, `CategoryTabs`, `CourseCard`, `MarathonView`, `FeaturedCourse`, `ProfilePanel`, `ActivityChart`, `MyCourseCard`, `Avatar`, `Icons`
-- `public/marathon/listening/` — Listening Marathon practice pages and PDFs (`day-01` … `day-20`), opened from the Listening Marathon tab
+- `public/marathon/listening/` — Listening Marathon practice pages and PDFs (`day-01` … `day-20`)
+- `public/marathon/reading/` — Reading Marathon passages + CDI-format tests (`day-01` … `day-20`, no day 13 yet)
 - `src/styles/tokens.css` — colors, radii, shadows, motion tokens
 - `src/styles/app.css` — component styles and responsive breakpoints (1280 / 1080 / 720px)

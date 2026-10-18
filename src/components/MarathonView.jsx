@@ -3,14 +3,14 @@ import { ArrowRight, CheckIcon, DownloadIcon } from './Icons.jsx';
 
 const tones = ['rose', 'peach', 'lilac', 'mint'];
 
-// The practice pages save notes under `lm_day{N}_…` on this origin,
-// so a saved key means the student has opened and worked on that day.
-function startedDays() {
+// Days whose practice page saves notes under `storagePrefix` on this origin
+// count as started once a key with that prefix exists.
+function startedDays(days) {
   const started = new Set();
   try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const m = /^lm_day(\d+)_/.exec(localStorage.key(i));
-      if (m) started.add(Number(m[1]));
+    const keys = Array.from({ length: localStorage.length }, (_, i) => localStorage.key(i));
+    for (const d of days) {
+      if (d.storagePrefix && keys.some((k) => k.startsWith(d.storagePrefix))) started.add(d.day);
     }
   } catch {
     /* storage unavailable — show every day as not started */
@@ -19,8 +19,9 @@ function startedDays() {
 }
 
 export function MarathonView({ marathon, icon: Icon }) {
-  const started = useMemo(startedDays, []);
   const days = marathon.days;
+  const started = useMemo(() => startedDays(days), [days]);
+  const tracked = days.some((d) => d.storagePrefix);
   const pct = days.length ? Math.round((started.size / days.length) * 100) : 0;
 
   return (
@@ -35,7 +36,7 @@ export function MarathonView({ marathon, icon: Icon }) {
           </h2>
           <p className="muted-sm">{marathon.subtitle}</p>
         </div>
-        {days.length > 0 && (
+        {tracked && (
           <div className="marathon__progress" aria-label={`${started.size} of ${days.length} days started`}>
             <span className="marathon__count">
               {started.size}
@@ -74,8 +75,7 @@ export function MarathonView({ marathon, icon: Icon }) {
                   </span>
                   <span className="day-card__num">{String(d.day).padStart(2, '0')}</span>
                   <span className="day-card__meta">
-                    {d.title}
-                    <br />
+                    <span className="day-card__name">{d.title}</span>
                     {d.questions} questions
                   </span>
                   <span className="day-card__go" aria-hidden="true">

@@ -8,7 +8,8 @@ let ready;
 
 function getClient() {
   if (client) return client;
-  const url = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  // Vercel's Neon integration names the variable after the chosen prefix.
+  const url = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.STORAGE_URL;
   if (url) {
     const sql = neon(url);
     client = { query: (text, params) => sql.query(text, params) };

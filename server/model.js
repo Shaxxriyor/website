@@ -1,3 +1,4 @@
+import { randomInt } from 'node:crypto';
 import { ApiError } from './http.js';
 import { query } from './db.js';
 
@@ -113,10 +114,11 @@ export function lessonInput(input) {
 // ---------- reads ----------
 
 const STUDENT_COLUMNS = `s.id, s.full_name, s.phone, s.email, s.group_name, s.level,
-  s.registered_at::text AS registered_at, s.status, s.notes`;
+  s.registered_at::text AS registered_at, s.status, s.notes, s.access_code,
+  to_char(s.last_active_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_active_at`;
 
 const LESSON_COLUMNS = `l.id, l.student_id, l.lesson_date::text AS lesson_date, l.kind, l.skill, l.day, l.topic,
-  l.correct, l.total, l.duration_minutes, l.notes, s.full_name AS student_name, s.group_name`;
+  l.correct, l.total, l.duration_minutes, l.notes, l.source, s.full_name AS student_name, s.group_name`;
 
 export async function listStudents() {
   return query(
@@ -226,14 +228,41 @@ export async function overview() {
 
 // ---------- writes ----------
 
+// Unambiguous characters only (no 0/O, 1/I/L), so codes are easy to read out and type.
+const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const newCode = () => Array.from({ length: 8 }, () => CODE_ALPHABET[randomInt(CODE_ALPHABET.length)]).join('');
+
+/** Run `write(code)` with fresh codes until one isn't already taken. */
+async function withFreshCode(write) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await write(newCode());
+    } catch (err) {
+      const duplicate = /duplicate key|unique/i.test(String(err.message)) && /access_code/.test(String(err.message));
+      if (!duplicate || attempt >= 4) throw err;
+    }
+  }
+}
+
 export async function createStudent(input) {
   const s = studentInput(input);
-  const [row] = await query(
-    `INSERT INTO students (full_name, phone, email, group_name, level, registered_at, status, notes)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
-    [s.full_name, s.phone, s.email, s.group_name, s.level, s.registered_at, s.status, s.notes],
-  );
-  return row.id;
+  return withFreshCode(async (code) => {
+    const [row] = await query(
+      `INSERT INTO students (full_name, phone, email, group_name, level, registered_at, status, notes, access_code)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+      [s.full_name, s.phone, s.email, s.group_name, s.level, s.registered_at, s.status, s.notes, code],
+    );
+    return row.id;
+  });
+}
+
+/** Issue a new sign-in code (the old one stops working; signed-in devices stay signed in). */
+export async function regenerateCode(studentId) {
+  return withFreshCode(async (code) => {
+    const rows = await query('UPDATE students SET access_code = $1 WHERE id = $2 RETURNING access_code', [code, studentId]);
+    if (!rows.length) throw new ApiError('Student not found.', 404);
+    return rows[0].access_code;
+  });
 }
 
 export async function updateStudent(studentId, input) {
@@ -270,4 +299,58 @@ export async function createLessons(input) {
 export async function deleteLesson(lessonId) {
   const rows = await query('DELETE FROM lessons WHERE id = $1 RETURNING id', [lessonId]);
   if (!rows.length) throw new ApiError('Lesson not found.', 404);
+}
+
+// ---------- student self-service & automatic tracking ----------
+
+/** What a signed-in student sees about themselves — no contact details, no teacher notes. */
+export async function studentSelf(studentId) {
+  const data = await getStudent(studentId);
+  const { id: sid, full_name, group_name, level } = data.student;
+  return {
+    student: { id: sid, full_name, group_name, level },
+    stats: data.stats,
+    marathon: data.marathon,
+    recent: data.lessons.slice(0, 8).map(({ notes, ...l }) => l),
+    activity: data.activity,
+  };
+}
+
+/**
+ * A heartbeat from a marathon page: add the student's active seconds to today's
+ * automatic record for that day (created on first beat), and store the score
+ * when the page reports one. Marathon totals are fixed, whatever the page says.
+ */
+export async function track(studentId, input) {
+  const kind = oneOf(input, 'kind', ['marathon']);
+  const skill = oneOf(input, 'skill', SKILLS);
+  const day = optionalInt(input, 'day', 1, MARATHON_DAYS);
+  if (day === null) fail('day', 'Choose a day');
+  const seconds = optionalInt(input, 'seconds', 0, 900) ?? 0;
+  const correct = optionalInt(input, 'correct', 0, MARATHON_TOTAL[skill]);
+  const total = correct === null ? null : MARATHON_TOTAL[skill];
+
+  // The page sends its local date (Tashkent is UTC+5); accept it within a day of the server's.
+  let lessonDate = new Date().toISOString().slice(0, 10);
+  if (input.date) {
+    const d = date(input, 'date');
+    if (Math.abs(new Date(`${d}T12:00:00Z`) - Date.now()) <= 36 * 3600 * 1000) lessonDate = d;
+  }
+  const topic = text(input, 'topic', { max: 200 });
+
+  const [row] = await query(
+    `INSERT INTO lessons (student_id, lesson_date, kind, skill, day, topic, duration_minutes, active_seconds, correct, total, source)
+     VALUES ($1, $2, $3, $4, $5, $6, GREATEST(1, ROUND($7 / 60.0))::int, $7, $8, $9, 'auto')
+     ON CONFLICT (student_id, kind, skill, day, lesson_date) WHERE source = 'auto'
+     DO UPDATE SET
+       active_seconds = lessons.active_seconds + EXCLUDED.active_seconds,
+       duration_minutes = GREATEST(1, ROUND((lessons.active_seconds + EXCLUDED.active_seconds) / 60.0))::int,
+       correct = COALESCE(EXCLUDED.correct, lessons.correct),
+       total = COALESCE(EXCLUDED.total, lessons.total),
+       topic = CASE WHEN lessons.topic = '' THEN EXCLUDED.topic ELSE lessons.topic END
+     RETURNING id, active_seconds, correct, total`,
+    [studentId, lessonDate, kind, skill, day, topic, seconds, correct, total],
+  );
+  await query('UPDATE students SET last_active_at = now() WHERE id = $1', [studentId]);
+  return row;
 }

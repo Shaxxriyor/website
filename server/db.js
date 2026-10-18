@@ -66,6 +66,14 @@ const SCHEMA = [
   `ALTER TABLE lessons ADD COLUMN IF NOT EXISTS day INTEGER`,
   `ALTER TABLE lessons ADD COLUMN IF NOT EXISTS correct INTEGER`,
   `ALTER TABLE lessons ADD COLUMN IF NOT EXISTS total INTEGER`,
+  // Automatic tracking from the marathon pages, and student sign-in codes.
+  `ALTER TABLE lessons ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT 'teacher'`,
+  `ALTER TABLE lessons ADD COLUMN IF NOT EXISTS active_seconds INTEGER NOT NULL DEFAULT 0`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS lessons_auto_day ON lessons (student_id, kind, skill, day, lesson_date) WHERE source = 'auto'`,
+  `ALTER TABLE students ADD COLUMN IF NOT EXISTS access_code TEXT`,
+  `ALTER TABLE students ADD COLUMN IF NOT EXISTS last_active_at TIMESTAMPTZ`,
+  `UPDATE students SET access_code = upper(substr(md5(random()::text || id::text), 1, 8)) WHERE access_code IS NULL`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS students_access_code ON students (access_code)`,
   `CREATE INDEX IF NOT EXISTS lessons_student_date ON lessons (student_id, lesson_date)`,
   `CREATE INDEX IF NOT EXISTS lessons_date ON lessons (lesson_date)`,
   `CREATE TABLE IF NOT EXISTS login_attempts (

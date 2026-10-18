@@ -13,6 +13,8 @@ const api = {
   students: await import('../api/students.js'),
   lessons: await import('../api/lessons.js'),
   overview: await import('../api/overview.js'),
+  me: await import('../api/me.js'),
+  track: await import('../api/track.js'),
 };
 
 let cookie = '';
@@ -142,5 +144,76 @@ r = await call('auth', { method: 'POST', body: { username: 'teacher', password: 
 assert.equal(r.status, 429, 'locked out after 5 failures');
 r = await call('auth', { method: 'POST', body: { username: 'teacher', password: 'correct-horse' }, ip: '2.2.2.2' });
 assert.equal(r.status, 200, 'other IPs unaffected');
+
+// --- students sign in with their code; the marathon pages track them ---
+let studentCookie = '';
+async function asStudent(name, { method = 'GET', body, ip = '3.3.3.3' } = {}) {
+  const headers = { 'x-forwarded-for': ip };
+  if (studentCookie) headers.cookie = studentCookie;
+  if (body) Object.assign(headers, { 'content-type': 'application/json', 'x-requested-with': 'fetch' });
+  const res = await api[name][method](
+    new Request(`https://example.test/api/${name}`, { method, headers, body: body && JSON.stringify(body) }),
+  );
+  const set = res.headers.get('set-cookie');
+  if (set) studentCookie = set.split(';')[0];
+  return { status: res.status, data: await res.json() };
+}
+r = await call('auth', { method: 'POST', body: { username: 'teacher', password: 'correct-horse' }, ip: '4.4.4.4' });
+r = await call('students', { method: 'POST', body: { action: 'create', ...base, full_name: 'Kamola Nazarova' } });
+const kamola = r.data.id;
+r = await call('students', { query: `?id=${kamola}` });
+const code = r.data.student.access_code;
+assert.match(code, /^[A-HJ-NP-Z2-9]{8}$/, 'readable 8-character code');
+
+r = await asStudent('me');
+assert.equal(r.data.student, null);
+r = await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'reading', day: 4, seconds: 60 } });
+assert.equal(r.status, 401, 'tracking requires a signed-in student');
+r = await asStudent('me', { method: 'POST', body: { action: 'login', code: 'WRONG123' } });
+assert.equal(r.status, 401);
+r = await asStudent('me', { method: 'POST', body: { action: 'login', code: `${code.slice(0, 4).toLowerCase()}-${code.slice(4)}` } });
+assert.equal(r.status, 200, 'code is case/dash-insensitive');
+r = await asStudent('me');
+assert.equal(r.data.student.full_name, 'Kamola Nazarova');
+assert.equal(r.data.student.phone, undefined, 'no contact details for students');
+r = await asStudent('students');
+assert.equal(r.status, 401, 'students cannot see the student list');
+
+// heartbeats accumulate into one automatic record per day page per date
+r = await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'reading', day: 4, seconds: 75, date: today, topic: 'Keeping the water away' } });
+assert.equal(r.status, 200);
+r = await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'reading', day: 4, seconds: 45, date: today } });
+assert.equal(r.data.active_seconds, 120);
+r = await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'reading', day: 4, seconds: 10, correct: 11, total: 40 } });
+assert.equal(r.data.correct, 11);
+assert.equal(r.data.total, 13, 'reading marathon totals are fixed at 13');
+r = await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'reading', day: 4, seconds: 10, correct: 14 } });
+assert.equal(r.status, 422, 'score cannot exceed 13');
+r = await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'listening', day: 2, seconds: 5000 } });
+assert.equal(r.status, 422, 'one heartbeat cannot claim more than 15 minutes');
+
+r = await asStudent('me');
+assert.equal(r.data.stats.marathon_days, 1);
+assert.equal(r.data.stats.total_minutes, 2);
+assert.equal(r.data.recent[0].source, 'auto');
+assert.equal(r.data.recent[0].notes, undefined);
+r = await call('lessons', { query: `?student_id=${kamola}` });
+assert.equal(r.data.lessons.length, 1);
+assert.equal(r.data.lessons[0].source, 'auto');
+assert.equal(r.data.lessons[0].topic, 'Keeping the water away');
+r = await call('students');
+assert.ok(r.data.students.find((x) => x.id === kamola).last_active_at, 'last active is recorded');
+
+// new code: old one stops working; inactive students are signed out
+r = await call('students', { method: 'POST', body: { action: 'new-code', id: kamola } });
+assert.notEqual(r.data.access_code, code);
+const saved = studentCookie;
+studentCookie = '';
+r = await asStudent('me', { method: 'POST', body: { action: 'login', code } });
+assert.equal(r.status, 401, 'old code no longer works');
+studentCookie = saved;
+r = await call('students', { method: 'POST', body: { action: 'update', id: kamola, ...base, full_name: 'Kamola Nazarova', status: 'inactive' } });
+r = await asStudent('me');
+assert.equal(r.data.student, null, 'inactive students are signed out');
 
 console.log('All API checks passed.');

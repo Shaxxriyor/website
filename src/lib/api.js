@@ -26,7 +26,7 @@ async function request(path, { body, params } = {}) {
   }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    if (res.status === 401 && path !== 'auth') onUnauthorized();
+    if (res.status === 401 && path !== 'auth' && path !== 'me') onUnauthorized();
     throw new ApiError(data.error || `Request failed (${res.status})`, res.status, data.fields);
   }
   return data;
@@ -48,4 +48,10 @@ export const api = {
   deleteLesson: (id) => request('lessons', { body: { action: 'delete', id } }),
 
   overview: () => request('overview'),
+  newCode: (id) => request('students', { body: { action: 'new-code', id } }),
+
+  // Student side
+  me: () => request('me'),
+  studentLogin: (code) => request('me', { body: { action: 'login', code } }),
+  studentLogout: () => request('me', { body: { action: 'logout' } }),
 };

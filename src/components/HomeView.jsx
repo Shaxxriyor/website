@@ -7,7 +7,7 @@ import { ReadingMarathonIcon, ListeningMarathonIcon, LogoMark, Wordmark } from '
 import { categories, popularCourses, featuredCourse, listeningMarathon, readingMarathon } from '../data/mock.js';
 
 /** The public student-facing dashboard (marathons and courses). */
-export function HomeView() {
+export function HomeView({ results = [] }) {
   const [tab, setTab] = useState('all');
 
   return (
@@ -29,9 +29,9 @@ export function HomeView() {
       <CategoryTabs items={categories} active={tab} onChange={setTab} />
 
       {tab === 'listening-marathon' ? (
-        <MarathonView marathon={listeningMarathon} icon={ListeningMarathonIcon} />
+        <MarathonView marathon={listeningMarathon} icon={ListeningMarathonIcon} skill="listening" results={results} />
       ) : tab === 'reading-marathon' ? (
-        <MarathonView marathon={readingMarathon} icon={ReadingMarathonIcon} />
+        <MarathonView marathon={readingMarathon} icon={ReadingMarathonIcon} skill="reading" results={results} />
       ) : (
         <>
           <section aria-labelledby="popular-title">

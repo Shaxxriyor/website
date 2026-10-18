@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ChevronDown } from './Icons.jsx';
 
 const sum = (d, series) => series.reduce((t, s) => t + (d[s.key] || 0), 0);
-const fmtH = (h) => `${h.toFixed(1)}h`;
+const fmtH = (h) => (h > 0 && h < 1 ? `${Math.round(h * 60)} min` : `${h.toFixed(1)}h`);
 
 function trendBadge(totals, i) {
   const prev = totals[i - 1];

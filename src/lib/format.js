@@ -70,6 +70,7 @@ export function relativeDay(iso) {
 }
 
 export function hours(minutes) {
+  if (minutes > 0 && minutes < 60) return `${minutes} min`;
   const h = minutes / 60;
   return `${Number.isInteger(h) ? h : h.toFixed(1)}h`;
 }
@@ -81,3 +82,17 @@ export function duration(minutes) {
   return m ? `${h}h ${m}m` : `${h}h`;
 }
 
+
+/** "just now", "5 min ago", "3 h ago", "yesterday", or a date. */
+export function timeAgo(isoDateTime) {
+  if (!isoDateTime) return null;
+  const diff = (Date.now() - new Date(isoDateTime).getTime()) / 1000;
+  if (diff < 90) return 'just now';
+  if (diff < 3600) return `${Math.round(diff / 60)} min ago`;
+  if (diff < 86400) return `${Math.round(diff / 3600)} h ago`;
+  if (diff < 2 * 86400) return 'yesterday';
+  return formatDate(new Date(isoDateTime).toISOString().slice(0, 10), { short: true });
+}
+
+/** Format an access code for reading aloud: ABCD-EFGH. */
+export const formatCode = (code) => (code ? `${code.slice(0, 4)}-${code.slice(4)}` : '');

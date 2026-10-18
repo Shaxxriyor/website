@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { api } from '../../lib/api.js';
 import { navigate } from '../../lib/router.js';
-import { MARATHON_DAYS, formatDate, hours, levelName, marathonTitle, relativeDay } from '../../lib/format.js';
-import { ArrowLeft, EditIcon, LessonIcon, MailIcon, PhoneIcon, PlusIcon, TrashIcon } from '../Icons.jsx';
+import { formatCode, formatDate, hours, levelName, relativeDay, timeAgo } from '../../lib/format.js';
+import { MarathonGrid } from '../MarathonGrid.jsx';
+import { ArrowLeft, CheckIcon, EditIcon, LessonIcon, MailIcon, PhoneIcon, PlusIcon, TrashIcon } from '../Icons.jsx';
 import { Avatar } from '../Avatar.jsx';
 import { ConfirmSheet, EmptyState, ErrorNote, Skeleton, StatusPill, useLoad } from './ui.jsx';
 import { StudentForm } from './StudentForm.jsx';
@@ -100,12 +101,18 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
         />
       </div>
 
+      <AccessCard student={s} notify={notify} onChanged={onChanged} />
+
       {s.notes && <p className="profile-notes card-white">{s.notes}</p>}
 
       <section aria-labelledby="marathon-title">
         <div className="section-head">
           <h2 id="marathon-title" className="label">Marathon progress</h2>
-          <span className="link-sm">Last active {stats.last_lesson ? relativeDay(stats.last_lesson) : '—'}</span>
+          <span className="link-sm">
+            {s.last_active_at
+              ? `On the site ${timeAgo(s.last_active_at)}`
+              : `Last practice ${stats.last_lesson ? relativeDay(stats.last_lesson) : '—'}`}
+          </span>
         </div>
         <div className="marathon-progress">
           <MarathonGrid skill="reading" label="Reading Marathon" tone="lilac" results={marathon} />
@@ -207,38 +214,64 @@ function Stat({ tone, label, value, small }) {
   );
 }
 
-/** 20 day cells; filled when done, tinted by score, with the best result on hover. */
-function MarathonGrid({ skill, label, tone, results }) {
-  const byDay = new Map(results.filter((r) => r.skill === skill).map((r) => [r.day, r]));
+
+/** The code a student types on the home page to sign in and have their progress saved. */
+function AccessCard({ student, notify, onChanged }) {
+  const [copied, setCopied] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const code = formatCode(student.access_code);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      notify('Copy failed — select the code instead');
+    }
+  }
+
   return (
-    <div className={`mgrid card-white tone-${tone}`}>
-      <div className="mgrid__head">
-        <span className="mgrid__label">{label}</span>
-        <span className="mgrid__count num">
-          {byDay.size}
-          <small>/{MARATHON_DAYS}</small>
-        </span>
+    <section className="access card-white" aria-label="Student sign-in code">
+      <div className="access__text">
+        <span className="label">Student sign-in code</span>
+        <p className="muted-sm">
+          {student.status === 'active'
+            ? 'Give this to the student. They enter it once on the home page, then every marathon day they open is saved here automatically.'
+            : 'Inactive students can’t sign in. Set them to Active to let them use their code.'}
+        </p>
       </div>
-      <ol className="mgrid__days">
-        {Array.from({ length: MARATHON_DAYS }, (_, i) => i + 1).map((day) => {
-          const r = byDay.get(day);
-          const pct = r?.total ? r.correct / r.total : null;
-          const title = marathonTitle(skill, day);
-          const tip = r
-            ? `Day ${day}${title ? ` · ${title}` : ''} — ${r.correct != null ? `${r.correct}/${r.total}` : 'done'} (${formatDate(r.lesson_date, { short: true })})`
-            : `Day ${day}${title ? ` · ${title}` : ''} — not done yet`;
-          return (
-            <li
-              key={day}
-              className={`mgrid__day ${r ? 'is-done' : ''} ${pct != null && pct >= 0.8 ? 'is-strong' : ''}`}
-              title={tip}
-              aria-label={tip}
-            >
-              {day}
-            </li>
-          );
-        })}
-      </ol>
-    </div>
+      <code className="access__code" aria-label={`Code ${code}`}>
+        {code}
+      </code>
+      <div className="access__actions">
+        <button className="btn btn--glass btn--sm" onClick={copy}>
+          {copied ? (
+            <>
+              <CheckIcon size={14} /> Copied
+            </>
+          ) : (
+            'Copy'
+          )}
+        </button>
+        <button className="btn btn--glass btn--sm" onClick={() => setConfirming(true)}>
+          New code
+        </button>
+      </div>
+      {confirming && (
+        <ConfirmSheet
+          title="Make a new code?"
+          message={`${student.full_name}’s current code (${code}) will stop working for new sign-ins. Devices that are already signed in stay signed in.`}
+          confirmLabel="Make new code"
+          onClose={() => setConfirming(false)}
+          onConfirm={async () => {
+            await api.newCode(student.id);
+            setConfirming(false);
+            notify('New code created');
+            onChanged();
+          }}
+        />
+      )}
+    </section>
   );
 }

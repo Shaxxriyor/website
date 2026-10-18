@@ -73,12 +73,6 @@ export const featuredCourse = {
   progress: 0,
 };
 
-export const user = {
-  name: 'Annette Black',
-  friends: 274,
-  friendAvatars: ['Nodira B', 'Otabek J', 'Lola F'],
-};
-
 export const listeningMarathon = {
   title: 'Listening Marathon',
   subtitle: 'Sections 2 & 3 from recent exams — one day at a time',
@@ -127,55 +121,3 @@ export const readingMarathon = {
     href: asset(`marathon/reading/day-${String(day).padStart(2, '0')}.html`),
   })),
 };
-
-// Hours of study per skill, per month — drives the stacked activity chart.
-export const activitySeries = [
-  { key: 'reading', label: 'Reading', color: 'var(--chart-reading)' },
-  { key: 'listening', label: 'Listening', color: 'var(--chart-listening)' },
-];
-
-export const activity = [
-  { month: 'Jun', reading: 1.8, listening: 1.1 },
-  { month: 'Jul', reading: 1.5, listening: 1.1 },
-  { month: 'Aug', reading: 1.1, listening: 0.7 },
-  { month: 'Sep', reading: 1.9, listening: 1.2 },
-  { month: 'Oct', reading: 1.2, listening: 0.8 },
-  { month: 'Nov', reading: 1.1, listening: 0.7 },
-  { month: 'Dec', reading: 2.1, listening: 1.4 },
-];
-
-export const myCourses = [
-  {
-    id: 'm1',
-    tone: 'rose',
-    category: 'Reading',
-    icon: ReadingIcon,
-    rating: 4.8,
-    title: 'Reading Masterclass (True/False/Not Given & More)',
-    students: 9530,
-    progress: 0.58,
-    learners: ['Aziza K', 'Jasur T'],
-  },
-  {
-    id: 'm2',
-    tone: 'peach',
-    category: 'Listening Marathon',
-    icon: ListeningMarathonIcon,
-    rating: 4.9,
-    title: 'Listening Marathon — Day 7: Sections 2 & 3',
-    students: 1463,
-    progress: 0.3,
-    learners: ['Dilnoza S'],
-  },
-  {
-    id: 'm3',
-    tone: 'lilac',
-    category: 'Listening',
-    icon: ListeningIcon,
-    rating: 4.7,
-    title: 'Map Labelling & Multiple Choice Drills',
-    students: 2087,
-    progress: 0.74,
-    learners: ['Kamola N', 'Timur U'],
-  },
-];

@@ -41,7 +41,14 @@ export function PracticeRows({ lessons, showStudent = false, onDeleted }) {
                     {cat.short}
                   </span>
                   <span className="lesson-row__topic" title={l.notes || undefined}>
-                    {practiceTitle(l) || <span className="muted-sm">Untitled</span>}
+                    <span className="lesson-row__title">
+                      {practiceTitle(l) || <span className="muted-sm">Untitled</span>}
+                      {l.source === 'auto' && (
+                        <span className="auto-tag" title="Recorded automatically when the student used the marathon page">
+                          Auto
+                        </span>
+                      )}
+                    </span>
                     {l.notes && <span className="muted-sm lesson-row__notes">{l.notes}</span>}
                   </span>
                   <span className="lesson-row__meta num">{duration(l.duration_minutes)}</span>

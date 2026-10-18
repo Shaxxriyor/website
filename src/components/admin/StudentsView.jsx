@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { api } from '../../lib/api.js';
-import { formatDate, hours, levelName } from '../../lib/format.js';
+import { formatDate, hours, levelName, timeAgo } from '../../lib/format.js';
 import { ChevronRight, PlusIcon, SearchIcon, UsersIcon } from '../Icons.jsx';
 import { Avatar } from '../Avatar.jsx';
 import { EmptyState, ErrorNote, Skeleton, StatusPill, useLoad } from './ui.jsx';
@@ -126,7 +126,9 @@ export function StudentsView({ version, onChanged, notify }) {
                 <Avatar name={s.full_name} size={36} />
                 <span>
                   <strong>{s.full_name}</strong>
-                  <span className="muted-sm">Since {formatDate(s.registered_at)}</span>
+                  <span className="muted-sm">
+                    {s.last_active_at ? `On the site ${timeAgo(s.last_active_at)}` : `Since ${formatDate(s.registered_at)}`}
+                  </span>
                 </span>
               </span>
               <span role="cell" className="student-row__group">

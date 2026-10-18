@@ -1,6 +1,6 @@
 import { ApiError, json, readBody, route, searchParams } from '../server/http.js';
 import { requireAdmin } from '../server/auth.js';
-import { createStudent, deleteStudent, getStudent, id, listStudents, updateStudent } from '../server/model.js';
+import { createStudent, deleteStudent, getStudent, id, listStudents, regenerateCode, updateStudent } from '../server/model.js';
 
 export const GET = route(async (request) => {
   requireAdmin(request);
@@ -21,6 +21,8 @@ export const POST = route(async (request) => {
     case 'delete':
       await deleteStudent(id(body.id));
       return json({ ok: true });
+    case 'new-code':
+      return json({ access_code: await regenerateCode(id(body.id)) });
     default:
       throw new ApiError('Unknown action.');
   }

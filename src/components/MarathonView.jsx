@@ -18,10 +18,13 @@ function startedDays(days) {
   return started;
 }
 
-export function MarathonView({ marathon, icon: Icon }) {
+export function MarathonView({ marathon, icon: Icon, skill, results = [] }) {
   const days = marathon.days;
-  const started = useMemo(() => startedDays(days), [days]);
-  const tracked = days.some((d) => d.storagePrefix);
+  const local = useMemo(() => startedDays(days), [days]);
+  // Signed-in students: saved results from the server (best attempt per day).
+  const saved = useMemo(() => new Map(results.filter((r) => r.skill === skill).map((r) => [r.day, r])), [results, skill]);
+  const started = useMemo(() => new Set([...local, ...saved.keys()]), [local, saved]);
+  const tracked = saved.size > 0 || days.some((d) => d.storagePrefix);
   const pct = days.length ? Math.round((started.size / days.length) * 100) : 0;
 
   return (
@@ -37,7 +40,7 @@ export function MarathonView({ marathon, icon: Icon }) {
           <p className="muted-sm">{marathon.subtitle}</p>
         </div>
         {tracked && (
-          <div className="marathon__progress" aria-label={`${started.size} of ${days.length} days started`}>
+          <div className="marathon__progress" aria-label={`${started.size} of ${days.length} days done`}>
             <span className="marathon__count">
               {started.size}
               <small>/{days.length} days</small>
@@ -62,6 +65,7 @@ export function MarathonView({ marathon, icon: Icon }) {
         <ol className="day-grid">
           {days.map((d, i) => {
             const done = started.has(d.day);
+            const result = saved.get(d.day);
             return (
               <li key={d.day} className={`day-card tone-${tones[i % tones.length]}`}>
                 <a className="day-card__link" href={d.href} target="_blank" rel="noopener">
@@ -69,7 +73,7 @@ export function MarathonView({ marathon, icon: Icon }) {
                     <span className="day-card__label">Day</span>
                     {done && (
                       <span className="pill pill--glass day-card__status">
-                        <CheckIcon size={12} /> Started
+                        <CheckIcon size={12} /> {result?.correct != null ? `${result.correct}/${result.total}` : result ? 'Done' : 'Started'}
                       </span>
                     )}
                   </span>

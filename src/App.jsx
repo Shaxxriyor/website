@@ -124,7 +124,7 @@ export default function App() {
       </div>
 
       <div className="shell">
-        <Sidebar active={isAdminRoute || route.name === 'rating' ? route.name : 'home'} userName={isAdminRoute ? admin || null : me?.student.full_name} userId={isAdminRoute ? null : me?.student.id} userAvatar={isAdminRoute ? null : me?.student.avatar_v} />
+        <Sidebar active={isAdminRoute || route.name === 'rating' ? route.name : 'home'} userName={isAdminRoute ? admin || null : me?.student.full_name} userId={isAdminRoute ? null : me?.student.id} userAvatar={isAdminRoute ? null : me?.student.avatar_v} teacher={Boolean(admin) || isAdminRoute} />
         <main className="main" key={isAdminRoute || route.name === 'rating' ? `${route.name}/${route.id ?? ''}` : 'home'}>
           {main}
         </main>

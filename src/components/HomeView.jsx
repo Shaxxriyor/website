@@ -31,9 +31,9 @@ export function HomeView({ tab: routeTab, results = [], practice = [], signedIn 
       </a>
 
       <h1 className="hero-title">
-        Invest in your
+        Prepare with
         <br />
-        education
+        the best
       </h1>
 
       <CategoryTabs items={categories} active={tab} onChange={setTab} />

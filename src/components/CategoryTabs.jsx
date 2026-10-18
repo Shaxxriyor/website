@@ -1,0 +1,27 @@
+import { useState } from 'react';
+import { GridIcon } from './Icons.jsx';
+
+export function CategoryTabs({ items }) {
+  const [active, setActive] = useState(items[0].id);
+
+  return (
+    <div className="tabs-wrap">
+      <div className="tabs" role="tablist" aria-label="Course categories">
+        {items.map(({ id, label, icon: Icon = GridIcon }) => (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={active === id}
+            className={`tab ${active === id ? 'is-active' : ''}`}
+            onClick={() => setActive(id)}
+          >
+            <span className="tab__icon">
+              <Icon size={18} />
+            </span>
+            <span className="tab__label">{label}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}

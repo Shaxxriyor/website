@@ -17,6 +17,8 @@ const api = {
   me: await import('../api/me.js'),
   track: await import('../api/track.js'),
   leaderboard: await import('../api/leaderboard.js'),
+  els: await import('../api/els.js'),
+  photo: await import('../api/photo.js'),
 };
 
 let cookie = '';
@@ -249,6 +251,34 @@ assert.equal(anonRes.status, 401);
 r = await call('leaderboard', { query: '?period=week' });
 assert.equal(r.status, 200, 'teacher can see the rating');
 assert.equal(r.data.period, 'week');
+
+// ELS translations: upload, shared viewing, own-only delete
+const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
+r = await asStudent('els', { method: 'POST', body: { action: 'upload', day: 3, image: PNG } });
+assert.equal(r.status, 201);
+const photoId = r.data.id;
+r = await asStudent('els', { method: 'POST', body: { action: 'upload', day: 21, image: PNG } });
+assert.equal(r.status, 422, 'only days 1–20');
+r = await asStudent('els', { method: 'POST', body: { action: 'upload', day: 3, image: 'data:text/html;base64,PGgxPg==' } });
+assert.equal(r.status, 422, 'images only');
+r = await asStudent('els', { query: '?day=3' });
+r = await api.els.GET(new Request('https://example.test/api/els?day=3', { headers: { cookie: studentCookie } }));
+const dayData = await r.json();
+assert.equal(dayData.students[0].full_name, 'Kamola Nazarova');
+assert.equal(dayData.students[0].photos[0].id, photoId);
+r = await api.photo.GET(new Request(`https://example.test/api/photo?id=${photoId}`, { headers: { cookie: studentCookie } }));
+assert.equal(r.status, 200);
+assert.equal(r.headers.get('content-type'), 'image/png');
+assert.equal((await r.arrayBuffer()).byteLength, 70, 'stored bytes come back unchanged');
+r = await api.photo.GET(new Request(`https://example.test/api/photo?id=${photoId}`));
+assert.equal(r.status, 401, 'photos need sign-in');
+r = await asStudent('leaderboard');
+assert.equal(r.data.students.find((x) => x.full_name === 'Kamola Nazarova').els_days, 1);
+assert.deepEqual(r.data.students.find((x) => x.full_name === 'Kamola Nazarova').els, [{ day: 3, photos: [photoId] }]);
+r = await call('els', { method: 'POST', body: { action: 'upload', day: 3, image: PNG } });
+assert.equal(r.status, 403, 'teacher does not upload as a student');
+r = await asStudent('els', { method: 'POST', body: { action: 'delete', id: photoId } });
+assert.equal(r.status, 200, 'student deletes own photo');
 
 // new code: old one stops working; inactive students are signed out
 r = await call('students', { method: 'POST', body: { action: 'new-code', id: kamola } });

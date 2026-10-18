@@ -171,9 +171,11 @@ export async function getStudent(studentId) {
   );
   stats.average_band = averageBand(scored.map((r) => bandFor(r.skill, r.correct, r.total)));
   const withBand = (r) => ({ ...r, band: bandFor(r.skill ?? 'reading', r.correct, r.total) });
+  const elsDays = await elsForStudent(studentId);
   return {
     student,
     stats,
+    els: elsDays,
     marathon: marathon.map(withBand),
     lessons,
     activity,
@@ -420,6 +422,9 @@ function badges(s) {
   if (s.minutes >= 1200) out.push({ id: 'h20', label: '20-hour club', emoji: '🔥' });
   if (s.best_streak >= 3) out.push({ id: 's3', label: '3-day streak', emoji: '✨' });
   if (s.best_streak >= 7) out.push({ id: 's7', label: '7-day streak', emoji: '⚡' });
+  if (s.els_days >= 1) out.push({ id: 'els1', label: 'First translation', emoji: '✍️' });
+  if (s.els_days >= 10) out.push({ id: 'els10', label: '10 translations', emoji: '📝' });
+  if (s.els_days >= 20) out.push({ id: 'els20', label: 'ELS complete', emoji: '🎓' });
   if (s.average_band >= 7) out.push({ id: 'b7', label: 'Band 7+', emoji: '⭐' });
   if (s.top_band >= 9) out.push({ id: 'b9', label: 'Perfect 9', emoji: '💯' });
   return out;
@@ -445,6 +450,19 @@ export async function leaderboard(period = 'all') {
   ]);
   const by = new Map(students.map((s) => [s.id, []]));
   for (const r of rows) by.get(r.student_id)?.push({ ...r, band: bandFor(r.skill, r.correct, r.total) });
+  // ELS uploads in the same period: days and photo ids per student.
+  const elsRows = await query(
+    `SELECT p.student_id, p.day, p.id FROM els_photos p
+     WHERE p.created_at >= $1::date ORDER BY p.day, p.id`,
+    [since],
+  );
+  const els = new Map();
+  for (const r of elsRows) {
+    if (!els.has(r.student_id)) els.set(r.student_id, new Map());
+    const days = els.get(r.student_id);
+    if (!days.has(r.day)) days.set(r.day, []);
+    days.get(r.day).push(r.id);
+  }
 
   const list = students.map((s) => {
     const recs = by.get(s.id);
@@ -459,6 +477,7 @@ export async function leaderboard(period = 'all') {
       average_band: averageBand(bands),
       top_band: bands.length ? Math.max(...bands) : null,
       best_streak: streak(recs.map((r) => r.lesson_date)),
+      els_days: els.get(s.id)?.size ?? 0,
       last_date: recs[0]?.lesson_date ?? null,
     };
     return {
@@ -468,11 +487,99 @@ export async function leaderboard(period = 'all') {
       level: s.level,
       ...stats,
       badges: badges(stats),
+      els: [...(els.get(s.id) ?? new Map())].map(([day, photos]) => ({ day, photos })),
       done: recs.slice(0, 30).map(({ kind, skill, day, item, topic, correct, total, band, lesson_date, duration_minutes }) => ({
         kind, skill, day, item, topic, correct, total, band, lesson_date, duration_minutes,
       })),
     };
   });
-  list.sort((a, b) => b.minutes - a.minutes || b.records - a.records || a.full_name.localeCompare(b.full_name));
+  list.sort(
+    (a, b) =>
+      b.minutes - a.minutes || b.records + b.els_days - (a.records + a.els_days) || a.full_name.localeCompare(b.full_name),
+  );
   return { period: days ? period : 'all', students: list };
+}
+
+// ---------- ELS Reading: notebook translation photos ----------
+
+export const ELS_DAYS = 20;
+const PHOTO_TYPES = { 'image/jpeg': true, 'image/png': true, 'image/webp': true };
+const MAX_PHOTO_BYTES = 2 * 1024 * 1024; // pages are resized in the browser first (~300 KB)
+const MAX_PHOTOS_PER_DAY = 8;
+
+/** Save one photo for the signed-in student. `image` is a data URL. */
+export async function addElsPhoto(studentId, input) {
+  const day = optionalInt(input, 'day', 1, ELS_DAYS);
+  if (day === null) fail('day', 'Choose a day');
+  const m = /^data:(image\/[a-z]+);base64,([A-Za-z0-9+/=]+)$/.exec(String(input.image ?? ''));
+  if (!m || !PHOTO_TYPES[m[1]]) fail('image', 'Upload a JPG, PNG or WebP photo');
+  const bytes = Math.floor((m[2].length * 3) / 4);
+  if (bytes > MAX_PHOTO_BYTES) fail('image', 'Photo is too large (max 2 MB)');
+  const [{ n }] = await query('SELECT COUNT(*)::int AS n FROM els_photos WHERE student_id = $1 AND day = $2', [studentId, day]);
+  if (n >= MAX_PHOTOS_PER_DAY) fail('image', `Up to ${MAX_PHOTOS_PER_DAY} photos per day`);
+  const [row] = await query(
+    `INSERT INTO els_photos (student_id, day, mime, data, bytes) VALUES ($1, $2, $3, decode($4, 'base64'), $5) RETURNING id`,
+    [studentId, day, m[1], m[2], bytes],
+  );
+  await query('UPDATE students SET last_active_at = now() WHERE id = $1', [studentId]);
+  return row.id;
+}
+
+/** Students may delete their own photos; the teacher may delete any. */
+export async function deleteElsPhoto(photoId, { studentId = null } = {}) {
+  const rows = studentId
+    ? await query('DELETE FROM els_photos WHERE id = $1 AND student_id = $2 RETURNING id', [photoId, studentId])
+    : await query('DELETE FROM els_photos WHERE id = $1 RETURNING id', [photoId]);
+  if (!rows.length) throw new ApiError('Photo not found.', 404);
+}
+
+/** Everyone's photos for one day (newest first), grouped by student. Active students only. */
+export async function elsDay(day) {
+  const rows = await query(
+    `SELECT p.id, p.student_id, s.full_name, s.group_name,
+       to_char(p.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS created_at
+     FROM els_photos p JOIN students s ON s.id = p.student_id
+     WHERE p.day = $1 AND s.status = 'active'
+     ORDER BY p.created_at DESC, p.id DESC`,
+    [day],
+  );
+  const by = new Map();
+  for (const r of rows) {
+    if (!by.has(r.student_id)) by.set(r.student_id, { student_id: r.student_id, full_name: r.full_name, group_name: r.group_name, photos: [] });
+    by.get(r.student_id).photos.push({ id: r.id, created_at: r.created_at });
+  }
+  return [...by.values()];
+}
+
+/** Days each student has uploaded for: { [studentId]: { [day]: photoCount } }. */
+export async function elsProgress(studentId = null) {
+  const rows = await query(
+    `SELECT student_id, day, COUNT(*)::int AS photos FROM els_photos
+     ${studentId ? 'WHERE student_id = $1' : ''} GROUP BY student_id, day`,
+    studentId ? [studentId] : [],
+  );
+  const out = {};
+  for (const r of rows) (out[r.student_id] ??= {})[r.day] = r.photos;
+  return out;
+}
+
+export async function elsPhoto(photoId) {
+  const [row] = await query(
+    `SELECT p.mime, encode(p.data, 'base64') AS b64 FROM els_photos p JOIN students s ON s.id = p.student_id
+     WHERE p.id = $1 AND s.status = 'active'`,
+    [photoId],
+  );
+  if (!row) throw new ApiError('Photo not found.', 404);
+  return { mime: row.mime, body: Buffer.from(row.b64, 'base64') };
+}
+
+/** One student's uploads, for their profile: [{ day, photos: [id…] }]. */
+export async function elsForStudent(studentId) {
+  const rows = await query('SELECT id, day FROM els_photos WHERE student_id = $1 ORDER BY day, id', [studentId]);
+  const by = new Map();
+  for (const r of rows) {
+    if (!by.has(r.day)) by.set(r.day, []);
+    by.get(r.day).push(r.id);
+  }
+  return [...by].map(([day, photos]) => ({ day, photos }));
 }

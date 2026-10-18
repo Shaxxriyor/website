@@ -78,6 +78,18 @@ const SCHEMA = [
   `ALTER TABLE students ADD COLUMN IF NOT EXISTS last_active_at TIMESTAMPTZ`,
   `UPDATE students SET access_code = upper(substr(md5(random()::text || id::text), 1, 8)) WHERE access_code IS NULL`,
   `CREATE UNIQUE INDEX IF NOT EXISTS students_access_code ON students (access_code)`,
+  // ELS Reading: photos of each student's notebook translation, per day.
+  `CREATE TABLE IF NOT EXISTS els_photos (
+    id SERIAL PRIMARY KEY,
+    student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    day INTEGER NOT NULL CHECK (day BETWEEN 1 AND 20),
+    mime TEXT NOT NULL,
+    data BYTEA NOT NULL,
+    bytes INTEGER NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS els_photos_day ON els_photos (day, created_at)`,
+  `CREATE INDEX IF NOT EXISTS els_photos_student ON els_photos (student_id, day)`,
   `CREATE INDEX IF NOT EXISTS lessons_student_date ON lessons (student_id, lesson_date)`,
   `CREATE INDEX IF NOT EXISTS lessons_date ON lessons (lesson_date)`,
   `CREATE TABLE IF NOT EXISTS login_attempts (

@@ -1,11 +1,11 @@
 // Home page content: categories, course cards and the marathon day lists.
 import {
   ReadingIcon,
-  ListeningIcon,
   ReadingMarathonIcon,
   ListeningMarathonIcon,
   VocabularyIcon,
   MockTestIcon,
+  BookIcon,
 } from '../components/Icons.jsx';
 
 // Static files in /public are served next to index.html, wherever it lives.
@@ -16,6 +16,7 @@ export const categories = [
   { id: 'reading-practice', label: 'Reading Practice', icon: ReadingIcon },
   { id: 'reading-marathon', label: 'Reading Marathon', icon: ReadingMarathonIcon },
   { id: 'listening-marathon', label: 'Listening Marathon', icon: ListeningMarathonIcon },
+  { id: 'els', label: 'ELS Reading', icon: BookIcon },
   { id: 'vocabulary', label: 'Vocabulary', icon: VocabularyIcon },
   { id: 'mock', label: 'Mock Tests', icon: MockTestIcon },
 ];
@@ -56,13 +57,15 @@ export const popularCourses = [
     tab: 'reading-practice',
   },
   {
-    id: 'recent-listening',
+    id: 'els',
     tone: 'lilac',
-    category: 'Listening',
-    skill: 'listening',
-    icon: ListeningIcon,
-    title: 'Listening Sections 1–4: Real Exam Practice',
-    meta: 'Full tests from recent exams',
+    category: 'ELS Reading',
+    skill: 'reading',
+    icon: BookIcon,
+    badge: 'New',
+    title: 'ELS Reading: 20 Days of Reading & Translation',
+    meta: 'Read · do the exercises · upload your notebook translation',
+    tab: 'els',
   },
 ];
 

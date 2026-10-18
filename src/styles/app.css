@@ -3183,7 +3183,7 @@ button.course-card {
 }
 .rating__row {
   display: grid;
-  grid-template-columns: 36px 38px minmax(0, 1fr) repeat(4, 76px) 24px;
+  grid-template-columns: 36px 38px minmax(0, 1fr) repeat(5, 76px) 24px;
   align-items: center;
   gap: 12px;
   width: 100%;
@@ -3285,7 +3285,7 @@ button.course-card {
 }
 @media (max-width: 1280px) {
   .rating__row {
-    grid-template-columns: 30px 38px minmax(0, 1fr) repeat(4, 64px) 20px;
+    grid-template-columns: 30px 38px minmax(0, 1fr) repeat(5, 62px) 20px;
     gap: 8px;
   }
 }
@@ -3303,8 +3303,8 @@ button.course-card {
     grid-row: 2;
     grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 6px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
     padding-top: 10px;
     border-top: 1px solid var(--line);
   }
@@ -3321,4 +3321,156 @@ button.course-card {
   .rating__done {
     overflow-x: auto;
   }
+}
+
+/* ---------- ELS Reading ---------- */
+.sheet--xl {
+  max-width: 880px;
+}
+.els-book {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.els-book__pdf {
+  margin-left: auto;
+}
+.els-book__page {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--r-md);
+  background: #fff;
+  box-shadow: inset 0 0 0 1px var(--line), var(--shadow-sm);
+  animation: fade 0.3s var(--ease) both;
+}
+.els-book__next {
+  align-self: center;
+}
+.els-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 14px 16px 14px 34px;
+  border-radius: var(--r-md);
+  font-size: 13.5px;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.els-steps b {
+  font-weight: 600;
+}
+.els-note {
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  background: rgba(205, 199, 247, 0.35);
+}
+.els-upload {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-bottom: 8px;
+}
+.els-h {
+  display: block;
+  margin: 18px 0 10px;
+}
+.els-photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px;
+}
+.els-photo {
+  position: relative;
+  margin: 0;
+}
+.els-photo > button:first-child {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--panel-solid);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.35s var(--spring), box-shadow 0.25s var(--ease);
+}
+.els-photo > button:first-child:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.els-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.els-photo__del {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(29, 27, 26, 0.7);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.els-people {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.els-person__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.els-person__head strong {
+  font-weight: 600;
+}
+.photo-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 14, 13, 0.85);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  cursor: zoom-out;
+  animation: fade 0.2s var(--ease) both;
+  outline: none;
+}
+.photo-viewer img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 12px;
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.7);
+}
+.photo-viewer__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+.rating__els {
+  padding: 0 0 4px;
+}
+.rating__els .els-photos {
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+}
+.rating__els-day {
+  margin: 10px 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
 }

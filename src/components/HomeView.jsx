@@ -4,6 +4,7 @@ import { CourseCard } from './CourseCard.jsx';
 import { FeaturedCourse } from './FeaturedCourse.jsx';
 import { MarathonView } from './MarathonView.jsx';
 import { PracticeLibrary } from './PracticeLibrary.jsx';
+import { ElsView } from './ElsView.jsx';
 import { ReadingMarathonIcon, ListeningMarathonIcon, LogoMark, Wordmark, SparkleIcon } from './Icons.jsx';
 import { categories, popularCourses, listeningMarathon, readingMarathon } from '../data/mock.js';
 
@@ -15,7 +16,7 @@ const SOON = {
 /** The public student-facing dashboard (marathons and courses). */
 // The open tab lives in the address (#/reading-practice), so the test pages'
 // back button and the browser's Back button return to the same tab.
-export function HomeView({ tab: routeTab, results = [], practice = [], signedIn = false }) {
+export function HomeView({ tab: routeTab, results = [], practice = [], signedIn = false, me = null, admin = null }) {
   const tab = categories.some((c) => c.id === routeTab) ? routeTab : 'all';
   const setTab = (id) => navigate(id === 'all' ? '/' : `/${id}`);
 
@@ -37,7 +38,9 @@ export function HomeView({ tab: routeTab, results = [], practice = [], signedIn 
 
       <CategoryTabs items={categories} active={tab} onChange={setTab} />
 
-      {tab === 'reading-practice' ? (
+      {tab === 'els' ? (
+        <ElsView me={me} admin={admin} />
+      ) : tab === 'reading-practice' ? (
         <PracticeLibrary results={practice} signedIn={signedIn} />
       ) : tab === 'listening-marathon' ? (
         <MarathonView marathon={listeningMarathon} icon={ListeningMarathonIcon} skill="listening" results={results} />

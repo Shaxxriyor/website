@@ -32,7 +32,7 @@ export function ProfilePanel({ user, activity, activitySeries, courses }) {
         <ChevronRight size={16} />
       </button>
 
-      <ActivityChart data={activity} series={activitySeries} />
+      <ActivityChart data={activity} series={activitySeries} badge="👍 Great result!" />
 
       <div className="section-head section-head--panel">
         <h3 className="label">My courses</h3>

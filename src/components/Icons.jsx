@@ -187,3 +187,61 @@ export const SparkleIcon = ({ size = 14 }) => (
     />
   </svg>
 );
+
+// Student management
+export const UsersIcon = make(
+  <>
+    <circle cx="9" cy="8.5" r="3.5" />
+    <path d="M2.5 20a6.5 6.5 0 0 1 13 0" />
+    <path d="M15.5 5.2a3.5 3.5 0 0 1 0 6.6M18 14.2a6.5 6.5 0 0 1 3.5 5.8" />
+  </>
+);
+
+export const LessonIcon = make(
+  <>
+    <rect x="5" y="4" width="14" height="17" rx="3" />
+    <path d="M9 4V3h6v1M9 11l2 2 4-4M9 17h6" />
+  </>
+);
+
+export const PlusIcon = make(<path d="M12 5v14M5 12h14" />);
+export const XIcon = make(<path d="M6 6l12 12M18 6 6 18" />);
+export const SearchIcon = make(
+  <>
+    <circle cx="11" cy="11" r="6.5" />
+    <path d="m20 20-4.2-4.2" />
+  </>
+);
+export const LogoutIcon = make(
+  <>
+    <path d="M14 4h3.5A2.5 2.5 0 0 1 20 6.5v11a2.5 2.5 0 0 1-2.5 2.5H14" />
+    <path d="M10 8l-4 4 4 4M6 12h10" />
+  </>
+);
+export const TrashIcon = make(
+  <>
+    <path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l.9 12a1.5 1.5 0 0 0 1.5 1.4h6.2a1.5 1.5 0 0 0 1.5-1.4l.9-12" />
+  </>
+);
+export const EditIcon = make(
+  <>
+    <path d="M15.5 4.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" />
+    <path d="M13.5 6.5l3 3" />
+  </>
+);
+export const PhoneIcon = make(
+  <path d="M5 4h3.5l1.8 4.5-2.3 1.4a11 11 0 0 0 6.1 6.1l1.4-2.3L20 15.5V19a1.5 1.5 0 0 1-1.6 1.5A16.5 16.5 0 0 1 3.5 5.6 1.5 1.5 0 0 1 5 4Z" />
+);
+export const MailIcon = make(
+  <>
+    <rect x="3.5" y="5.5" width="17" height="13" rx="3" />
+    <path d="m4.5 7 7.5 6 7.5-6" />
+  </>
+);
+export const ArrowLeft = make(<path d="M19 12H5M11 6l-6 6 6 6" />);
+export const ClockIcon = make(
+  <>
+    <circle cx="12" cy="12" r="8.5" />
+    <path d="M12 7.5V12l3 2" />
+  </>
+);

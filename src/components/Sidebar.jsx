@@ -1,28 +1,16 @@
-import { useState } from 'react';
-import {
-  LogoMark,
-  BasketIcon,
-  HomeIcon,
-  CalendarIcon,
-  BookIcon,
-  GridIcon,
-  SettingsIcon,
-} from './Icons.jsx';
+import { LogoMark, BasketIcon, HomeIcon, UsersIcon, LessonIcon, SettingsIcon } from './Icons.jsx';
 import { Avatar } from './Avatar.jsx';
 
 const nav = [
-  { id: 'home', label: 'Home', icon: HomeIcon },
-  { id: 'schedule', label: 'Schedule', icon: CalendarIcon },
-  { id: 'library', label: 'Library', icon: BookIcon },
-  { id: 'catalog', label: 'Catalog', icon: GridIcon },
+  { id: 'home', label: 'Home', icon: HomeIcon, href: '#/' },
+  { id: 'students', label: 'Students', icon: UsersIcon, href: '#/students' },
+  { id: 'lessons', label: 'Lessons', icon: LessonIcon, href: '#/lessons' },
 ];
 
-export function Sidebar() {
-  const [active, setActive] = useState('home');
-
+export function Sidebar({ active }) {
   return (
     <aside className="sidebar glass" aria-label="Primary">
-      <a className="sidebar__logo" href="#" aria-label="READING_CDI home">
+      <a className="sidebar__logo" href="#/" aria-label="READING_CDI home">
         <LogoMark />
       </a>
 
@@ -32,17 +20,17 @@ export function Sidebar() {
       </button>
 
       <nav className="sidebar__nav">
-        {nav.map(({ id, label, icon: Icon }) => (
-          <button
+        {nav.map(({ id, label, icon: Icon, href }) => (
+          <a
             key={id}
+            href={href}
             className={`icon-btn nav-btn ${active === id ? 'is-active' : ''}`}
             aria-label={label}
             aria-current={active === id ? 'page' : undefined}
-            onClick={() => setActive(id)}
           >
             <Icon />
             <span className="nav-btn__tip">{label}</span>
-          </button>
+          </a>
         ))}
       </nav>
 

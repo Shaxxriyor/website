@@ -27,6 +27,14 @@
   /* Chart series — fixed order, follows skill identity */
   --chart-reading: #b9b1f3;
   --chart-listening: #f2a9a3;
+  --chart-vocabulary: #f6cf96;
+  --chart-mock: #9edfc2;
+  --chart-other: #d8cfc4;
+
+  --sand: #ede4d8;
+  --sand-deep: #d8cbb9;
+  --danger: #c8322b;
+  --success: #2f9e6a;
 
   --accent-red: #ff5a4e;
   --brand-red: #d6282f;

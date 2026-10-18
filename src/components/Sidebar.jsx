@@ -22,7 +22,7 @@ export function Sidebar() {
 
   return (
     <aside className="sidebar glass" aria-label="Primary">
-      <a className="sidebar__logo" href="#" aria-label="IELTS Academy home">
+      <a className="sidebar__logo" href="#" aria-label="READING_CDI home">
         <LogoMark />
       </a>
 

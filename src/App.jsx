@@ -5,7 +5,7 @@ import { CourseCard } from './components/CourseCard.jsx';
 import { FeaturedCourse } from './components/FeaturedCourse.jsx';
 import { ProfilePanel } from './components/ProfilePanel.jsx';
 import { MarathonView } from './components/MarathonView.jsx';
-import { ReadingMarathonIcon, ListeningMarathonIcon } from './components/Icons.jsx';
+import { ReadingMarathonIcon, ListeningMarathonIcon, LogoMark, Wordmark } from './components/Icons.jsx';
 import {
   categories,
   popularCourses,
@@ -33,6 +33,14 @@ export default function App() {
         <Sidebar />
 
         <main className="main">
+          <a className="brand" href="https://t.me/READING_CDI" target="_blank" rel="noopener">
+            <span className="brand__mark">
+              <LogoMark size={30} />
+            </span>
+            <Wordmark />
+            <span className="brand__tag">IELTS Reading & Listening</span>
+          </a>
+
           <h1 className="hero-title">
             Invest in your
             <br />

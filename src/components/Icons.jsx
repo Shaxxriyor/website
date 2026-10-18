@@ -20,10 +20,29 @@ const make = (paths) =>
     );
   };
 
-export const LogoMark = ({ size = 28 }) => (
-  <svg width={size} height={size} viewBox="0 0 28 28" aria-hidden="true">
-    <path d="M6 3h10.5L12 11.5h9L9 25l3-10H5.5z" fill="currentColor" />
+// READING_CDI mark: laptop outline with an "R" and a checklist (one red tick).
+export const LogoMark = ({ size = 36 }) => (
+  <svg width={size} height={size * 0.75} viewBox="0 0 64 48" aria-hidden="true">
+    <g fill="none" stroke="currentColor" strokeWidth="3" strokeLinejoin="round">
+      <path d="M8.5 33V5.5h45a3 3 0 0 1 3 3V33" />
+      <path d="M15.5 37V9.5H24a7 7 0 0 1 0 14h-8.5" />
+      <path d="m22 23.5 9.5 13.5" strokeLinecap="square" />
+    </g>
+    <path d="M2 36h60c0 2.4-1.9 4-4.2 4H6.2C3.9 40 2 38.4 2 36Z" fill="currentColor" />
+    <g fill="none" stroke="#b9b6b3" strokeWidth="1.6">
+      <rect x="35" y="10" width="4.5" height="4.5" rx="0.8" />
+      <rect x="35" y="25" width="4.5" height="4.5" rx="0.8" />
+      <path d="M42.5 12.25h7.5M42.5 19.75h7.5M42.5 27.25h7.5" strokeLinecap="round" />
+    </g>
+    <rect x="34.6" y="17.1" width="5.3" height="5.3" rx="1" fill="var(--brand-red, #d6282f)" />
+    <path d="m35.9 19.8 1.2 1.2 1.9-2.2" fill="none" stroke="#fff" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
+);
+
+export const Wordmark = () => (
+  <span className="wordmark">
+    READING<span className="wordmark__us">_</span>CDI
+  </span>
 );
 
 export const HomeIcon = make(

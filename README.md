@@ -1,4 +1,4 @@
-# IELTS Academy — Dashboard UI
+# READING_CDI — IELTS Dashboard UI
 
 Step 1 of the build: the student dashboard UI (layout, components, and visual polish).
 Backend, auth, and data features come in step 2. All content is static placeholder data in `src/data/mock.js`.

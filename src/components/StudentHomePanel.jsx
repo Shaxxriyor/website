@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { api } from '../lib/api.js';
-import { CATEGORIES, categoryOf, hours, levelName, relativeDay, score } from '../lib/format.js';
+import { CATEGORIES, categoryOf, hours, levelName, relativeDay, result } from '../lib/format.js';
 import { CheckIcon, LogoMark, LogoutIcon } from './Icons.jsx';
 import { Avatar } from './Avatar.jsx';
 import { ActivityChart } from './ActivityChart.jsx';
@@ -65,7 +65,7 @@ export function StudentHomePanel({ me, onSignedIn, onSignOut }) {
                 <span className="mini-lesson__text">
                   <strong>{l.kind === 'marathon' ? `${categoryOf(l).label} · Day ${l.day}` : l.topic}</strong>
                   <span className="muted-sm">
-                    {score(l) ? `${score(l)} · ` : ''}
+                    {result(l) ? `${result(l)} · ` : ''}
                     {l.duration_minutes} min
                   </span>
                 </span>

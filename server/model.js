@@ -1,5 +1,6 @@
 import { randomInt } from 'node:crypto';
 import { ApiError } from './http.js';
+import { averageBand, bandFor } from '../src/lib/band.js';
 import { query } from './db.js';
 
 export const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
@@ -164,7 +165,20 @@ export async function getStudent(studentId) {
       [studentId],
     ),
   ]);
-  return { student, stats, marathon, lessons, activity, practice };
+  const scored = await query(
+    `SELECT skill, correct, total FROM lessons WHERE student_id = $1 AND correct IS NOT NULL AND total > 0`,
+    [studentId],
+  );
+  stats.average_band = averageBand(scored.map((r) => bandFor(r.skill, r.correct, r.total)));
+  const withBand = (r) => ({ ...r, band: bandFor(r.skill ?? 'reading', r.correct, r.total) });
+  return {
+    student,
+    stats,
+    marathon: marathon.map(withBand),
+    lessons,
+    activity,
+    practice: practice.map((r) => ({ ...r, band: bandFor('reading', r.correct, r.total) })),
+  };
 }
 
 export async function listLessons({ studentId, kind, skill, from, to, limit = 300 } = {}) {
@@ -175,7 +189,7 @@ export async function listLessons({ studentId, kind, skill, from, to, limit = 30
   if (skill) where.push(`l.skill = $${params.push(skill)}`);
   if (from) where.push(`l.lesson_date >= $${params.push(from)}`);
   if (to) where.push(`l.lesson_date <= $${params.push(to)}`);
-  return query(
+  const rows = await query(
     `SELECT ${LESSON_COLUMNS}
      FROM lessons l JOIN students s ON s.id = l.student_id
      ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
@@ -183,6 +197,7 @@ export async function listLessons({ studentId, kind, skill, from, to, limit = 30
      LIMIT ${Math.min(Math.max(1, limit), 1000)}`,
     params,
   );
+  return rows.map((r) => ({ ...r, band: bandFor(r.skill, r.correct, r.total) }));
 }
 
 /** Hours per category (kind_skill) for each of the last `months` calendar months (oldest first). */

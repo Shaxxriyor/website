@@ -1,3 +1,4 @@
+import { bandFor, averageBand } from '../src/lib/band.js';
 // End-to-end checks for the /api functions against an in-memory PGlite database.
 // Run: npm run test:api
 import assert from 'node:assert/strict';
@@ -215,6 +216,11 @@ assert.deepEqual(
 );
 assert.equal(r.data.stats.exercise_count, 2);
 assert.equal(r.data.stats.marathon_days, 1);
+// bands: 11/14 → 31/40 → 7.0 (reading); 11/13 → 34/40 → 7.5; average 7.25 → 7.5 (IELTS rounding)
+assert.equal(r.data.practice.find((x) => x.item === 'p2-coral-reefs').band, 7);
+assert.equal(r.data.marathon.find((x) => x.day === 4).band, 7.5);
+assert.equal(r.data.stats.average_band, 7.5);
+assert.equal(r.data.recent.find((x) => x.item === 'p2-coral-reefs').band, 7);
 assert.equal(r.data.stats.total_minutes, 5);
 assert.equal(r.data.recent[0].source, 'auto');
 assert.equal(r.data.recent[0].notes, undefined);
@@ -236,5 +242,14 @@ studentCookie = saved;
 r = await call('students', { method: 'POST', body: { action: 'update', id: kamola, ...base, full_name: 'Kamola Nazarova', status: 'inactive' } });
 r = await asStudent('me');
 assert.equal(r.data.student, null, 'inactive students are signed out');
+
+// band tables
+assert.equal(bandFor('reading', 13, 13), 9);
+assert.equal(bandFor('reading', 0, 13), 0);
+assert.equal(bandFor('listening', 17, 20), 7.5); // 34/40
+assert.equal(bandFor('listening', 15, 20), 7); // 30/40
+assert.equal(bandFor('reading', null, 13), null);
+assert.equal(averageBand([6, 6.5]), 6.5);
+assert.equal(averageBand([]), null);
 
 console.log('All API checks passed.');

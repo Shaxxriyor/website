@@ -54,7 +54,10 @@ export function PracticeRows({ lessons, showStudent = false, onDeleted }) {
                   <span className="lesson-row__meta num">{duration(l.duration_minutes)}</span>
                   <span className="lesson-row__band num" title={pct != null ? `${pct}%` : 'No score'}>
                     {pct != null ? (
-                      <span className={`band ${pct >= 80 ? 'band--good' : pct < 50 ? 'band--low' : ''}`}>{score(l)}</span>
+                      <span className={`band ${pct >= 80 ? 'band--good' : pct < 50 ? 'band--low' : ''}`}>
+                        {score(l)}
+                        <small>Band {Number(l.band).toFixed(1)}</small>
+                      </span>
                     ) : (
                       <span className="muted-sm">—</span>
                     )}

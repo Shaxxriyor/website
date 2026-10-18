@@ -73,7 +73,7 @@ export function MarathonView({ marathon, icon: Icon, skill, results = [] }) {
                     <span className="day-card__label">Day</span>
                     {done && (
                       <span className="pill pill--glass day-card__status">
-                        <CheckIcon size={12} /> {result?.correct != null ? `${result.correct}/${result.total}` : result ? 'Done' : 'Started'}
+                        <CheckIcon size={12} /> {result?.correct != null ? `${result.correct}/${result.total} · ${Number(result.band).toFixed(1)}` : result ? 'Done' : 'Started'}
                       </span>
                     )}
                   </span>

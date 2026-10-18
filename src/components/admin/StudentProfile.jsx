@@ -97,8 +97,8 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
         <Stat tone="rose" label="Study hours" value={hours(stats.total_minutes)} />
         <Stat
           tone="peach"
-          label="Average score"
-          value={stats.average_score == null ? '—' : `${stats.average_score}%`}
+          label={stats.average_score == null ? 'Average band' : `Average band · ${stats.average_score}% correct`}
+          value={stats.average_band == null ? '—' : Number(stats.average_band).toFixed(1)}
         />
       </div>
 

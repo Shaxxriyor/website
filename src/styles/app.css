@@ -3095,3 +3095,66 @@ button.course-card {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- Results with bands ---------- */
+.band small {
+  display: block;
+  margin-top: 1px;
+  font-size: 9.5px;
+  font-weight: 500;
+  opacity: 0.75;
+}
+.band:has(small) {
+  height: auto;
+  padding: 4px 8px;
+  line-height: 1.15;
+  text-align: center;
+}
+@media (min-width: 721px) {
+  .lesson-row {
+    grid-template-columns: 152px minmax(0, 1fr) 64px 72px 32px;
+  }
+  .lesson-row--wide {
+    grid-template-columns: minmax(150px, 1.1fr) 152px minmax(0, 1.5fr) 64px 72px 32px;
+  }
+}
+.psum__table {
+  width: 100%;
+  margin-top: 14px;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.psum__table th {
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  text-align: left;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+}
+.psum__table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.psum__table tr:last-child td {
+  border-bottom: 0;
+}
+.psum__table .num {
+  text-align: right;
+  white-space: nowrap;
+}
+.psum__p {
+  display: inline-grid;
+  place-items: center;
+  margin-right: 6px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  background: rgba(249, 217, 173, 0.6);
+}
+@media (min-width: 721px) and (max-width: 1280px) {
+  .lesson-row--wide {
+    grid-template-columns: minmax(130px, 1fr) 146px minmax(0, 1.2fr) 60px 72px 32px;
+  }
+}

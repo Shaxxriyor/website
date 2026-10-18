@@ -1,20 +1,29 @@
 import { readingPractice } from '../data/readingPractice.js';
+import { averageBand, formatBand } from '../lib/band.js';
+import { formatDate } from '../lib/format.js';
 
-/** Reading Practice progress: passages done out of the total, per passage number. */
-export function PracticeSummary({ results = [], compact = false }) {
+const byId = new Map(readingPractice.map((p) => [p.id, p]));
+
+/**
+ * Reading Practice progress: passages done per passage number, the average band,
+ * and (unless compact) every passage the student has done with its result.
+ */
+export function PracticeSummary({ results = [], compact = false, title = 'Reading Practice' }) {
   const done = new Set(results.map((r) => r.item));
-  const scored = results.filter((r) => r.total);
-  const avg = scored.length ? Math.round((scored.reduce((t, r) => t + r.correct / r.total, 0) / scored.length) * 100) : null;
+  const avg = averageBand(results.map((r) => r.band));
   const rows = [1, 2, 3].map((n) => {
     const all = readingPractice.filter((p) => p.passage === n);
     return { n, total: all.length, done: all.filter((p) => done.has(p.id)).length };
   });
   const totalDone = rows.reduce((t, r) => t + r.done, 0);
+  const list = results
+    .filter((r) => byId.has(r.item))
+    .sort((a, b) => b.lesson_date.localeCompare(a.lesson_date));
 
   return (
     <div className={`psum card-white ${compact ? 'psum--compact' : ''}`}>
       <div className="mgrid__head">
-        <span className="mgrid__label">Reading Practice</span>
+        <span className="mgrid__label">{title}</span>
         <span className="mgrid__count num">
           {totalDone}
           <small>/{readingPractice.length}</small>
@@ -33,7 +42,37 @@ export function PracticeSummary({ results = [], compact = false }) {
           </li>
         ))}
       </ul>
-      {avg != null && <p className="muted-sm psum__avg">Average score {avg}%</p>}
+      {avg != null && <p className="muted-sm psum__avg">Average band {formatBand(avg)}</p>}
+
+      {!compact && list.length > 0 && (
+        <table className="psum__table">
+          <thead>
+            <tr>
+              <th>Passage</th>
+              <th className="num">Correct</th>
+              <th className="num">Band</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {list.map((r) => {
+              const p = byId.get(r.item);
+              return (
+                <tr key={r.item}>
+                  <td>
+                    <span className="psum__p">P{p.passage}</span> {p.title}
+                  </td>
+                  <td className="num">{r.correct != null ? `${r.correct}/${r.total}` : '—'}</td>
+                  <td className="num">
+                    <strong>{formatBand(r.band)}</strong>
+                  </td>
+                  <td className="muted-sm">{formatDate(r.lesson_date, { short: true })}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }

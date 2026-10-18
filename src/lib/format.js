@@ -43,6 +43,8 @@ export function practiceTitle(l) {
 }
 
 export const score = (l) => (l.correct == null ? null : `${l.correct}/${l.total}`);
+/** "11/13 · Band 7.5" — correct answers and the IELTS band for one result. */
+export const result = (l) => (l.correct == null ? null : `${l.correct}/${l.total} · Band ${Number(l.band).toFixed(1)}`);
 export const scorePct = (l) => (l.correct == null || !l.total ? null : Math.round((l.correct / l.total) * 100));
 
 export function todayISO() {

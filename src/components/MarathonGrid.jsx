@@ -18,7 +18,7 @@ export function MarathonGrid({ skill, label, tone, results, compact = false }) {
           const pct = r?.total ? r.correct / r.total : null;
           const title = marathonTitle(skill, day);
           const tip = r
-            ? `Day ${day}${title ? ` · ${title}` : ''} — ${r.correct != null ? `${r.correct}/${r.total}` : 'done'} (${formatDate(r.lesson_date, { short: true })})`
+            ? `Day ${day}${title ? ` · ${title}` : ''} — ${r.correct != null ? `${r.correct}/${r.total}, band ${Number(r.band).toFixed(1)}` : 'done'} (${formatDate(r.lesson_date, { short: true })})`
             : `Day ${day}${title ? ` · ${title}` : ''} — not done yet`;
           return (
             <li

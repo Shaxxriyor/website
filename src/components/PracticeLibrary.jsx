@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { readingPractice } from '../data/readingPractice.js';
 import { BookIcon, CheckIcon, SearchIcon } from './Icons.jsx';
+import { PracticeSummary } from './PracticeSummary.jsx';
 
 const href = (id) => `${import.meta.env.BASE_URL}practice/reading/${id}.html`;
 const tones = { 1: 'mint', 2: 'peach', 3: 'lilac' };
@@ -53,6 +54,8 @@ export function PracticeLibrary({ results = [], signedIn = false }) {
         )}
       </header>
 
+      {signedIn && results.length > 0 && <PracticeSummary results={results} title="My results" />}
+
       <div className="toolbar">
         <label className="search">
           <SearchIcon size={16} />
@@ -103,7 +106,7 @@ export function PracticeLibrary({ results = [], signedIn = false }) {
                   </span>
                   {r ? (
                     <span className="pill pill--glass plib__score">
-                      <CheckIcon size={12} /> {r.correct != null ? `${r.correct}/${r.total}` : 'Done'}
+                      <CheckIcon size={12} /> {r.correct != null ? `${r.correct}/${r.total} · Band ${Number(r.band).toFixed(1)}` : 'Done'}
                     </span>
                   ) : (
                     <span className="plib__go" aria-hidden="true">

@@ -1,6 +1,6 @@
 import { api } from '../../lib/api.js';
-import { SKILLS, duration, hours, levelName, relativeDay, skillMeta } from '../../lib/format.js';
-import { LogoMark, LogoutIcon, PhoneIcon, MailIcon } from '../Icons.jsx';
+import { CATEGORIES, categoryOf, hours, levelName, practiceTitle, relativeDay } from '../../lib/format.js';
+import { LogoMark, LogoutIcon } from '../Icons.jsx';
 import { Avatar } from '../Avatar.jsx';
 import { ActivityChart } from '../ActivityChart.jsx';
 import { Skeleton, useLoad } from './ui.jsx';
@@ -36,7 +36,7 @@ export function OverviewPanel({ version, onSignOut }) {
             </div>
             <div className="card-white">
               <span className="mini-stats__value">{data.month.lessons}</span>
-              <span className="muted-sm">Lessons this month</span>
+              <span className="muted-sm">Practice this month</span>
             </div>
             <div className="card-white">
               <span className="mini-stats__value">{hours(data.month.minutes)}</span>
@@ -48,16 +48,16 @@ export function OverviewPanel({ version, onSignOut }) {
             </div>
           </div>
 
-          <ActivityChart data={data.activity} series={SKILLS} rangeLabel="Last 7 months" title="All students" />
+          <ActivityChart data={data.activity} series={CATEGORIES} rangeLabel="Last 7 months" title="All students" />
 
           <div className="section-head section-head--panel">
-            <h3 className="label">Latest lessons</h3>
-            <a className="link-sm" href="#/lessons">
+            <h3 className="label">Latest practice</h3>
+            <a className="link-sm" href="#/practice">
               See all
             </a>
           </div>
           {data.recent.length === 0 ? (
-            <p className="muted-sm panel__note">Lessons you record will appear here.</p>
+            <p className="muted-sm panel__note">Marathon days and exercises you record will appear here.</p>
           ) : (
             <ul className="mini-lessons">
               {data.recent.map((l) => (
@@ -67,7 +67,7 @@ export function OverviewPanel({ version, onSignOut }) {
                     <span className="mini-lesson__text">
                       <strong>{l.student_name}</strong>
                       <span className="muted-sm">
-                        {skillMeta(l.skill).label} · {duration(l.duration_minutes)}
+                        {categoryOf(l).short} · {l.kind === 'marathon' ? `Day ${l.day}` : practiceTitle(l)}
                       </span>
                     </span>
                     <span className="muted-sm">{relativeDay(l.lesson_date)}</span>
@@ -82,7 +82,7 @@ export function OverviewPanel({ version, onSignOut }) {
   );
 }
 
-/** Student profile page: who they are and their study activity over time. */
+/** Student profile page: who they are and their study activity over time. Contact details stay on the profile itself. */
 export function StudentPanel({ data, onSignOut }) {
   if (!data) {
     return (
@@ -108,29 +108,14 @@ export function StudentPanel({ data, onSignOut }) {
 
       <div className="friends card-white friends--static">
         <span>
-          <strong>{stats.lesson_count}</strong> lessons
+          <strong>{stats.marathon_days}</strong> marathon days
         </span>
         <span>
           <strong>{hours(stats.total_minutes)}</strong> studied
         </span>
       </div>
 
-      {(s.phone || s.email) && (
-        <div className="contact card-white">
-          {s.phone && (
-            <a href={`tel:${s.phone.replace(/[^\d+]/g, '')}`}>
-              <PhoneIcon size={16} /> {s.phone}
-            </a>
-          )}
-          {s.email && (
-            <a href={`mailto:${s.email}`}>
-              <MailIcon size={16} /> {s.email}
-            </a>
-          )}
-        </div>
-      )}
-
-      <ActivityChart data={activity} series={SKILLS} rangeLabel="Last 7 months" title="Study activity" />
+      <ActivityChart data={activity} series={CATEGORIES} rangeLabel="Last 7 months" title="Study activity" />
     </aside>
   );
 }

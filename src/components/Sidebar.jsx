@@ -4,7 +4,7 @@ import { Avatar } from './Avatar.jsx';
 const nav = [
   { id: 'home', label: 'Home', icon: HomeIcon, href: '#/' },
   { id: 'students', label: 'Students', icon: UsersIcon, href: '#/students' },
-  { id: 'lessons', label: 'Lessons', icon: LessonIcon, href: '#/lessons' },
+  { id: 'practice', label: 'Practice', icon: LessonIcon, href: '#/practice' },
 ];
 
 export function Sidebar({ active }) {

@@ -1984,7 +1984,7 @@ body.has-sheet {
 }
 .lesson-row {
   display: grid;
-  grid-template-columns: 116px minmax(0, 1fr) 76px 52px 32px;
+  grid-template-columns: 152px minmax(0, 1fr) 64px 56px 32px;
   align-items: center;
   gap: 12px;
   padding: 10px 10px 10px 14px;
@@ -1994,7 +1994,7 @@ body.has-sheet {
   border-top: 1px solid var(--line);
 }
 .lesson-row--wide {
-  grid-template-columns: minmax(150px, 1.2fr) 116px minmax(0, 1.4fr) 76px 52px 32px;
+  grid-template-columns: minmax(150px, 1.1fr) 152px minmax(0, 1.5fr) 64px 56px 32px;
 }
 .lesson-row__who {
   display: flex;
@@ -2056,6 +2056,9 @@ body.has-sheet {
   font-size: 12px;
   font-weight: 500;
   background: color-mix(in srgb, var(--tone) 55%, #fff);
+}
+.skill-chip {
+  white-space: nowrap;
 }
 .skill-chip i {
   width: 7px;
@@ -2448,7 +2451,7 @@ body.has-sheet {
     gap: 10px;
   }
   .lesson-row--wide {
-    grid-template-columns: minmax(130px, 1fr) 108px minmax(0, 1.2fr) 70px 48px 32px;
+    grid-template-columns: minmax(130px, 1fr) 146px minmax(0, 1.2fr) 60px 52px 32px;
   }
 }
 @media (max-width: 1080px) {
@@ -2555,5 +2558,106 @@ body.has-sheet {
   }
   .toast {
     bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ---------- Practice: score input, marathon grids ---------- */
+.score {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.score .input {
+  width: 110px;
+}
+.score .input:disabled {
+  opacity: 0.5;
+}
+.score__of {
+  font-size: 13px;
+  color: var(--muted);
+}
+.score__total {
+  display: inline-grid;
+  place-items: center;
+  min-width: 52px;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: var(--r-sm);
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--panel-solid);
+  box-shadow: var(--highlight);
+}
+.band--good {
+  background: rgba(158, 223, 194, 0.7);
+}
+.band--low {
+  background: rgba(244, 186, 181, 0.6);
+}
+.marathon-progress {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.mgrid {
+  padding: 14px 16px 16px;
+}
+.mgrid__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.mgrid__label {
+  font-size: 13px;
+  font-weight: 500;
+}
+.mgrid__count {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.mgrid__count small {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.mgrid__days {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.mgrid__day {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--panel-solid);
+  font-variant-numeric: tabular-nums;
+  cursor: default;
+  transition: transform 0.3s var(--spring);
+}
+.mgrid__day:hover {
+  transform: scale(1.12);
+}
+.mgrid__day.is-done {
+  color: var(--ink);
+  font-weight: 600;
+  background: var(--tone);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.mgrid__day.is-strong {
+  background: var(--tone-deep);
+}
+@media (max-width: 1280px) {
+  .marathon-progress {
+    grid-template-columns: 1fr;
   }
 }

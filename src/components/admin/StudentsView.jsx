@@ -98,7 +98,7 @@ export function StudentsView({ version, onChanged, notify }) {
             </button>
           }
         >
-          Register a student and they’ll show up here with their lessons and study hours.
+          Register a student and they’ll show up here with their marathon progress and study hours.
         </EmptyState>
       ) : visible.length === 0 ? (
         <EmptyState icon={SearchIcon} title="No matches">
@@ -110,7 +110,7 @@ export function StudentsView({ version, onChanged, notify }) {
             <span role="columnheader">Student</span>
             <span role="columnheader">Group</span>
             <span role="columnheader">Level</span>
-            <span role="columnheader">Lessons</span>
+            <span role="columnheader">Done</span>
             <span role="columnheader">Hours</span>
             <span role="columnheader">Status</span>
             <span aria-hidden="true" />
@@ -126,7 +126,7 @@ export function StudentsView({ version, onChanged, notify }) {
                 <Avatar name={s.full_name} size={36} />
                 <span>
                   <strong>{s.full_name}</strong>
-                  <span className="muted-sm">{s.phone || s.email || `Since ${formatDate(s.registered_at)}`}</span>
+                  <span className="muted-sm">Since {formatDate(s.registered_at)}</span>
                 </span>
               </span>
               <span role="cell" className="student-row__group">

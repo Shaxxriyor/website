@@ -10,15 +10,40 @@ export const LEVELS = [
 ];
 export const levelName = (id) => LEVELS.find((l) => l.id === id)?.name ?? id;
 
-// Fixed order: colour follows the skill everywhere (chart, chips, bars).
-export const SKILLS = [
-  { key: 'reading', label: 'Reading', color: 'var(--chart-reading)', tone: 'lilac' },
-  { key: 'listening', label: 'Listening', color: 'var(--chart-listening)', tone: 'rose' },
-  { key: 'vocabulary', label: 'Vocabulary', color: 'var(--chart-vocabulary)', tone: 'peach' },
-  { key: 'mock', label: 'Mock test', color: 'var(--chart-mock)', tone: 'mint' },
-  { key: 'other', label: 'Other', color: 'var(--chart-other)', tone: 'sand' },
+import { readingMarathon } from '../data/mock.js';
+
+export const MARATHON_DAYS = 20;
+export const MARATHON_TOTAL = { reading: 13, listening: 20 };
+
+// Practice categories in fixed order: colour follows the category everywhere
+// (chart, chips, rows). Keys match the API's `${kind}_${skill}`.
+export const CATEGORIES = [
+  { key: 'marathon_reading', kind: 'marathon', skill: 'reading', label: 'Reading Marathon', short: 'Reading Marathon', color: 'var(--chart-reading)', tone: 'lilac' },
+  { key: 'marathon_listening', kind: 'marathon', skill: 'listening', label: 'Listening Marathon', short: 'Listening Marathon', color: 'var(--chart-listening)', tone: 'rose' },
+  { key: 'exercise_reading', kind: 'exercise', skill: 'reading', label: 'Reading exercise', short: 'Reading ex.', color: 'var(--chart-vocabulary)', tone: 'peach' },
+  { key: 'exercise_listening', kind: 'exercise', skill: 'listening', label: 'Listening exercise', short: 'Listening ex.', color: 'var(--chart-mock)', tone: 'mint' },
 ];
-export const skillMeta = (key) => SKILLS.find((s) => s.key === key) ?? SKILLS.at(-1);
+export const categoryOf = (l) => CATEGORIES.find((c) => c.kind === l.kind && c.skill === l.skill) ?? CATEGORIES[2];
+
+const readingTitles = Object.fromEntries(readingMarathon.days.map((d) => [d.day, d.title]));
+
+/** Passage / section title for a marathon day, when we know it. */
+export function marathonTitle(skill, day) {
+  if (skill === 'reading') return readingTitles[day] ?? null;
+  return 'Sections 2 & 3';
+}
+
+/** "Day 7 · The internal body clock" for marathon records, the exercise name otherwise. */
+export function practiceTitle(l) {
+  if (l.kind === 'marathon') {
+    const t = l.topic || marathonTitle(l.skill, l.day);
+    return `Day ${l.day}${t ? ` · ${t}` : ''}`;
+  }
+  return l.topic;
+}
+
+export const score = (l) => (l.correct == null ? null : `${l.correct}/${l.total}`);
+export const scorePct = (l) => (l.correct == null || !l.total ? null : Math.round((l.correct / l.total) * 100));
 
 export function todayISO() {
   const d = new Date();
@@ -56,4 +81,3 @@ export function duration(minutes) {
   return m ? `${h}h ${m}m` : `${h}h`;
 }
 
-export const band = (b) => (b == null ? '—' : Number(b).toFixed(1));

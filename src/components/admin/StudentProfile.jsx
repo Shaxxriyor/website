@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react';
 import { api } from '../../lib/api.js';
 import { navigate } from '../../lib/router.js';
-import { SKILLS, band, formatDate, hours, levelName, relativeDay } from '../../lib/format.js';
+import { MARATHON_DAYS, formatDate, hours, levelName, marathonTitle, relativeDay } from '../../lib/format.js';
 import { ArrowLeft, EditIcon, LessonIcon, MailIcon, PhoneIcon, PlusIcon, TrashIcon } from '../Icons.jsx';
 import { Avatar } from '../Avatar.jsx';
 import { ConfirmSheet, EmptyState, ErrorNote, Skeleton, StatusPill, useLoad } from './ui.jsx';
 import { StudentForm } from './StudentForm.jsx';
-import { LessonForm } from './LessonForm.jsx';
-import { LessonRows } from './LessonRows.jsx';
+import { PracticeForm } from './PracticeForm.jsx';
+import { PracticeRows } from './PracticeRows.jsx';
 
 const RECENT = 8;
 
@@ -45,9 +45,7 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
     );
   }
 
-  const { student: s, stats, skills, lessons } = data;
-  const skillMinutes = Object.fromEntries(skills.map((k) => [k.skill, k.minutes]));
-  const maxSkill = Math.max(1, ...skills.map((k) => k.minutes));
+  const { student: s, stats, marathon, lessons } = data;
   const shown = showAll ? lessons : lessons.slice(0, RECENT);
 
   return (
@@ -86,44 +84,39 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
             <EditIcon size={15} /> Edit
           </button>
           <button className="btn btn--dark" onClick={() => setRecording(true)}>
-            <PlusIcon size={15} /> Record lesson
+            <PlusIcon size={15} /> Record practice
           </button>
         </div>
       </section>
 
       <div className="stat-grid">
-        <Stat tone="lilac" label="Total lessons" value={stats.lesson_count} />
+        <Stat tone="lilac" label="Marathon days done" value={stats.marathon_days} />
+        <Stat tone="mint" label="Exercises done" value={stats.exercise_count} />
         <Stat tone="rose" label="Study hours" value={hours(stats.total_minutes)} />
-        <Stat tone="peach" label="Average band" value={band(stats.average_band)} />
-        <Stat tone="mint" label="Last lesson" value={stats.last_lesson ? relativeDay(stats.last_lesson) : '—'} small />
+        <Stat
+          tone="peach"
+          label="Average score"
+          value={stats.average_score == null ? '—' : `${stats.average_score}%`}
+        />
       </div>
 
       {s.notes && <p className="profile-notes card-white">{s.notes}</p>}
 
-      <section aria-labelledby="skills-title">
+      <section aria-labelledby="marathon-title">
         <div className="section-head">
-          <h2 id="skills-title" className="label">Study time by skill</h2>
+          <h2 id="marathon-title" className="label">Marathon progress</h2>
+          <span className="link-sm">Last active {stats.last_lesson ? relativeDay(stats.last_lesson) : '—'}</span>
         </div>
-        <ul className="skill-bars card-white">
-          {SKILLS.map((k) => {
-            const m = skillMinutes[k.key] || 0;
-            return (
-              <li key={k.key}>
-                <span className="skill-bars__label">{k.label}</span>
-                <span className="skill-bars__track">
-                  <span style={{ width: `${(m / maxSkill) * 100}%`, background: k.color }} />
-                </span>
-                <span className="skill-bars__value num">{hours(m)}</span>
-              </li>
-            );
-          })}
-        </ul>
+        <div className="marathon-progress">
+          <MarathonGrid skill="reading" label="Reading Marathon" tone="lilac" results={marathon} />
+          <MarathonGrid skill="listening" label="Listening Marathon" tone="rose" results={marathon} />
+        </div>
       </section>
 
       <section aria-labelledby="recent-title">
         <div className="section-head">
           <h2 id="recent-title" className="label">
-            Recent lessons
+            Recent practice
           </h2>
           {lessons.length > RECENT && (
             <button className="link-sm" onClick={() => setShowAll((v) => !v)}>
@@ -134,18 +127,18 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
         {lessons.length === 0 ? (
           <EmptyState
             icon={LessonIcon}
-            title="No lessons yet"
+            title="Nothing recorded yet"
             action={
               <button className="btn btn--dark" onClick={() => setRecording(true)}>
-                <PlusIcon size={16} /> Record the first lesson
+                <PlusIcon size={16} /> Record a marathon day or exercise
               </button>
             }
           />
         ) : (
-          <LessonRows
+          <PracticeRows
             lessons={shown}
             onDeleted={() => {
-              notify('Lesson deleted');
+              notify('Record deleted');
               onChanged();
             }}
           />
@@ -169,12 +162,12 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
         />
       )}
       {recording && (
-        <LessonForm
+        <PracticeForm
           presetStudentId={s.id}
           onClose={() => setRecording(false)}
           onSaved={(n) => {
             setRecording(false);
-            notify(n > 1 ? `Lesson recorded for ${n} students` : 'Lesson recorded');
+            notify(n > 1 ? `Saved for ${n} students` : 'Practice recorded');
             onChanged();
           }}
         />
@@ -182,7 +175,7 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
       {deleting && (
         <ConfirmSheet
           title={`Delete ${s.full_name}?`}
-          message={`This removes the student and all ${stats.lesson_count} of their lessons. This can’t be undone. To keep their history, set them to Inactive instead.`}
+          message={`This removes the student and all ${stats.lesson_count} of their practice records. This can’t be undone. To keep their history, set them to Inactive instead.`}
           confirmLabel="Delete student"
           onClose={() => setDeleting(false)}
           onConfirm={async () => {
@@ -210,6 +203,42 @@ function Stat({ tone, label, value, small }) {
     <div className={`stat tone-${tone}`}>
       <span className="stat__label">{label}</span>
       <span className={`stat__value ${small ? 'stat__value--sm' : ''}`}>{value}</span>
+    </div>
+  );
+}
+
+/** 20 day cells; filled when done, tinted by score, with the best result on hover. */
+function MarathonGrid({ skill, label, tone, results }) {
+  const byDay = new Map(results.filter((r) => r.skill === skill).map((r) => [r.day, r]));
+  return (
+    <div className={`mgrid card-white tone-${tone}`}>
+      <div className="mgrid__head">
+        <span className="mgrid__label">{label}</span>
+        <span className="mgrid__count num">
+          {byDay.size}
+          <small>/{MARATHON_DAYS}</small>
+        </span>
+      </div>
+      <ol className="mgrid__days">
+        {Array.from({ length: MARATHON_DAYS }, (_, i) => i + 1).map((day) => {
+          const r = byDay.get(day);
+          const pct = r?.total ? r.correct / r.total : null;
+          const title = marathonTitle(skill, day);
+          const tip = r
+            ? `Day ${day}${title ? ` · ${title}` : ''} — ${r.correct != null ? `${r.correct}/${r.total}` : 'done'} (${formatDate(r.lesson_date, { short: true })})`
+            : `Day ${day}${title ? ` · ${title}` : ''} — not done yet`;
+          return (
+            <li
+              key={day}
+              className={`mgrid__day ${r ? 'is-done' : ''} ${pct != null && pct >= 0.8 ? 'is-strong' : ''}`}
+              title={tip}
+              aria-label={tip}
+            >
+              {day}
+            </li>
+          );
+        })}
+      </ol>
     </div>
   );
 }

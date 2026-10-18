@@ -1,12 +1,14 @@
 import { ApiError, json, readBody, route, searchParams } from '../server/http.js';
 import { requireAdmin } from '../server/auth.js';
-import { SKILLS, createLessons, deleteLesson, id, listLessons } from '../server/model.js';
+import { KINDS, SKILLS, createLessons, deleteLesson, id, listLessons } from '../server/model.js';
 
 export const GET = route(async (request) => {
   requireAdmin(request);
   const q = searchParams(request);
   const skill = q.get('skill');
+  const kind = q.get('kind');
   const lessons = await listLessons({
+    kind: KINDS.includes(kind) ? kind : undefined,
     studentId: q.get('student_id') ? id(q.get('student_id'), 'student_id') : undefined,
     skill: SKILLS.includes(skill) ? skill : undefined,
     from: /^\d{4}-\d{2}-\d{2}$/.test(q.get('from') || '') ? q.get('from') : undefined,

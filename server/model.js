@@ -3,7 +3,12 @@ import { query } from './db.js';
 
 export const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 export const STATUSES = ['active', 'inactive'];
-export const SKILLS = ['reading', 'listening', 'vocabulary', 'mock', 'other'];
+export const SKILLS = ['reading', 'listening'];
+export const KINDS = ['marathon', 'exercise'];
+// Activity-chart categories: one per kind × skill.
+export const CATEGORIES = KINDS.flatMap((k) => SKILLS.map((s) => `${k}_${s}`));
+const MARATHON_DAYS = 20;
+const MARATHON_TOTAL = { reading: 13, listening: 20 };
 
 // ---------- validation ----------
 
@@ -56,26 +61,51 @@ export function studentInput(input) {
   };
 }
 
+function optionalInt(input, field, min, max) {
+  const v = input[field];
+  if (v === '' || v === null || v === undefined) return null;
+  const n = Number(v);
+  if (!Number.isInteger(n) || n < min || n > max) fail(field, `Whole number ${min}–${max}`);
+  return n;
+}
+
+/** A practice record: a marathon day or an exercise, for one or more students. */
 export function lessonInput(input) {
   const ids = Array.isArray(input.student_ids) ? [...new Set(input.student_ids.map((v) => id(v, 'student_ids')))] : [];
   if (!ids.length) fail('student_ids', 'Choose at least one student');
   if (ids.length > 200) fail('student_ids', 'Too many students');
+  const kind = oneOf(input, 'kind', KINDS);
+  const skill = oneOf(input, 'skill', SKILLS);
   const duration = Number(input.duration_minutes);
   if (!Number.isInteger(duration) || duration < 5 || duration > 600) fail('duration_minutes', '5–600 minutes');
-  let band = input.band;
-  if (band === '' || band === null || band === undefined) {
-    band = null;
-  } else {
-    band = Number(band);
-    if (!(band >= 0 && band <= 9) || (band * 2) % 1 !== 0) fail('band', 'Band 0–9 in steps of 0.5');
+
+  let day = null;
+  let topic = text(input, 'topic', { max: 200 });
+  if (kind === 'marathon') {
+    day = optionalInt(input, 'day', 1, MARATHON_DAYS);
+    if (day === null) fail('day', 'Choose a day');
+  } else if (!topic) {
+    fail('topic', 'Name the exercise');
   }
+
+  const correct = optionalInt(input, 'correct', 0, 200);
+  let total = optionalInt(input, 'total', 1, 200);
+  if (correct !== null && total === null) total = kind === 'marathon' ? MARATHON_TOTAL[skill] : null;
+  if (correct !== null && total === null) fail('total', 'Out of how many?');
+  if (correct !== null && correct > total) fail('correct', 'More than the total');
+  if (correct === null) total = null;
+  if (correct !== null && ids.length > 1) fail('correct', 'Scores are per student — record them one at a time');
+
   return {
     student_ids: ids,
     lesson_date: date(input, 'lesson_date'),
-    skill: oneOf(input, 'skill', SKILLS),
-    topic: text(input, 'topic', { max: 200 }),
+    kind,
+    skill,
+    day,
+    topic,
+    correct,
+    total,
     duration_minutes: duration,
-    band,
     notes: text(input, 'notes', { max: 2000 }),
   };
 }
@@ -85,8 +115,8 @@ export function lessonInput(input) {
 const STUDENT_COLUMNS = `s.id, s.full_name, s.phone, s.email, s.group_name, s.level,
   s.registered_at::text AS registered_at, s.status, s.notes`;
 
-const LESSON_COLUMNS = `l.id, l.student_id, l.lesson_date::text AS lesson_date, l.skill, l.topic,
-  l.duration_minutes, l.band::float8 AS band, l.notes, s.full_name AS student_name, s.group_name`;
+const LESSON_COLUMNS = `l.id, l.student_id, l.lesson_date::text AS lesson_date, l.kind, l.skill, l.day, l.topic,
+  l.correct, l.total, l.duration_minutes, l.notes, s.full_name AS student_name, s.group_name`;
 
 export async function listStudents() {
   return query(
@@ -104,30 +134,35 @@ export async function getStudent(studentId) {
   const [student] = await query(`SELECT ${STUDENT_COLUMNS} FROM students s WHERE s.id = $1`, [studentId]);
   if (!student) throw new ApiError('Student not found.', 404);
 
-  const [[stats], skills, lessons, activity] = await Promise.all([
+  const [[stats], marathon, lessons, activity] = await Promise.all([
     query(
       `SELECT COUNT(*)::int AS lesson_count,
+         COUNT(*) FILTER (WHERE kind = 'exercise')::int AS exercise_count,
+         COUNT(DISTINCT (skill, day)) FILTER (WHERE kind = 'marathon')::int AS marathon_days,
          COALESCE(SUM(duration_minutes), 0)::int AS total_minutes,
-         AVG(band)::float8 AS average_band,
+         ROUND(AVG(correct::float8 / total * 100) FILTER (WHERE total > 0))::int AS average_score,
          MAX(lesson_date)::text AS last_lesson
        FROM lessons WHERE student_id = $1`,
       [studentId],
     ),
+    // Best result per marathon day, for the progress grid.
     query(
-      `SELECT skill, COUNT(*)::int AS lessons, SUM(duration_minutes)::int AS minutes
-       FROM lessons WHERE student_id = $1 GROUP BY skill`,
+      `SELECT DISTINCT ON (skill, day) skill, day, correct, total, lesson_date::text AS lesson_date
+       FROM lessons WHERE student_id = $1 AND kind = 'marathon' AND day IS NOT NULL
+       ORDER BY skill, day, (correct::float8 / NULLIF(total, 0)) DESC NULLS LAST, lesson_date DESC`,
       [studentId],
     ),
     listLessons({ studentId, limit: 100 }),
     monthlyActivity(studentId),
   ]);
-  return { student, stats, skills, lessons, activity };
+  return { student, stats, marathon, lessons, activity };
 }
 
-export async function listLessons({ studentId, skill, from, to, limit = 300 } = {}) {
+export async function listLessons({ studentId, kind, skill, from, to, limit = 300 } = {}) {
   const where = [];
   const params = [];
   if (studentId) where.push(`l.student_id = $${params.push(studentId)}`);
+  if (kind) where.push(`l.kind = $${params.push(kind)}`);
   if (skill) where.push(`l.skill = $${params.push(skill)}`);
   if (from) where.push(`l.lesson_date >= $${params.push(from)}`);
   if (to) where.push(`l.lesson_date <= $${params.push(to)}`);
@@ -141,28 +176,29 @@ export async function listLessons({ studentId, skill, from, to, limit = 300 } = 
   );
 }
 
-/** Hours per skill for each of the last `months` calendar months (oldest first). */
+/** Hours per category (kind_skill) for each of the last `months` calendar months (oldest first). */
 export async function monthlyActivity(studentId = null, months = 7) {
   const now = new Date();
   const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (months - 1), 1));
   const params = [start.toISOString().slice(0, 10)];
   const rows = await query(
-    `SELECT to_char(lesson_date, 'YYYY-MM') AS ym, skill, SUM(duration_minutes)::int AS minutes
+    `SELECT to_char(lesson_date, 'YYYY-MM') AS ym, kind || '_' || skill AS category,
+       SUM(duration_minutes)::int AS minutes
      FROM lessons
      WHERE lesson_date >= $1 ${studentId ? `AND student_id = $${params.push(studentId)}` : ''}
-     GROUP BY ym, skill`,
+     GROUP BY ym, category`,
     params,
   );
   const buckets = [];
   for (let i = 0; i < months; i++) {
     const d = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + i, 1));
     const bucket = { key: d.toISOString().slice(0, 7), month: d.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' }) };
-    for (const s of SKILLS) bucket[s] = 0;
+    for (const c of CATEGORIES) bucket[c] = 0;
     buckets.push(bucket);
   }
   for (const r of rows) {
     const b = buckets.find((x) => x.key === r.ym);
-    if (b && r.skill in b) b[r.skill] = Math.round((r.minutes / 60) * 100) / 100;
+    if (b && r.category in b) b[r.category] = Math.round((r.minutes / 60) * 100) / 100;
   }
   return buckets;
 }
@@ -221,10 +257,10 @@ export async function createLessons(input) {
   const found = await query('SELECT id FROM students WHERE id = ANY($1::int[])', [l.student_ids]);
   if (found.length !== l.student_ids.length) throw new ApiError('Some students no longer exist.', 422);
 
-  const params = [l.lesson_date, l.skill, l.topic, l.duration_minutes, l.band, l.notes];
-  const values = l.student_ids.map((sid) => `($${params.push(sid)}, $1, $2, $3, $4, $5, $6)`);
+  const params = [l.lesson_date, l.kind, l.skill, l.day, l.topic, l.correct, l.total, l.duration_minutes, l.notes];
+  const values = l.student_ids.map((sid) => `($${params.push(sid)}, $1, $2, $3, $4, $5, $6, $7, $8, $9)`);
   await query(
-    `INSERT INTO lessons (student_id, lesson_date, skill, topic, duration_minutes, band, notes)
+    `INSERT INTO lessons (student_id, lesson_date, kind, skill, day, topic, correct, total, duration_minutes, notes)
      VALUES ${values.join(', ')}`,
     params,
   );

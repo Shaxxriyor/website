@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { api } from '../../lib/api.js';
-import { band, duration, relativeDay, skillMeta } from '../../lib/format.js';
+import { categoryOf, duration, practiceTitle, relativeDay, score, scorePct } from '../../lib/format.js';
 import { TrashIcon } from '../Icons.jsx';
 import { Avatar } from '../Avatar.jsx';
 import { ConfirmSheet } from './ui.jsx';
 
-/** Lessons grouped under date headers. `showStudent` adds the student column (all-lessons log). */
-export function LessonRows({ lessons, showStudent = false, onDeleted }) {
+/** Practice records grouped under date headers. `showStudent` adds the student column (all-practice log). */
+export function PracticeRows({ lessons, showStudent = false, onDeleted }) {
   const [deleting, setDeleting] = useState(null);
 
   const byDay = [];
@@ -23,7 +23,8 @@ export function LessonRows({ lessons, showStudent = false, onDeleted }) {
           <h3 className="lesson-day__title">{relativeDay(day.date)}</h3>
           <ul className="lesson-list card-white">
             {day.items.map((l) => {
-              const skill = skillMeta(l.skill);
+              const cat = categoryOf(l);
+              const pct = scorePct(l);
               return (
                 <li key={l.id} className={`lesson-row ${showStudent ? 'lesson-row--wide' : ''}`}>
                   {showStudent && (
@@ -35,21 +36,25 @@ export function LessonRows({ lessons, showStudent = false, onDeleted }) {
                       </span>
                     </a>
                   )}
-                  <span className={`skill-chip tone-${skill.tone}`}>
-                    <i style={{ background: skill.color }} />
-                    {skill.label}
+                  <span className={`skill-chip tone-${cat.tone}`} title={cat.label}>
+                    <i style={{ background: cat.color }} />
+                    {cat.short}
                   </span>
                   <span className="lesson-row__topic" title={l.notes || undefined}>
-                    {l.topic || <span className="muted-sm">No topic</span>}
+                    {practiceTitle(l) || <span className="muted-sm">Untitled</span>}
                     {l.notes && <span className="muted-sm lesson-row__notes">{l.notes}</span>}
                   </span>
                   <span className="lesson-row__meta num">{duration(l.duration_minutes)}</span>
-                  <span className="lesson-row__band num" title="Band score">
-                    {l.band != null ? <span className="band">{band(l.band)}</span> : <span className="muted-sm">—</span>}
+                  <span className="lesson-row__band num" title={pct != null ? `${pct}%` : 'No score'}>
+                    {pct != null ? (
+                      <span className={`band ${pct >= 80 ? 'band--good' : pct < 50 ? 'band--low' : ''}`}>{score(l)}</span>
+                    ) : (
+                      <span className="muted-sm">—</span>
+                    )}
                   </span>
                   <button
                     className="icon-btn icon-btn--ghost icon-btn--sm"
-                    aria-label="Delete lesson"
+                    aria-label="Delete record"
                     onClick={() => setDeleting(l)}
                   >
                     <TrashIcon size={16} />
@@ -63,8 +68,8 @@ export function LessonRows({ lessons, showStudent = false, onDeleted }) {
 
       {deleting && (
         <ConfirmSheet
-          title="Delete this lesson?"
-          message={`${skillMeta(deleting.skill).label} · ${duration(deleting.duration_minutes)} on ${relativeDay(deleting.lesson_date)}${
+          title="Delete this record?"
+          message={`${categoryOf(deleting).label} · ${practiceTitle(deleting)} on ${relativeDay(deleting.lesson_date)}${
             showStudent ? ` for ${deleting.student_name}` : ''
           }. This can’t be undone.`}
           onClose={() => setDeleting(null)}

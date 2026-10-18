@@ -63,35 +63,59 @@ r = await call('students');
 assert.deepEqual(r.data.students.map((s) => s.full_name), ['Jasur Toshev', 'Malika Rahimova']);
 assert.equal(r.data.students[1].registered_at, today);
 
-// --- lessons ---
-r = await call('lessons', { method: 'POST', body: { action: 'create', student_ids: [malika, jasur], lesson_date: today, skill: 'reading', topic: 'TFNG', duration_minutes: 90, band: 6.5 } });
-assert.equal(r.status, 201);
+// --- practice: marathon days & exercises ---
+const post = (body) => call('lessons', { method: 'POST', body: { action: 'create', lesson_date: today, ...body } });
+r = await post({ student_ids: [malika, jasur], kind: 'marathon', skill: 'reading', day: 7, duration_minutes: 60 });
+assert.equal(r.status, 201, 'group marathon record without scores');
 assert.equal(r.data.created, 2);
-r = await call('lessons', { method: 'POST', body: { action: 'create', student_ids: [malika], lesson_date: today, skill: 'listening', duration_minutes: 45, band: 6.3 } });
-assert.equal(r.status, 422, 'band must be a half step');
-r = await call('lessons', { method: 'POST', body: { action: 'create', student_ids: [malika], lesson_date: today, skill: 'listening', duration_minutes: 45, band: '' } });
+r = await post({ student_ids: [malika, jasur], kind: 'marathon', skill: 'reading', day: 8, duration_minutes: 60, correct: 10 });
+assert.equal(r.status, 422, 'scores are per student');
+r = await post({ student_ids: [malika], kind: 'marathon', skill: 'reading', duration_minutes: 60 });
+assert.equal(r.status, 422, 'marathon needs a day');
+assert.ok(r.data.fields.day);
+r = await post({ student_ids: [malika], kind: 'marathon', skill: 'reading', day: 7, duration_minutes: 60, correct: 14 });
+assert.equal(r.status, 422, 'reading marathon is out of 13');
+r = await post({ student_ids: [malika], kind: 'marathon', skill: 'reading', day: 7, duration_minutes: 60, correct: 11 });
+assert.equal(r.status, 201, 'better retry of the same day');
+r = await post({ student_ids: [malika], kind: 'marathon', skill: 'listening', day: 3, duration_minutes: 45, correct: 15, total: 20 });
 assert.equal(r.status, 201);
-r = await call('lessons', { method: 'POST', body: { action: 'create', student_ids: [9999], lesson_date: today, skill: 'reading', duration_minutes: 45 } });
+r = await post({ student_ids: [malika], kind: 'exercise', skill: 'reading', duration_minutes: 30 });
+assert.equal(r.status, 422, 'exercise needs a name');
+assert.ok(r.data.fields.topic);
+r = await post({ student_ids: [malika], kind: 'exercise', skill: 'reading', topic: 'Matching headings', duration_minutes: 30, correct: 6 });
+assert.equal(r.status, 422, 'exercise score needs a total');
+r = await post({ student_ids: [malika], kind: 'exercise', skill: 'reading', topic: 'Matching headings', duration_minutes: 30, correct: 6, total: 8 });
+assert.equal(r.status, 201);
+r = await post({ student_ids: [9999], kind: 'exercise', skill: 'reading', topic: 'x', duration_minutes: 30 });
 assert.equal(r.status, 422);
 
 r = await call('students', { query: `?id=${malika}` });
 assert.equal(r.status, 200);
-assert.equal(r.data.stats.lesson_count, 2);
-assert.equal(r.data.stats.total_minutes, 135);
-assert.equal(r.data.stats.average_band, 6.5);
-assert.equal(r.data.lessons.length, 2);
+assert.equal(r.data.stats.lesson_count, 4);
+assert.equal(r.data.stats.marathon_days, 2, 'reading day 7 counted once');
+assert.equal(r.data.stats.exercise_count, 1);
+assert.equal(r.data.stats.total_minutes, 195);
+// (11/13 + 15/20 + 6/8) / 3 ≈ 78%
+assert.equal(r.data.stats.average_score, 78);
+const day7 = r.data.marathon.find((m) => m.skill === 'reading' && m.day === 7);
+assert.equal(day7.correct, 11, 'grid shows the best attempt');
+assert.equal(day7.total, 13);
 assert.equal(r.data.activity.length, 7);
-assert.equal(r.data.activity.at(-1).reading, 1.5);
-assert.equal(r.data.activity.at(-1).listening, 0.75);
+assert.equal(r.data.activity.at(-1).marathon_reading, 2);
+assert.equal(r.data.activity.at(-1).marathon_listening, 0.75);
+assert.equal(r.data.activity.at(-1).exercise_reading, 0.5);
 
-r = await call('lessons', { query: '?skill=reading' });
-assert.equal(r.data.lessons.length, 2);
+r = await call('lessons', { query: '?kind=marathon&skill=reading' });
+assert.equal(r.data.lessons.length, 3);
 assert.equal(r.data.lessons[0].lesson_date, today);
+r = await call('lessons', { query: '?kind=exercise' });
+assert.equal(r.data.lessons.length, 1);
+assert.equal(r.data.lessons[0].topic, 'Matching headings');
 
 r = await call('overview');
 assert.deepEqual(r.data.counts, { students: 2, active: 2, groups: 1 });
-assert.equal(r.data.month.lessons, 3);
-assert.equal(r.data.month.minutes, 225);
+assert.equal(r.data.month.lessons, 5);
+assert.equal(r.data.month.minutes, 255);
 
 // --- updates & deletes ---
 r = await call('students', { method: 'POST', body: { action: 'update', id: jasur, ...base, full_name: 'Jasur Toshev', status: 'inactive' } });

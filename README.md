@@ -2,11 +2,13 @@
 
 Student-facing dashboard (Reading & Listening Marathons) plus a private
 student management system for the teacher: student registration, profiles,
-and lesson tracking with study hours and activity.
+and practice tracking — marathon days and exercises, with scores, study hours
+and activity. Students' contact details are only shown on their own profile,
+and only after the teacher signs in.
 
 ## Stack
 
-- **Frontend:** Vite + React (`src/`), hash routes (`#/students`, `#/students/12`, `#/lessons`)
+- **Frontend:** Vite + React (`src/`), hash routes (`#/students`, `#/students/12`, `#/practice`)
 - **API:** Vercel Functions (`api/*.js`, Web `Request`/`Response` handlers) with shared code in `server/`
 - **Database:** Postgres — Neon in production, an in-process [PGlite](https://pglite.dev) database locally.
   Tables are created automatically on first request.
@@ -39,10 +41,10 @@ or to point at a real `DATABASE_URL`.
 ## Structure
 
 - `src/components/HomeView.jsx` — public dashboard; `ProfilePanel`, `CourseCard`, `MarathonView`, …
-- `src/components/admin/` — `StudentsView`, `StudentProfile`, `LessonsView`, `StudentForm`, `LessonForm`,
+- `src/components/admin/` — `StudentsView`, `StudentProfile`, `PracticeView`, `StudentForm`, `PracticeForm`,
   `AdminPanel` (right-hand panels), `LoginView`, shared `ui.jsx` (sheet, fields, segmented control)
 - `src/lib/` — `api.js` client, `router.js`, `format.js` (levels, skills, dates)
-- `api/` — `auth`, `students`, `lessons`, `overview` endpoints
+- `api/` — `auth`, `students`, `lessons` (practice records), `overview` endpoints
 - `server/` — `db.js` (Neon / PGlite + schema), `auth.js`, `model.js` (validation & queries), `http.js`
 - `dev/api-plugin.js` — serves `api/` from the Vite dev server
 - `public/marathon/` — Reading (`day-01` … `day-20`, no day 13 yet) and Listening (`day-01` … `day-20` + PDFs) Marathon pages

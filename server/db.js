@@ -61,6 +61,11 @@ const SCHEMA = [
     notes TEXT NOT NULL DEFAULT '',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`,
+  // Practice records: a marathon day or an exercise (added after the first release).
+  `ALTER TABLE lessons ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'exercise'`,
+  `ALTER TABLE lessons ADD COLUMN IF NOT EXISTS day INTEGER`,
+  `ALTER TABLE lessons ADD COLUMN IF NOT EXISTS correct INTEGER`,
+  `ALTER TABLE lessons ADD COLUMN IF NOT EXISTS total INTEGER`,
   `CREATE INDEX IF NOT EXISTS lessons_student_date ON lessons (student_id, lesson_date)`,
   `CREATE INDEX IF NOT EXISTS lessons_date ON lessons (lesson_date)`,
   `CREATE TABLE IF NOT EXISTS login_attempts (

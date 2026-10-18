@@ -4,7 +4,7 @@ import { HomeView } from './components/HomeView.jsx';
 import { ProfilePanel } from './components/ProfilePanel.jsx';
 import { StudentsView } from './components/admin/StudentsView.jsx';
 import { StudentProfile } from './components/admin/StudentProfile.jsx';
-import { LessonsView } from './components/admin/LessonsView.jsx';
+import { PracticeView } from './components/admin/PracticeView.jsx';
 import { LoginView } from './components/admin/LoginView.jsx';
 import { OverviewPanel, SignedOutPanel, StudentPanel } from './components/admin/AdminPanel.jsx';
 import { Skeleton } from './components/admin/ui.jsx';
@@ -12,7 +12,7 @@ import { api, setUnauthorizedHandler } from './lib/api.js';
 import { useRoute } from './lib/router.js';
 import { user, activity, activitySeries, myCourses } from './data/mock.js';
 
-const ADMIN_ROUTES = ['students', 'lessons'];
+const ADMIN_ROUTES = ['students', 'practice'];
 
 export default function App() {
   const route = useRoute();
@@ -67,7 +67,7 @@ export default function App() {
     );
     panel = <StudentPanel data={profile} onSignOut={signOut} />;
   } else {
-    const View = route.name === 'lessons' ? LessonsView : StudentsView;
+    const View = route.name === 'practice' ? PracticeView : StudentsView;
     main = <View version={version} onChanged={refresh} notify={notify} />;
     panel = <OverviewPanel version={version} onSignOut={signOut} />;
   }

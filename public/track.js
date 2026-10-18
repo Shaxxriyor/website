@@ -50,6 +50,57 @@
   if (document.body) addBackButton();
   else document.addEventListener('DOMContentLoaded', addBackButton);
 
+  // ---- copy protection (deterrents: anything on screen can still be photographed) ----
+  // Students may still select text (the reading tests use it for highlighting) and
+  // copy what they typed themselves; copying the material, right-click, dragging,
+  // saving, printing and view-source shortcuts are blocked.
+  function inField(t) {
+    return t && t.closest && t.closest('input, textarea, [contenteditable="true"]');
+  }
+  ['copy', 'cut'].forEach(function (ev) {
+    document.addEventListener(ev, function (e) {
+      if (!inField(e.target)) e.preventDefault();
+    }, true);
+  });
+  document.addEventListener('contextmenu', function (e) {
+    if (!inField(e.target)) e.preventDefault();
+  }, true);
+  document.addEventListener('dragstart', function (e) {
+    if (!inField(e.target)) e.preventDefault();
+  }, true);
+  document.addEventListener('keydown', function (e) {
+    var k = (e.key || '').toLowerCase();
+    var mod = e.ctrlKey || e.metaKey;
+    if ((mod && (k === 's' || k === 'p' || k === 'u')) || (mod && !inField(e.target) && (k === 'c' || k === 'x'))) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+  var guard = document.createElement('style');
+  guard.textContent =
+    '@media print{html,body{display:none!important}}' +
+    'img{-webkit-user-drag:none;user-drag:none;-webkit-touch-callout:none}';
+  (document.head || document.documentElement).appendChild(guard);
+
+  // Faint watermark with the student's name, so screenshots can be traced.
+  function watermark(text) {
+    var old = document.getElementById('rcdi-wm');
+    if (old) old.remove();
+    var svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="340" height="190"><text x="20" y="110" ' +
+      'transform="rotate(-24 170 95)" font-family="system-ui,sans-serif" font-size="15" ' +
+      'fill="rgba(29,27,26,0.075)">' + text.replace(/[<>&"]/g, '') + '</text></svg>';
+    var wm = document.createElement('div');
+    wm.id = 'rcdi-wm';
+    wm.setAttribute('aria-hidden', 'true');
+    wm.style.cssText =
+      'position:fixed;inset:0;z-index:2147482000;pointer-events:none;' +
+      'background-image:url("data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg) + '")';
+    document.body.appendChild(wm);
+  }
+  if (document.body) watermark('READING_CDI · t.me/READING_CDI');
+  else document.addEventListener('DOMContentLoaded', function () { watermark('READING_CDI · t.me/READING_CDI'); });
+
   var IDLE_MS = 2 * 60 * 1000; // no input for 2 minutes = not studying (unless audio plays)
   var FIRST_SAVE = 60; // a day counts once the student has spent a minute on it
   var active = 0; // seconds counted on this page
@@ -186,6 +237,7 @@
     .then(function (data) {
       if (!data || !data.student) return;
       who = data.student;
+      watermark(who.full_name + ' · READING_CDI');
       toast('✓ Progress saving for ' + who.full_name.split(' ')[0]);
       ['mousemove', 'keydown', 'scroll', 'touchstart', 'click', 'input', 'wheel'].forEach(function (ev) {
         addEventListener(ev, function () { lastInput = Date.now(); }, { passive: true, capture: true });

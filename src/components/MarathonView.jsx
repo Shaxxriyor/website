@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { ArrowRight, CheckIcon, DownloadIcon } from './Icons.jsx';
+import { ArrowRight, CheckIcon, LockIcon } from './Icons.jsx';
+import { askToSignIn, isFreeDay } from '../lib/access.js';
 
 const tones = ['rose', 'peach', 'lilac', 'mint'];
 
@@ -18,7 +19,7 @@ function startedDays(days) {
   return started;
 }
 
-export function MarathonView({ marathon, icon: Icon, skill, results = [] }) {
+export function MarathonView({ marathon, icon: Icon, skill, results = [], signedIn = false }) {
   const days = marathon.days;
   const local = useMemo(() => startedDays(days), [days]);
   // Signed-in students: saved results from the server (best attempt per day).
@@ -66,11 +67,25 @@ export function MarathonView({ marathon, icon: Icon, skill, results = [] }) {
           {days.map((d, i) => {
             const done = started.has(d.day);
             const result = saved.get(d.day);
+            const locked = !signedIn && !isFreeDay(d.day);
+            const Link = locked ? 'button' : 'a';
             return (
-              <li key={d.day} className={`day-card tone-${tones[i % tones.length]}`}>
-                <a className="day-card__link" href={d.href}>
+              <li key={d.day} className={`day-card tone-${tones[i % tones.length]} ${locked ? 'is-locked' : ''}`}>
+                <Link
+                  className="day-card__link"
+                  {...(locked
+                    ? { type: 'button', onClick: () => askToSignIn(`${marathon.title} · Day ${d.day}`) }
+                    : { href: d.href })}
+                >
                   <span className="day-card__top">
                     <span className="day-card__label">Day</span>
+                    {locked ? (
+                      <span className="pill pill--glass day-card__status">
+                        <LockIcon size={12} /> Students
+                      </span>
+                    ) : !signedIn && isFreeDay(d.day) ? (
+                      <span className="pill pill--glass day-card__status">Free</span>
+                    ) : null}
                     {done && (
                       <span className="pill pill--glass day-card__status">
                         <CheckIcon size={12} /> {result?.correct != null ? `${result.correct}/${result.total} · ${Number(result.band).toFixed(1)}` : result ? 'Done' : 'Started'}
@@ -83,20 +98,9 @@ export function MarathonView({ marathon, icon: Icon, skill, results = [] }) {
                     {d.questions} questions
                   </span>
                   <span className="day-card__go" aria-hidden="true">
-                    <ArrowRight size={16} />
+                    {locked ? <LockIcon size={15} /> : <ArrowRight size={16} />}
                   </span>
-                </a>
-                {d.pdf && (
-                  <a
-                    className="day-card__pdf"
-                    href={d.pdf}
-                    download
-                    aria-label={`Download Day ${d.day} PDF`}
-                    title="Download PDF"
-                  >
-                    <DownloadIcon size={16} />
-                  </a>
-                )}
+                </Link>
               </li>
             );
           })}

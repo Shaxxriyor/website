@@ -16,9 +16,12 @@ const SOON = {
 /** The public student-facing dashboard (marathons and courses). */
 // The open tab lives in the address (#/reading-practice), so the test pages'
 // back button and the browser's Back button return to the same tab.
-export function HomeView({ tab: routeTab, results = [], practice = [], signedIn = false, me = null, admin = null }) {
+export function HomeView({ tab: routeTab, results = [], practice = [], signedIn = false, checking = false, me = null, admin = null }) {
   const tab = categories.some((c) => c.id === routeTab) ? routeTab : 'all';
   const setTab = (id) => navigate(id === 'all' ? '/' : `/${id}`);
+  // Signed-in students and the teacher can open everything; visitors get Day 1 of each section.
+  // While the session is still being checked nothing is shown as locked (the server enforces it anyway).
+  const unlocked = signedIn || Boolean(admin) || checking;
 
   return (
     <>
@@ -39,13 +42,13 @@ export function HomeView({ tab: routeTab, results = [], practice = [], signedIn 
       <CategoryTabs items={categories} active={tab} onChange={setTab} />
 
       {tab === 'els' ? (
-        <ElsView me={me} admin={admin} />
+        <ElsView me={me} admin={admin} unlocked={unlocked} />
       ) : tab === 'reading-practice' ? (
-        <PracticeLibrary results={practice} signedIn={signedIn} />
+        <PracticeLibrary results={practice} signedIn={signedIn} unlocked={unlocked} />
       ) : tab === 'listening-marathon' ? (
-        <MarathonView marathon={listeningMarathon} icon={ListeningMarathonIcon} skill="listening" results={results} />
+        <MarathonView marathon={listeningMarathon} icon={ListeningMarathonIcon} skill="listening" results={results} signedIn={unlocked} />
       ) : tab === 'reading-marathon' ? (
-        <MarathonView marathon={readingMarathon} icon={ReadingMarathonIcon} skill="reading" results={results} />
+        <MarathonView marathon={readingMarathon} icon={ReadingMarathonIcon} skill="reading" results={results} signedIn={unlocked} />
       ) : SOON[tab] ? (
         <div className="empty card-white">
           <span className="empty__icon">

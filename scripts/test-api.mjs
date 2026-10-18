@@ -20,6 +20,7 @@ const api = {
   els: await import('../api/els.js'),
   photo: await import('../api/photo.js'),
   avatar: await import('../api/avatar.js'),
+  content: await import('../api/content.js'),
 };
 
 let cookie = '';
@@ -297,6 +298,33 @@ r = await call('students', { method: 'POST', body: { action: 'remove-avatar', id
 assert.equal(r.status, 200);
 r = await asStudent('me');
 assert.equal(r.data.student.avatar_v, null, 'teacher removed it');
+
+// course materials: day 1 free, the rest for signed-in students / teacher
+const get = (path, cookieHeader) =>
+  api.content.GET(new Request(`https://example.test/api/content?path=${encodeURIComponent(path)}`, { headers: cookieHeader ? { cookie: cookieHeader } : {} }));
+r = await get('marathon/reading/day-01.html');
+assert.equal(r.status, 200, 'day 1 is free');
+assert.match(r.headers.get('content-type'), /text\/html/);
+r = await get('marathon/reading/day-05.html');
+assert.equal(r.status, 401, 'day 5 locked for visitors');
+assert.match(await r.text(), /For READING_CDI students/);
+r = await get('els/day-02-1.webp');
+assert.equal(r.status, 401);
+r = await get('els/day-01-1.webp');
+assert.equal(r.status, 200);
+r = await get('practice/reading/p1-a-brief-history-of-ballet.html');
+assert.equal(r.status, 200, 'first Passage 1 practice is free');
+r = await get('practice/reading/p1-rubber.html');
+assert.equal(r.status, 401);
+r = await get('marathon/reading/day-05.html', studentCookie);
+assert.equal(r.status, 200, 'signed-in student opens everything');
+assert.equal(r.headers.get('cache-control'), 'private, no-store');
+r = await get('marathon/listening/day-07.pdf', cookie);
+assert.equal(r.status, 200, 'teacher too');
+for (const bad of ['../package.json', 'marathon/../../.env', '/etc/passwd', 'marathon/reading/day-01.js', 'src/App.jsx']) {
+  r = await get(bad, studentCookie);
+  assert.equal(r.status, 404, `blocked: ${bad}`);
+}
 
 // new code: old one stops working; inactive students are signed out
 r = await call('students', { method: 'POST', body: { action: 'new-code', id: kamola } });

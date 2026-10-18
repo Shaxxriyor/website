@@ -69,6 +69,15 @@ export default function App() {
 
   useEffect(() => setProfile(null), [route.id]);
 
+  // Deter saving the book pages and translations: no right-click/long-press menu on
+  // images for students and visitors (the teacher keeps the normal menu).
+  useEffect(() => {
+    if (admin) return;
+    const block = (e) => e.target.closest?.('img, .els-book, .photo-viewer') && e.preventDefault();
+    document.addEventListener('contextmenu', block);
+    return () => document.removeEventListener('contextmenu', block);
+  }, [admin]);
+
   async function signOut() {
     await api.logout().catch(() => {});
     setAdmin(null);
@@ -96,7 +105,7 @@ export default function App() {
     main = <RatingView signedIn={Boolean(me) || Boolean(admin)} version={version} />;
     panel = !me && admin ? <OverviewPanel version={version} onSignOut={signOut} /> : studentPanel;
   } else if (!isAdminRoute) {
-    main = <HomeView tab={route.name} results={me?.marathon} practice={me?.practice} signedIn={Boolean(me)} me={me} admin={admin} />;
+    main = <HomeView tab={route.name} results={me?.marathon} practice={me?.practice} signedIn={Boolean(me)} checking={me === undefined} me={me} admin={admin} />;
     panel = studentPanel;
   } else if (admin === undefined) {
     main = <Skeleton rows={4} />;

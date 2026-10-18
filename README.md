@@ -52,10 +52,13 @@ or to point at a real `DATABASE_URL`.
 - `api/` — `auth`, `students`, `lessons` (practice records), `overview`; student side: `me`, `track`, `leaderboard` (shared rating)
 - `server/` — `db.js` (Neon / PGlite + schema), `auth.js`, `model.js` (validation & queries), `http.js`
 - `dev/api-plugin.js` — serves `api/` from the Vite dev server
+- `content/` — all course materials (marathons, practice, ELS). Not public: served by `api/content.js`
+  (rewritten from `/marathon/*`, `/practice/*`, `/els/*` in `vercel.json`). Visitors get Day 1 of each section
+  (`src/lib/access.js`); everything else needs a student code or the teacher login
 - `public/track.js` — progress tracker for marathon and practice pages; `npm run add-tracker` adds it to new pages
-- `public/els/` — ELS Reading: 20 Upper-Intermediate passages from the ELS Reading book (`day-NN-1.webp` text,
+- `content/els/` — ELS Reading: 20 Upper-Intermediate passages from the ELS Reading book (`day-NN-1.webp` text,
   `day-NN-2.webp` exercises, `day-NN.pdf`); day list in `src/data/els.js`. Students upload notebook translation
   photos (stored in Postgres, resized in the browser) that classmates see in the day view and the Rating
-- `public/practice/reading/` — Reading Practice passages (`p1-…`, `p2-…`, `p3-…`); add more with
+- `content/practice/reading/` — Reading Practice passages (`p1-…`, `p2-…`, `p3-…`); add more with
   `npm run import-practice -- "<folder with Passage 1/2/3>"` then `npm run add-tracker`
-- `public/marathon/` — Reading (`day-01` … `day-20`, no day 13 yet) and Listening (`day-01` … `day-20` + PDFs) Marathon pages
+- `content/marathon/` — Reading (`day-01` … `day-20`, no day 13 yet) and Listening (`day-01` … `day-20` + PDFs) Marathon pages

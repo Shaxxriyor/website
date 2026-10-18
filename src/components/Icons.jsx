@@ -260,3 +260,10 @@ export const CameraIcon = make(
     <circle cx="12" cy="12.5" r="3.5" />
   </>
 );
+
+export const LockIcon = make(
+  <>
+    <rect x="5" y="10.5" width="14" height="10" rx="3" />
+    <path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" />
+  </>
+);

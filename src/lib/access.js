@@ -1,0 +1,24 @@
+import { readingPractice } from '../data/readingPractice.js';
+
+// What visitors (not signed in) may open: Day 1 of each section and the first
+// passage of each Passage group. Shared by the server (api/content) and the UI.
+export const FREE_PRACTICE_IDS = [1, 2, 3].map((n) => readingPractice.find((p) => p.passage === n)?.id).filter(Boolean);
+
+const FREE = new Set([
+  'marathon/reading/day-01.html',
+  'marathon/listening/day-01.html',
+  'marathon/listening/day-01.pdf',
+  'els/day-01-1.webp',
+  'els/day-01-2.webp',
+  'els/day-01.pdf',
+  ...FREE_PRACTICE_IDS.map((id) => `practice/reading/${id}.html`),
+]);
+
+export const isFreePath = (path) => FREE.has(path);
+export const isFreeDay = (day) => day === 1;
+export const isFreePractice = (id) => FREE_PRACTICE_IDS.includes(id);
+
+/** Ask the sign-in panel to show itself (used when a visitor taps a locked item). */
+export function askToSignIn(what) {
+  window.dispatchEvent(new CustomEvent('rcdi:need-signin', { detail: what }));
+}

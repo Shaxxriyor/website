@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api, squareImage } from '../lib/api.js';
 import { CATEGORIES, categoryOf, hours, levelName, relativeDay, result } from '../lib/format.js';
 import { CameraIcon, CheckIcon, LogoMark, LogoutIcon } from './Icons.jsx';
@@ -81,6 +81,21 @@ function SignInPanel({ onSignedIn }) {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [wanted, setWanted] = useState('');
+  const [pulse, setPulse] = useState(0);
+  const inputRef = useRef(null);
+
+  // A visitor tapped a locked lesson: bring this panel into view and explain.
+  useEffect(() => {
+    const onNeed = (e) => {
+      setWanted(e.detail || '');
+      setPulse((n) => n + 1);
+      inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 350);
+    };
+    window.addEventListener('rcdi:need-signin', onNeed);
+    return () => window.removeEventListener('rcdi:need-signin', onNeed);
+  }, []);
 
   async function submit(e) {
     e.preventDefault();
@@ -102,10 +117,18 @@ function SignInPanel({ onSignedIn }) {
         <span className="brand__mark brand__mark--lg">
           <LogoMark size={44} />
         </span>
-        <h2 className="profile__name">Save your progress</h2>
+        <h2 className="profile__name">{wanted ? 'For READING_CDI students' : 'Save your progress'}</h2>
+        {wanted && (
+          <p key={pulse} className="signin-locked">
+            🔒 <b>{wanted}</b> is open to students. Day 1 of each section is free — sign in with your code to open
+            everything.
+          </p>
+        )}
         <p className="muted-sm">Enter the code from your teacher. Every marathon day and practice passage you do is then saved automatically.</p>
         <input
-          className="input input--code"
+          ref={inputRef}
+          key={`code-${pulse}`}
+          className={`input input--code ${pulse ? 'is-wanted' : ''}`}
           value={code}
           onChange={(e) => {
             setCode(e.target.value.toUpperCase());

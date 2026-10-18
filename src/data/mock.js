@@ -42,7 +42,7 @@ export const popularCourses = [
     icon: ListeningMarathonIcon,
     badge: 'New',
     title: 'Listening Marathon: 20 Days of Sections 2 & 3',
-    meta: '20 days · 20 questions each · PDF included',
+    meta: '20 days · 20 questions each · audio included',
     tab: 'listening-marathon',
   },
   {

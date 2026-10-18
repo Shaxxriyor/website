@@ -6,9 +6,9 @@ import { join } from 'node:path';
 const TAG = '<script src="../../track.js" defer></script>';
 let changed = 0;
 const DIRS = [
-  join('public', 'marathon', 'reading'),
-  join('public', 'marathon', 'listening'),
-  join('public', 'practice', 'reading'),
+  join('content', 'marathon', 'reading'),
+  join('content', 'marathon', 'listening'),
+  join('content', 'practice', 'reading'),
 ];
 for (const dir of DIRS) {
   for (const file of readdirSync(dir).filter((f) => f.endsWith('.html'))) {

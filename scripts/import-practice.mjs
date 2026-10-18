@@ -1,6 +1,6 @@
 // Import Reading Practice passages from a folder laid out as
 //   <dir>/Passage 1/Passage 1 - Title.html, <dir>/Passage 2/…, <dir>/Passage 3/…
-// Copies them to public/practice/reading/ and regenerates src/data/readingPractice.js.
+// Copies them to content/practice/reading/ and regenerates src/data/readingPractice.js.
 // Run: npm run import-practice -- "<dir>"   (then npm run add-tracker)
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -10,7 +10,7 @@ if (!src || !existsSync(src)) {
   console.error('Usage: npm run import-practice -- "<folder with Passage 1/2/3>"');
   process.exit(1);
 }
-const outDir = join('public', 'practice', 'reading');
+const outDir = join('content', 'practice', 'reading');
 mkdirSync(outDir, { recursive: true });
 
 const slugify = (t) =>

@@ -1,5 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/content.js": { "includeFiles": "content/**" }
+  },
+  "rewrites": [
+    { "source": "/marathon/:path*", "destination": "/api/content?path=marathon/:path*" },
+    { "source": "/practice/:path*", "destination": "/api/content?path=practice/:path*" },
+    { "source": "/els/:path*", "destination": "/api/content?path=els/:path*" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

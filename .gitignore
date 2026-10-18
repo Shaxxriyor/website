@@ -7,3 +7,5 @@ upload/
 .env
 .env.local
 .vercel
+*.pdf
+!content/**/*.pdf

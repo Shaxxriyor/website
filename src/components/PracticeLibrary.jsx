@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { readingPractice } from '../data/readingPractice.js';
-import { BookIcon, CheckIcon, SearchIcon } from './Icons.jsx';
+import { BookIcon, CheckIcon, LockIcon, SearchIcon } from './Icons.jsx';
+import { askToSignIn, isFreePractice } from '../lib/access.js';
 import { PracticeSummary } from './PracticeSummary.jsx';
 
 const href = (id) => `${import.meta.env.BASE_URL}practice/reading/${id}.html`;
@@ -13,7 +14,7 @@ const FILTERS = [
 ];
 
 /** Reading Practice: every single-passage test, with the signed-in student's best score. */
-export function PracticeLibrary({ results = [], signedIn = false }) {
+export function PracticeLibrary({ results = [], signedIn = false, unlocked = signedIn }) {
   const [passage, setPassage] = useState(0);
   const [q, setQ] = useState('');
   const best = useMemo(() => new Map(results.map((r) => [r.item, r])), [results]);
@@ -93,9 +94,14 @@ export function PracticeLibrary({ results = [], signedIn = false }) {
         <ul className="plib">
           {visible.map((p) => {
             const r = best.get(p.id);
+            const locked = !unlocked && !isFreePractice(p.id);
+            const Item = locked ? 'button' : 'a';
             return (
               <li key={p.id}>
-                <a className={`plib__item tone-${tones[p.passage]} ${r ? 'is-done' : ''}`} href={href(p.id)}>
+                <Item
+                  className={`plib__item tone-${tones[p.passage]} ${r ? 'is-done' : ''} ${locked ? 'is-locked' : ''}`}
+                  {...(locked ? { type: 'button', onClick: () => askToSignIn(p.title) } : { href: href(p.id) })}
+                >
                   <span className="plib__no">P{p.passage}</span>
                   <span className="plib__text">
                     <strong>{p.title}</strong>
@@ -104,7 +110,13 @@ export function PracticeLibrary({ results = [], signedIn = false }) {
                       {p.questions ? ` · ${p.questions} questions` : ''}
                     </span>
                   </span>
-                  {r ? (
+                  {locked ? (
+                    <span className="plib__go" aria-label="For students">
+                      <LockIcon size={15} />
+                    </span>
+                  ) : !unlocked ? (
+                    <span className="pill pill--glass plib__score">Free</span>
+                  ) : r ? (
                     <span className="pill pill--glass plib__score">
                       <CheckIcon size={12} /> {r.correct != null ? `${r.correct}/${r.total} · Band ${Number(r.band).toFixed(1)}` : 'Done'}
                     </span>
@@ -113,7 +125,7 @@ export function PracticeLibrary({ results = [], signedIn = false }) {
                       →
                     </span>
                   )}
-                </a>
+                </Item>
               </li>
             );
           })}

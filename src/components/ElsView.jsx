@@ -2,14 +2,15 @@ import { useRef, useState } from 'react';
 import { api, compressImage, photoUrl } from '../lib/api.js';
 import { timeAgo } from '../lib/format.js';
 import { els } from '../data/els.js';
-import { BookIcon, CheckIcon, DownloadIcon, PlusIcon, TrashIcon, XIcon } from './Icons.jsx';
+import { BookIcon, CheckIcon, LockIcon, PlusIcon, TrashIcon, XIcon } from './Icons.jsx';
+import { askToSignIn, isFreeDay } from '../lib/access.js';
 import { Avatar } from './Avatar.jsx';
 import { Sheet, Skeleton, useLoad } from './admin/ui.jsx';
 
 const tones = ['lilac', 'mint', 'peach', 'rose'];
 
 /** ELS Reading: 20 days of reading, book exercises and a notebook translation (uploaded as photos). */
-export function ElsView({ me, admin }) {
+export function ElsView({ me, admin, unlocked = false }) {
   const [openDay, setOpenDay] = useState(null);
   const [version, setVersion] = useState(0);
   const signedIn = Boolean(me || admin);
@@ -50,11 +51,23 @@ export function ElsView({ me, admin }) {
         {els.days.map((d, i) => {
           const photos = mine[d.day];
           const others = classCount(d.day);
+          const locked = !unlocked && !isFreeDay(d.day);
           return (
-            <li key={d.day} className={`day-card tone-${tones[i % tones.length]}`}>
-              <button type="button" className="day-card__link" onClick={() => setOpenDay(d.day)}>
+            <li key={d.day} className={`day-card tone-${tones[i % tones.length]} ${locked ? 'is-locked' : ''}`}>
+              <button
+                type="button"
+                className="day-card__link"
+                onClick={() => (locked ? askToSignIn(`ELS Reading · Day ${d.day}`) : setOpenDay(d.day))}
+              >
                 <span className="day-card__top">
                   <span className="day-card__label">Day</span>
+                  {locked ? (
+                    <span className="pill pill--glass day-card__status">
+                      <LockIcon size={12} /> Students
+                    </span>
+                  ) : !signedIn ? (
+                    <span className="pill pill--glass day-card__status">Free</span>
+                  ) : null}
                   {photos && (
                     <span className="pill pill--glass day-card__status">
                       <CheckIcon size={12} /> Uploaded
@@ -67,7 +80,7 @@ export function ElsView({ me, admin }) {
                   {signedIn ? `${others} ${others === 1 ? 'student' : 'students'} uploaded` : 'Read · exercises · translate'}
                 </span>
                 <span className="day-card__go" aria-hidden="true">
-                  →
+                  {locked ? <LockIcon size={15} /> : '→'}
                 </span>
               </button>
             </li>
@@ -103,6 +116,7 @@ function ElsDaySheet({ day, me, admin, onClose, onChanged }) {
   const mine = data?.students.find((s) => s.student_id === myId);
   const others = (data?.students ?? []).filter((s) => s.student_id !== myId);
   const [page, setPage] = useState(0);
+  const [zoom, setZoom] = useState(false);
 
   async function upload(files) {
     setError('');
@@ -148,18 +162,17 @@ function ElsDaySheet({ day, me, admin, onClose, onChanged }) {
               {label}
             </button>
           ))}
-          <a className="chip els-book__pdf" href={day.pdf} download>
-            <DownloadIcon size={14} /> PDF
-          </a>
         </div>
-        <a href={day.pages[page]} target="_blank" rel="noopener" title="Open full size to zoom">
+        <button type="button" className="els-book__frame" title="Tap to zoom" onClick={() => setZoom(true)}>
           <img
             key={page}
             className="els-book__page"
             src={day.pages[page]}
             alt={page === 0 ? `${day.title} — text` : `${day.title} — exercises`}
+            draggable={false}
           />
-        </a>
+          <Watermark name={me?.student.full_name} />
+        </button>
         {page === 0 && (
           <button type="button" className="btn btn--glass els-book__next" onClick={() => setPage(1)}>
             Next: exercises →
@@ -261,12 +274,13 @@ function ElsDaySheet({ day, me, admin, onClose, onChanged }) {
       )}
 
       {viewing && <PhotoViewer id={viewing} onClose={() => setViewing(null)} />}
+      {zoom && <PhotoViewer src={day.pages[page]} name={me?.student.full_name} onClose={() => setZoom(false)} />}
     </Sheet>
   );
 }
 
 /** Full-size photo over everything; click anywhere or press Esc to close. */
-export function PhotoViewer({ id, onClose }) {
+export function PhotoViewer({ id, src, name, onClose }) {
   return (
     <div
       className="photo-viewer"
@@ -277,10 +291,26 @@ export function PhotoViewer({ id, onClose }) {
       tabIndex={-1}
       ref={(el) => el?.focus()}
     >
-      <img src={photoUrl(id)} alt="" />
+      <span className="photo-viewer__frame">
+        <img src={src || photoUrl(id)} alt="" draggable={false} />
+        {src && <Watermark name={name} />}
+      </span>
       <button type="button" className="icon-btn photo-viewer__close" aria-label="Close">
         <XIcon size={18} />
       </button>
     </div>
+  );
+}
+
+/** Faint repeated name over book pages, so screenshots can be traced. */
+function Watermark({ name }) {
+  const text = `${name ? `${name} · ` : ''}READING_CDI`.replace(/[<>&"]/g, '');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="170"><text x="16" y="100" transform="rotate(-24 150 85)" font-family="system-ui,sans-serif" font-size="14" fill="rgba(29,27,26,0.09)">${text}</text></svg>`;
+  return (
+    <span
+      className="watermark"
+      aria-hidden="true"
+      style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")` }}
+    />
   );
 }

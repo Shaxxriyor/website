@@ -77,7 +77,7 @@ export default function App() {
   let main;
   let panel;
   if (!isAdminRoute) {
-    main = <HomeView results={me?.marathon} practice={me?.practice} signedIn={Boolean(me)} />;
+    main = <HomeView tab={route.name} results={me?.marathon} practice={me?.practice} signedIn={Boolean(me)} />;
     panel = (
       <StudentHomePanel
         me={me}
@@ -114,8 +114,8 @@ export default function App() {
       </div>
 
       <div className="shell">
-        <Sidebar active={route.name} userName={isAdminRoute ? admin || null : me?.student.full_name} />
-        <main className="main" key={`${route.name}/${route.id ?? ''}`}>
+        <Sidebar active={isAdminRoute ? route.name : 'home'} userName={isAdminRoute ? admin || null : me?.student.full_name} />
+        <main className="main" key={isAdminRoute ? `${route.name}/${route.id ?? ''}` : 'home'}>
           {main}
         </main>
         {panel}

@@ -68,7 +68,7 @@ export function MarathonView({ marathon, icon: Icon, skill, results = [] }) {
             const result = saved.get(d.day);
             return (
               <li key={d.day} className={`day-card tone-${tones[i % tones.length]}`}>
-                <a className="day-card__link" href={d.href} target="_blank" rel="noopener">
+                <a className="day-card__link" href={d.href}>
                   <span className="day-card__top">
                     <span className="day-card__label">Day</span>
                     {done && (

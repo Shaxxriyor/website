@@ -92,7 +92,7 @@ export function PracticeLibrary({ results = [], signedIn = false }) {
             const r = best.get(p.id);
             return (
               <li key={p.id}>
-                <a className={`plib__item tone-${tones[p.passage]} ${r ? 'is-done' : ''}`} href={href(p.id)} target="_blank" rel="noopener">
+                <a className={`plib__item tone-${tones[p.passage]} ${r ? 'is-done' : ''}`} href={href(p.id)}>
                   <span className="plib__no">P{p.passage}</span>
                   <span className="plib__text">
                     <strong>{p.title}</strong>

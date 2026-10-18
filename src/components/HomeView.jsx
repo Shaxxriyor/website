@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { navigate } from '../lib/router.js';
 import { CategoryTabs } from './CategoryTabs.jsx';
 import { CourseCard } from './CourseCard.jsx';
 import { FeaturedCourse } from './FeaturedCourse.jsx';
@@ -13,8 +13,11 @@ const SOON = {
 };
 
 /** The public student-facing dashboard (marathons and courses). */
-export function HomeView({ results = [], practice = [], signedIn = false }) {
-  const [tab, setTab] = useState('all');
+// The open tab lives in the address (#/reading-practice), so the test pages'
+// back button and the browser's Back button return to the same tab.
+export function HomeView({ tab: routeTab, results = [], practice = [], signedIn = false }) {
+  const tab = categories.some((c) => c.id === routeTab) ? routeTab : 'all';
+  const setTab = (id) => navigate(id === 'all' ? '/' : `/${id}`);
 
   return (
     <>

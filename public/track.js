@@ -15,6 +15,41 @@
   var passageNo = pm ? pm[2] : null;
   var base = new URL('../../', location.href).href;
 
+  // ---- "back to the site" button, for everyone ----
+  var backTab = item ? 'reading-practice' : skill === 'reading' ? 'reading-marathon' : 'listening-marathon';
+  function addBackButton() {
+    if (document.getElementById('rcdi-back')) return;
+    var a = document.createElement('a');
+    a.id = 'rcdi-back';
+    a.href = base + '#/' + backTab;
+    a.setAttribute('aria-label', 'Back to READING_CDI');
+    a.innerHTML =
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" ' +
+      'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>' +
+      '<span>READING_CDI</span>';
+    a.style.cssText =
+      'position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:2147483000;display:inline-flex;' +
+      'align-items:center;gap:7px;height:36px;padding:0 15px 0 12px;border-radius:999px;text-decoration:none;' +
+      'font:600 12.5px/1 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.06em;color:#fff;' +
+      'background:rgba(29,27,26,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);' +
+      'box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 10px 24px -10px rgba(0,0,0,.5);' +
+      'transition:transform .35s cubic-bezier(.34,1.56,.64,1),background-color .2s';
+    a.onmouseenter = function () { a.style.transform = 'translateX(-50%) translateY(-1px)'; a.style.background = 'rgba(29,27,26,.96)'; };
+    a.onmouseleave = function () { a.style.transform = 'translateX(-50%)'; a.style.background = 'rgba(29,27,26,.86)'; };
+    a.onmousedown = function () { a.style.transform = 'translateX(-50%) scale(.95)'; };
+    // Phones: a small round arrow so it doesn't cover the page header.
+    if (window.matchMedia('(max-width: 600px)').matches) {
+      a.querySelector('span').style.display = 'none';
+      a.style.width = a.style.height = '34px';
+      a.style.padding = '0';
+      a.style.justifyContent = 'center';
+      a.style.top = '8px';
+    }
+    document.body.appendChild(a);
+  }
+  if (document.body) addBackButton();
+  else document.addEventListener('DOMContentLoaded', addBackButton);
+
   var IDLE_MS = 2 * 60 * 1000; // no input for 2 minutes = not studying (unless audio plays)
   var FIRST_SAVE = 60; // a day counts once the student has spent a minute on it
   var active = 0; // seconds counted on this page

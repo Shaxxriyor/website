@@ -6,7 +6,7 @@ export function FeaturedCourse({ results = [] }) {
   const done = new Set(results.filter((r) => r.skill === 'reading').map((r) => r.day));
   const next = readingMarathon.days.find((d) => !done.has(d.day)) ?? readingMarathon.days[0];
   return (
-    <a className="featured" href={next.href} target="_blank" rel="noopener">
+    <a className="featured" href={next.href}>
       <span className="featured__art" aria-hidden="true">
         <span className="blob blob--a" />
         <span className="blob blob--b" />

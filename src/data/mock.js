@@ -8,6 +8,9 @@ import {
   MockTestIcon,
 } from '../components/Icons.jsx';
 
+// Static files in /public are served next to index.html, wherever it lives.
+const asset = (path) => `${import.meta.env.BASE_URL}${path}`;
+
 export const categories = [
   { id: 'all', label: 'All' },
   { id: 'reading', label: 'Reading', icon: ReadingIcon },
@@ -85,8 +88,8 @@ export const listeningMarathon = {
       day: i + 1,
       title: 'Sections 2 & 3',
       questions: 20,
-      href: `/marathon/listening/day-${n}.html`,
-      pdf: `/marathon/listening/day-${n}.pdf`,
+      href: asset(`marathon/listening/day-${n}.html`),
+      pdf: asset(`marathon/listening/day-${n}.pdf`),
       storagePrefix: `lm_day${i + 1}_`,
     };
   }),
@@ -121,7 +124,7 @@ export const readingMarathon = {
     day,
     title,
     questions: 13,
-    href: `/marathon/reading/day-${String(day).padStart(2, '0')}.html`,
+    href: asset(`marathon/reading/day-${String(day).padStart(2, '0')}.html`),
   })),
 };
 

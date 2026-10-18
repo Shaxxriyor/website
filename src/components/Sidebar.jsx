@@ -21,15 +21,11 @@ export function Sidebar({ active, userName }) {
 
       <nav className="sidebar__nav">
         {nav.map(({ id, label, icon: Icon, href }) => (
-          <a
-            key={id}
-            href={href}
-            className={`icon-btn nav-btn ${active === id ? 'is-active' : ''}`}
-            aria-label={label}
-            aria-current={active === id ? 'page' : undefined}
-          >
-            <Icon />
-            <span className="nav-btn__tip">{label}</span>
+          <a key={id} href={href} className={`nav-item ${active === id ? 'is-active' : ''}`} aria-current={active === id ? 'page' : undefined}>
+            <span className="icon-btn nav-btn" aria-hidden="true">
+              <Icon />
+            </span>
+            <span className="nav-item__label">{label}</span>
           </a>
         ))}
       </nav>

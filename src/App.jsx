@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { Sidebar } from './components/Sidebar.jsx';
 import { CategoryTabs } from './components/CategoryTabs.jsx';
 import { CourseCard } from './components/CourseCard.jsx';
 import { FeaturedCourse } from './components/FeaturedCourse.jsx';
 import { ProfilePanel } from './components/ProfilePanel.jsx';
+import { MarathonView } from './components/MarathonView.jsx';
+import { ReadingMarathonIcon, ListeningMarathonIcon } from './components/Icons.jsx';
 import {
   categories,
   popularCourses,
@@ -11,9 +14,13 @@ import {
   activity,
   activitySeries,
   myCourses,
+  listeningMarathon,
+  readingMarathon,
 } from './data/mock.js';
 
 export default function App() {
+  const [tab, setTab] = useState('all');
+
   return (
     <div className="stage">
       <div className="backdrop" aria-hidden="true">
@@ -32,26 +39,34 @@ export default function App() {
             education
           </h1>
 
-          <CategoryTabs items={categories} />
+          <CategoryTabs items={categories} active={tab} onChange={setTab} />
 
-          <section aria-labelledby="popular-title">
-            <div className="section-head">
-              <h2 id="popular-title" className="label">Most popular</h2>
-              <a className="link-sm" href="#">See all</a>
-            </div>
-            <div className="course-grid">
-              {popularCourses.map((c) => (
-                <CourseCard key={c.id} course={c} />
-              ))}
-            </div>
-          </section>
+          {tab === 'listening-marathon' ? (
+            <MarathonView marathon={listeningMarathon} icon={ListeningMarathonIcon} />
+          ) : tab === 'reading-marathon' ? (
+            <MarathonView marathon={readingMarathon} icon={ReadingMarathonIcon} />
+          ) : (
+            <>
+              <section aria-labelledby="popular-title">
+                <div className="section-head">
+                  <h2 id="popular-title" className="label">Most popular</h2>
+                  <a className="link-sm" href="#">See all</a>
+                </div>
+                <div className="course-grid">
+                  {popularCourses.map((c) => (
+                    <CourseCard key={c.id} course={c} />
+                  ))}
+                </div>
+              </section>
 
-          <section aria-labelledby="featured-title">
-            <div className="section-head">
-              <h2 id="featured-title" className="label">Featured course</h2>
-            </div>
-            <FeaturedCourse course={featuredCourse} />
-          </section>
+              <section aria-labelledby="featured-title">
+                <div className="section-head">
+                  <h2 id="featured-title" className="label">Featured course</h2>
+                </div>
+                <FeaturedCourse course={featuredCourse} />
+              </section>
+            </>
+          )}
         </main>
 
         <ProfilePanel

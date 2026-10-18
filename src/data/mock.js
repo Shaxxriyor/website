@@ -2,8 +2,8 @@
 import {
   ReadingIcon,
   ListeningIcon,
-  WritingIcon,
-  SpeakingIcon,
+  ReadingMarathonIcon,
+  ListeningMarathonIcon,
   VocabularyIcon,
   MockTestIcon,
 } from '../components/Icons.jsx';
@@ -12,8 +12,8 @@ export const categories = [
   { id: 'all', label: 'All' },
   { id: 'reading', label: 'Reading', icon: ReadingIcon },
   { id: 'listening', label: 'Listening', icon: ListeningIcon },
-  { id: 'writing', label: 'Writing', icon: WritingIcon },
-  { id: 'speaking', label: 'Speaking', icon: SpeakingIcon },
+  { id: 'reading-marathon', label: 'Reading Marathon', icon: ReadingMarathonIcon },
+  { id: 'listening-marathon', label: 'Listening Marathon', icon: ListeningMarathonIcon },
   { id: 'vocabulary', label: 'Vocabulary', icon: VocabularyIcon },
   { id: 'mock', label: 'Mock Tests', icon: MockTestIcon },
 ];
@@ -32,10 +32,11 @@ export const popularCourses = [
   {
     id: 2,
     tone: 'peach',
-    category: 'Writing',
-    icon: WritingIcon,
+    category: 'Listening Marathon',
+    icon: ListeningMarathonIcon,
     rating: 4.9,
-    title: 'Task 2 Essays: How to Write Clearly and Concisely',
+    badge: 'New',
+    title: 'Listening Marathon: 20 Days of Sections 2 & 3',
     students: 1463,
     learners: ['Dilnoza S', 'Bekzod A'],
   },
@@ -52,11 +53,11 @@ export const popularCourses = [
   {
     id: 4,
     tone: 'mint',
-    category: 'Speaking',
-    icon: SpeakingIcon,
+    category: 'Reading Marathon',
+    icon: ReadingMarathonIcon,
     rating: 5.0,
     badge: 'Top 10',
-    title: 'Speaking Part 2 in 10 Easy Steps',
+    title: 'Reading Marathon: One Real Passage a Day',
     students: 8735,
     learners: ['Sardor M'],
   },
@@ -75,22 +76,42 @@ export const user = {
   friendAvatars: ['Nodira B', 'Otabek J', 'Lola F'],
 };
 
+export const listeningMarathon = {
+  title: 'Listening Marathon',
+  subtitle: 'Sections 2 & 3 from recent exams — one day at a time',
+  days: Array.from({ length: 20 }, (_, i) => {
+    const n = String(i + 1).padStart(2, '0');
+    return {
+      day: i + 1,
+      title: 'Sections 2 & 3',
+      questions: 20,
+      href: `/marathon/listening/day-${n}.html`,
+      pdf: `/marathon/listening/day-${n}.pdf`,
+    };
+  }),
+};
+
+// No Reading Marathon days published yet — the view shows an empty state.
+export const readingMarathon = {
+  title: 'Reading Marathon',
+  subtitle: 'One recently tested passage a day',
+  days: [],
+};
+
 // Hours of study per skill, per month — drives the stacked activity chart.
 export const activitySeries = [
   { key: 'reading', label: 'Reading', color: 'var(--chart-reading)' },
   { key: 'listening', label: 'Listening', color: 'var(--chart-listening)' },
-  { key: 'writing', label: 'Writing', color: 'var(--chart-writing)' },
-  { key: 'speaking', label: 'Speaking', color: 'var(--chart-speaking)' },
 ];
 
 export const activity = [
-  { month: 'Jun', reading: 1.4, listening: 0.6, writing: 0.5, speaking: 0.4 },
-  { month: 'Jul', reading: 1.0, listening: 0.6, writing: 0.5, speaking: 0.5 },
-  { month: 'Aug', reading: 0.8, listening: 0.4, writing: 0.4, speaking: 0.2 },
-  { month: 'Sep', reading: 1.5, listening: 0.6, writing: 0.5, speaking: 0.5 },
-  { month: 'Oct', reading: 0.9, listening: 0.4, writing: 0.4, speaking: 0.3 },
-  { month: 'Nov', reading: 0.8, listening: 0.4, writing: 0.3, speaking: 0.3 },
-  { month: 'Dec', reading: 1.6, listening: 0.7, writing: 0.6, speaking: 0.6 },
+  { month: 'Jun', reading: 1.8, listening: 1.1 },
+  { month: 'Jul', reading: 1.5, listening: 1.1 },
+  { month: 'Aug', reading: 1.1, listening: 0.7 },
+  { month: 'Sep', reading: 1.9, listening: 1.2 },
+  { month: 'Oct', reading: 1.2, listening: 0.8 },
+  { month: 'Nov', reading: 1.1, listening: 0.7 },
+  { month: 'Dec', reading: 2.1, listening: 1.4 },
 ];
 
 export const myCourses = [
@@ -108,12 +129,12 @@ export const myCourses = [
   {
     id: 'm2',
     tone: 'peach',
-    category: 'Writing',
-    icon: WritingIcon,
+    category: 'Listening Marathon',
+    icon: ListeningMarathonIcon,
     rating: 4.9,
-    title: 'Academic Task 1: Charts, Maps & Processes',
-    students: 3214,
-    progress: 0.32,
+    title: 'Listening Marathon — Day 7: Sections 2 & 3',
+    students: 1463,
+    progress: 0.3,
     learners: ['Dilnoza S'],
   },
   {

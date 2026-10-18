@@ -123,19 +123,27 @@ export const ListeningIcon = make(
   </>
 );
 
-export const WritingIcon = make(
+export const ReadingMarathonIcon = make(
   <>
-    <path d="M15.5 4.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" />
-    <path d="M13.5 6.5l3 3" />
+    <path d="M5 21V4" />
+    <path d="M5 4.5h11.5l-2.5 4 2.5 4H5" />
   </>
 );
 
-export const SpeakingIcon = make(
+export const ListeningMarathonIcon = make(
   <>
-    <rect x="9" y="3" width="6" height="11" rx="3" />
-    <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" />
+    <path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2" />
   </>
 );
+
+export const DownloadIcon = make(
+  <>
+    <path d="M12 4v11M7 10.5l5 5 5-5" />
+    <path d="M5 19.5h14" />
+  </>
+);
+
+export const CheckIcon = make(<path d="m5 12.5 4.5 4.5L19 7.5" />);
 
 export const VocabularyIcon = make(
   <>

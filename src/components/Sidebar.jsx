@@ -1,4 +1,4 @@
-import { LogoMark, BasketIcon, HomeIcon, UsersIcon, LessonIcon, SettingsIcon } from './Icons.jsx';
+import { LogoMark, HomeIcon, UsersIcon, LessonIcon } from './Icons.jsx';
 import { Avatar } from './Avatar.jsx';
 
 const nav = [
@@ -14,10 +14,6 @@ export function Sidebar({ active, userName }) {
         <LogoMark />
       </a>
 
-      <button className="icon-btn icon-btn--soft sidebar__cart" aria-label="Basket, 1 item">
-        <BasketIcon />
-        <span className="dot" />
-      </button>
 
       <nav className="sidebar__nav">
         {nav.map(({ id, label, icon: Icon, href }) => (
@@ -31,9 +27,6 @@ export function Sidebar({ active, userName }) {
       </nav>
 
       <div className="sidebar__bottom">
-        <button className="icon-btn icon-btn--soft" aria-label="Settings">
-          <SettingsIcon />
-        </button>
         {userName && <Avatar name={userName} size={40} className="sidebar__me" />}
       </div>
     </aside>

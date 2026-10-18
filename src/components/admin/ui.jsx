@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { XIcon } from '../Icons.jsx';
 
@@ -93,10 +93,26 @@ export function Field({ label, error, hint, children, wide = false, htmlFor }) {
   );
 }
 
-/** Segmented control (iOS style) for small sets of options. */
+/** Segmented control (iOS style) with a thumb that slides to the chosen option. */
 export function Segmented({ options, value, onChange, label }) {
+  const ref = useRef(null);
+  const [thumb, setThumb] = useState(null);
+
+  useLayoutEffect(() => {
+    const el = ref.current?.querySelector('.segmented__opt.is-active');
+    if (!el) return setThumb(null);
+    const place = () => setThumb({ x: el.offsetLeft, w: el.offsetWidth });
+    place();
+    const ro = new ResizeObserver(place);
+    ro.observe(ref.current);
+    return () => ro.disconnect();
+  }, [value, options.length]);
+
   return (
-    <div className="segmented" role="radiogroup" aria-label={label}>
+    <div ref={ref} className={`segmented ${thumb ? 'has-thumb' : ''}`} role="radiogroup" aria-label={label}>
+      {thumb && (
+        <span className="segmented__thumb" style={{ width: thumb.w, transform: `translateX(${thumb.x}px)` }} aria-hidden="true" />
+      )}
       {options.map((o) => (
         <button
           key={o.value}

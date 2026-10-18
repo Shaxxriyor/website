@@ -994,12 +994,17 @@ a {
     transform: translateY(4px) scale(0.96);
   }
 }
+/* Reduced motion (also Windows "Animation effects: off"): drop entrance and
+   movement animations, but keep short colour/press feedback so buttons still
+   feel responsive instead of snapping. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation: none !important;
-    transition: none !important;
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.12s !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -2810,4 +2815,176 @@ body.has-sheet {
   color: var(--ink-2);
   background: rgba(255, 255, 255, 0.7);
   box-shadow: inset 0 0 0 1px var(--line);
+}
+
+/* =====================================================================
+   Button feel: every pressable thing eases in on hover, squishes on press
+   and springs back on release.
+   ===================================================================== */
+.btn,
+.chip,
+.tab,
+.select,
+.icon-btn,
+.segmented__opt,
+.picker__item,
+.course-card,
+.featured,
+.day-card,
+.student-row,
+.mini-lesson,
+.friends,
+.link-sm,
+.back-link,
+.danger-link {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    transform 0.45s var(--spring),
+    box-shadow 0.3s var(--ease),
+    background-color 0.25s var(--ease),
+    color 0.2s var(--ease),
+    opacity 0.2s var(--ease),
+    filter 0.2s var(--ease);
+}
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+.btn--dark:hover:not(:disabled) {
+  filter: brightness(1.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 12px 22px -10px rgba(20, 18, 17, 0.6);
+}
+.chip:hover:not(:disabled):not(.is-active),
+.tab:hover:not(.is-active),
+.select:hover {
+  transform: translateY(-1px);
+}
+/* press: quick squish in, then the 0.45s spring above brings it back */
+.btn:active:not(:disabled),
+.chip:active:not(:disabled),
+.tab:active,
+.select:active,
+.icon-btn:active,
+.segmented__opt:active,
+.picker__item:active,
+.mini-lesson:active,
+.friends:active {
+  transform: scale(0.95);
+  transition-duration: 0.08s;
+}
+.course-card:active:not(.is-soon),
+.featured:active,
+.day-card:active,
+.student-row:active {
+  transform: scale(0.985);
+  transition-duration: 0.1s;
+}
+.nav-item .nav-btn {
+  transition: transform 0.45s var(--spring), box-shadow 0.3s var(--ease), background-color 0.3s var(--ease), color 0.2s;
+}
+.nav-item:active .nav-btn {
+  transform: scale(0.9);
+  transition-duration: 0.08s;
+}
+/* active pills fade their dark fill in instead of switching instantly */
+.chip.is-active,
+.tab.is-active,
+.nav-item.is-active .nav-btn {
+  animation: pill-in 0.35s var(--ease);
+}
+@keyframes pill-in {
+  from {
+    filter: brightness(1.6);
+    transform: scale(0.94);
+  }
+}
+
+/* ---------- Segmented control: sliding thumb ---------- */
+.segmented {
+  position: relative;
+}
+.segmented__thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 0;
+  border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 3px 8px -2px rgba(0, 0, 0, 0.1);
+  transition: transform 0.4s var(--spring), width 0.4s var(--spring);
+  pointer-events: none;
+}
+.segmented.has-thumb .segmented__opt {
+  position: relative;
+  z-index: 1;
+}
+.segmented.has-thumb .segmented__opt.is-active {
+  background: transparent;
+  box-shadow: none;
+}
+
+/* ---------- Home course cards as buttons ---------- */
+button.course-card {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+.course-card.is-soon {
+  cursor: default;
+  filter: saturate(0.75);
+}
+.course-card.is-soon:hover {
+  transform: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), var(--shadow-sm);
+}
+.course-card.is-soon:hover::after {
+  opacity: 0;
+}
+.course-card__go {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  transition: transform 0.35s var(--spring), background-color 0.25s, color 0.25s;
+}
+.course-card:hover .course-card__go {
+  color: #fff;
+  background: var(--ink);
+  transform: translateX(3px);
+}
+.course-card__title {
+  display: block;
+}
+.featured {
+  color: inherit;
+}
+.featured__art {
+  display: block;
+}
+.featured__title {
+  display: block;
+}
+/* Toolbars never push the page wider than the screen; chip rows scroll sideways. */
+.toolbar,
+.toolbar > * {
+  min-width: 0;
+  max-width: 100%;
+}
+@media (max-width: 720px) {
+  .seg-tabs {
+    margin: 0 -16px;
+    padding: 2px 16px 4px;
+    max-width: none;
+    width: calc(100% + 32px);
+    scroll-snap-type: x proximity;
+  }
+  .seg-tabs::-webkit-scrollbar {
+    display: none;
+  }
 }

@@ -1,4 +1,4 @@
-// Static placeholder content for the UI stage. Replaced by real data in step 2.
+// Home page content: categories, course cards and the marathon day lists.
 import {
   ReadingIcon,
   ListeningIcon,
@@ -21,57 +21,49 @@ export const categories = [
   { id: 'mock', label: 'Mock Tests', icon: MockTestIcon },
 ];
 
+// Home page cards. `tab` opens that tab; cards without one are announced as coming soon.
 export const popularCourses = [
   {
-    id: 1,
-    tone: 'rose',
-    category: 'Reading',
-    icon: ReadingIcon,
-    rating: 4.8,
-    title: 'Recently Tested Reading: Academic Set 2026',
-    students: 9530,
-    learners: ['Malika R', 'Jasur T', 'Aziza K'],
-  },
-  {
-    id: 2,
-    tone: 'peach',
-    category: 'Listening Marathon',
-    icon: ListeningMarathonIcon,
-    rating: 4.9,
-    badge: 'New',
-    title: 'Listening Marathon: 20 Days of Sections 2 & 3',
-    students: 1463,
-    learners: ['Dilnoza S', 'Bekzod A'],
-  },
-  {
-    id: 3,
-    tone: 'lilac',
-    category: 'Listening',
-    icon: ListeningIcon,
-    rating: 4.9,
-    title: 'Listening Sections 1–4: Real Exam Practice',
-    students: 6726,
-    learners: ['Kamola N', 'Timur U'],
-  },
-  {
-    id: 4,
+    id: 'reading-marathon',
     tone: 'mint',
     category: 'Reading Marathon',
+    skill: 'reading',
     icon: ReadingMarathonIcon,
-    rating: 5.0,
-    badge: 'Top 10',
+    badge: 'New',
     title: 'Reading Marathon: One Real Passage a Day',
-    students: 8735,
-    learners: ['Sardor M'],
+    meta: '19 days · 13 questions each · Uzbek translation',
+    tab: 'reading-marathon',
+  },
+  {
+    id: 'listening-marathon',
+    tone: 'peach',
+    category: 'Listening Marathon',
+    skill: 'listening',
+    icon: ListeningMarathonIcon,
+    badge: 'New',
+    title: 'Listening Marathon: 20 Days of Sections 2 & 3',
+    meta: '20 days · 20 questions each · PDF included',
+    tab: 'listening-marathon',
+  },
+  {
+    id: 'recent-reading',
+    tone: 'rose',
+    category: 'Reading',
+    skill: 'reading',
+    icon: ReadingIcon,
+    title: 'Recently Tested Reading: Academic Set 2026',
+    meta: 'Real exam passages from this year',
+  },
+  {
+    id: 'recent-listening',
+    tone: 'lilac',
+    category: 'Listening',
+    skill: 'listening',
+    icon: ListeningIcon,
+    title: 'Listening Sections 1–4: Real Exam Practice',
+    meta: 'Full tests from recent exams',
   },
 ];
-
-export const featuredCourse = {
-  category: 'Daily Article',
-  title: 'Why cities are turning to “sponge” design to fight floods',
-  meta: 'Band 7+ vocabulary · 8 min read · 13 questions',
-  progress: 0,
-};
 
 export const listeningMarathon = {
   title: 'Listening Marathon',

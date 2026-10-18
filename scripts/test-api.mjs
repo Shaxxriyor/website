@@ -161,8 +161,9 @@ async function asStudent(name, { method = 'GET', body, ip = '3.3.3.3' } = {}) {
 r = await call('auth', { method: 'POST', body: { username: 'teacher', password: 'correct-horse' }, ip: '4.4.4.4' });
 r = await call('students', { method: 'POST', body: { action: 'create', ...base, full_name: 'Kamola Nazarova' } });
 const kamola = r.data.id;
+const code = r.data.access_code;
 r = await call('students', { query: `?id=${kamola}` });
-const code = r.data.student.access_code;
+assert.equal(r.data.student.access_code, code, 'registration returns the sign-in code');
 assert.match(code, /^[A-HJ-NP-Z2-9]{8}$/, 'readable 8-character code');
 
 r = await asStudent('me');

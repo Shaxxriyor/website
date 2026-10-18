@@ -45,8 +45,8 @@ export function StudentForm({ student, groups = [], onClose, onSaved }) {
         await api.updateStudent(student.id, data);
         onSaved(student.id);
       } else {
-        const { id } = await api.createStudent(data);
-        onSaved(id);
+        const { id, access_code } = await api.createStudent(data);
+        onSaved(id, access_code, form.full_name.trim());
       }
     } catch (err) {
       setErrors(err.fields || {});

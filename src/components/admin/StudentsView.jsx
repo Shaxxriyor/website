@@ -5,6 +5,8 @@ import { ChevronRight, PlusIcon, SearchIcon, UsersIcon } from '../Icons.jsx';
 import { Avatar } from '../Avatar.jsx';
 import { EmptyState, ErrorNote, Skeleton, StatusPill, useLoad } from './ui.jsx';
 import { StudentForm } from './StudentForm.jsx';
+import { CodeSheet } from './CodeSheet.jsx';
+import { navigate } from '../../lib/router.js';
 
 const STATUS_TABS = [
   { id: 'all', label: 'All' },
@@ -19,6 +21,7 @@ export function StudentsView({ version, onChanged, notify }) {
   const [group, setGroup] = useState('');
   const [registering, setRegistering] = useState(false);
   const [highlight, setHighlight] = useState(null);
+  const [newStudent, setNewStudent] = useState(null);
 
   const students = data?.students ?? [];
   const groups = useMemo(() => [...new Set(students.map((s) => s.group_name).filter(Boolean))].sort(), [students]);
@@ -154,15 +157,23 @@ export function StudentsView({ version, onChanged, notify }) {
         <StudentForm
           groups={groups}
           onClose={() => setRegistering(false)}
-          onSaved={(id) => {
+          onSaved={(id, code, name) => {
             setRegistering(false);
             setHighlight(id);
+            setNewStudent({ id, code, name });
             setStatus('all');
             setSearch('');
             setGroup('');
-            notify('Student registered');
             onChanged();
           }}
+        />
+      )}
+      {newStudent && (
+        <CodeSheet
+          name={newStudent.name}
+          code={newStudent.code}
+          onClose={() => setNewStudent(null)}
+          onOpenProfile={() => navigate(`/students/${newStudent.id}`)}
         />
       )}
     </>

@@ -14,7 +14,8 @@ export const POST = route(async (request) => {
   const body = await readBody(request);
   switch (body.action) {
     case 'create':
-      return json({ id: await createStudent(body) }, 201);
+      const { id: newId, access_code } = await createStudent(body);
+      return json({ id: newId, access_code }, 201);
     case 'update':
       await updateStudent(id(body.id), body);
       return json({ ok: true });

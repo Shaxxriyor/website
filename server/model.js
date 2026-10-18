@@ -249,10 +249,10 @@ export async function createStudent(input) {
   return withFreshCode(async (code) => {
     const [row] = await query(
       `INSERT INTO students (full_name, phone, email, group_name, level, registered_at, status, notes, access_code)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, access_code`,
       [s.full_name, s.phone, s.email, s.group_name, s.level, s.registered_at, s.status, s.notes, code],
     );
-    return row.id;
+    return row;
   });
 }
 

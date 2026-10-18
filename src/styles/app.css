@@ -3474,3 +3474,37 @@ button.course-card {
   font-weight: 600;
   color: var(--ink-2);
 }
+
+/* ---------- Profile photos ---------- */
+.avatar {
+  overflow: hidden;
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.avatar-edit {
+  position: relative;
+  display: inline-block;
+  border-radius: 50%;
+}
+.avatar-edit__btn {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--ink);
+  box-shadow: 0 0 0 3px var(--panel-solid), var(--shadow-sm);
+}
+.avatar-menu {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}

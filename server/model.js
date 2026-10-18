@@ -115,11 +115,12 @@ export function lessonInput(input) {
 // ---------- reads ----------
 
 const STUDENT_COLUMNS = `s.id, s.full_name, s.phone, s.email, s.group_name, s.level,
-  s.registered_at::text AS registered_at, s.status, s.notes, s.access_code,
+  s.registered_at::text AS registered_at, s.status, s.notes, s.access_code, s.avatar_v,
   to_char(s.last_active_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_active_at`;
 
 const LESSON_COLUMNS = `l.id, l.student_id, l.lesson_date::text AS lesson_date, l.kind, l.skill, l.day, l.topic,
-  l.correct, l.total, l.duration_minutes, l.notes, l.source, l.item, s.full_name AS student_name, s.group_name`;
+  l.correct, l.total, l.duration_minutes, l.notes, l.source, l.item, s.full_name AS student_name, s.group_name,
+  s.avatar_v`;
 
 export async function listStudents() {
   return query(
@@ -330,9 +331,9 @@ export async function deleteLesson(lessonId) {
 /** What a signed-in student sees about themselves — no contact details, no teacher notes. */
 export async function studentSelf(studentId) {
   const data = await getStudent(studentId);
-  const { id: sid, full_name, group_name, level } = data.student;
+  const { id: sid, full_name, group_name, level, avatar_v } = data.student;
   return {
-    student: { id: sid, full_name, group_name, level },
+    student: { id: sid, full_name, group_name, level, avatar_v },
     stats: data.stats,
     marathon: data.marathon,
     practice: data.practice,
@@ -438,7 +439,7 @@ export async function leaderboard(period = 'all') {
   const days = PERIODS[period] ?? null;
   const since = days ? new Date(Date.now() - (days - 1) * 86400000).toISOString().slice(0, 10) : '0001-01-01';
   const [students, rows] = await Promise.all([
-    query(`SELECT id, full_name, group_name, level FROM students WHERE status = 'active' ORDER BY lower(full_name)`),
+    query(`SELECT id, full_name, group_name, level, avatar_v FROM students WHERE status = 'active' ORDER BY lower(full_name)`),
     query(
       `SELECT l.student_id, l.lesson_date::text AS lesson_date, l.kind, l.skill, l.day, l.item, l.topic,
          l.correct, l.total, l.duration_minutes
@@ -485,6 +486,7 @@ export async function leaderboard(period = 'all') {
       full_name: s.full_name,
       group_name: s.group_name,
       level: s.level,
+      avatar_v: s.avatar_v,
       ...stats,
       badges: badges(stats),
       els: [...(els.get(s.id) ?? new Map())].map(([day, photos]) => ({ day, photos })),
@@ -536,7 +538,7 @@ export async function deleteElsPhoto(photoId, { studentId = null } = {}) {
 /** Everyone's photos for one day (newest first), grouped by student. Active students only. */
 export async function elsDay(day) {
   const rows = await query(
-    `SELECT p.id, p.student_id, s.full_name, s.group_name,
+    `SELECT p.id, p.student_id, s.full_name, s.group_name, s.avatar_v,
        to_char(p.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS created_at
      FROM els_photos p JOIN students s ON s.id = p.student_id
      WHERE p.day = $1 AND s.status = 'active'
@@ -545,7 +547,9 @@ export async function elsDay(day) {
   );
   const by = new Map();
   for (const r of rows) {
-    if (!by.has(r.student_id)) by.set(r.student_id, { student_id: r.student_id, full_name: r.full_name, group_name: r.group_name, photos: [] });
+    if (!by.has(r.student_id)) {
+      by.set(r.student_id, { student_id: r.student_id, full_name: r.full_name, group_name: r.group_name, avatar_v: r.avatar_v, photos: [] });
+    }
     by.get(r.student_id).photos.push({ id: r.id, created_at: r.created_at });
   }
   return [...by.values()];
@@ -582,4 +586,33 @@ export async function elsForStudent(studentId) {
     by.get(r.day).push(r.id);
   }
   return [...by].map(([day, photos]) => ({ day, photos }));
+}
+
+// ---------- profile photos ----------
+
+/** Set (or with image=null, remove) a student's profile photo. Returns the new version or null. */
+export async function setAvatar(studentId, image) {
+  if (image == null) {
+    await query('UPDATE students SET avatar = NULL, avatar_mime = NULL, avatar_v = NULL WHERE id = $1', [studentId]);
+    return null;
+  }
+  const m = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(String(image));
+  if (!m) fail('image', 'Upload a JPG, PNG or WebP photo');
+  if ((m[2].length * 3) / 4 > 300 * 1024) fail('image', 'Photo is too large');
+  const [row] = await query(
+    `UPDATE students SET avatar = decode($1, 'base64'), avatar_mime = $2,
+       avatar_v = COALESCE(avatar_v, 0) + 1 WHERE id = $3 RETURNING avatar_v`,
+    [m[2], m[1], studentId],
+  );
+  if (!row) throw new ApiError('Student not found.', 404);
+  return row.avatar_v;
+}
+
+export async function getAvatar(studentId) {
+  const [row] = await query(
+    `SELECT avatar_mime AS mime, encode(avatar, 'base64') AS b64 FROM students WHERE id = $1 AND avatar IS NOT NULL`,
+    [studentId],
+  );
+  if (!row) throw new ApiError('No photo.', 404);
+  return { mime: row.mime, body: Buffer.from(row.b64, 'base64') };
 }

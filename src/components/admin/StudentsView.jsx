@@ -126,7 +126,7 @@ export function StudentsView({ version, onChanged, notify }) {
               role="row"
             >
               <span className="student-row__who" role="cell">
-                <Avatar name={s.full_name} size={36} />
+                <Avatar name={s.full_name} size={36} studentId={s.id} v={s.avatar_v} />
                 <span>
                   <strong>{s.full_name}</strong>
                   <span className="muted-sm">

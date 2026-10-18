@@ -29,7 +29,7 @@ export function PracticeRows({ lessons, showStudent = false, onDeleted }) {
                 <li key={l.id} className={`lesson-row ${showStudent ? 'lesson-row--wide' : ''}`}>
                   {showStudent && (
                     <a className="lesson-row__who" href={`#/students/${l.student_id}`}>
-                      <Avatar name={l.student_name} size={30} />
+                      <Avatar name={l.student_name} size={30} studentId={l.student_id} v={l.avatar_v} />
                       <span>
                         <strong>{l.student_name}</strong>
                         {l.group_name && <span className="muted-sm">{l.group_name}</span>}

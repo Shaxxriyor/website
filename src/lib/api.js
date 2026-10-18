@@ -59,10 +59,15 @@ export const api = {
   me: () => request('me'),
   studentLogin: (code) => request('me', { body: { action: 'login', code } }),
   studentLogout: () => request('me', { body: { action: 'logout' } }),
+  setAvatar: (image) => request('me', { body: { action: 'avatar', image } }),
+  removeAvatar: () => request('me', { body: { action: 'avatar', image: null } }),
+  teacherRemoveAvatar: (id) => request('students', { body: { action: 'remove-avatar', id } }),
 };
 
 /** URL of one ELS translation photo (served only to signed-in users). */
 export const photoUrl = (id) => `./api/photo?id=${id}`;
+/** A student's profile photo; `v` changes whenever they replace it. */
+export const avatarUrl = (studentId, v) => `./api/avatar?id=${studentId}&v=${v}`;
 
 /** Shrink a phone photo to at most 1600px and re-encode as JPEG (~200–400 KB). */
 export async function compressImage(file, max = 1600, quality = 0.8) {
@@ -80,6 +85,28 @@ export async function compressImage(file, max = 1600, quality = 0.8) {
     canvas.height = Math.round(img.naturalHeight * scale);
     canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
     return canvas.toDataURL('image/jpeg', quality);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+/** Center-crop a photo to a square of `size` px (JPEG) for profile pictures. */
+export async function squareImage(file, size = 320) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = () => reject(new ApiError('That file is not a photo.', 0));
+      i.src = url;
+    });
+    const side = Math.min(img.naturalWidth, img.naturalHeight);
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = size;
+    canvas
+      .getContext('2d')
+      .drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, size, size);
+    return canvas.toDataURL('image/jpeg', 0.85);
   } finally {
     URL.revokeObjectURL(url);
   }

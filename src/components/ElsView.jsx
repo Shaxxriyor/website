@@ -232,7 +232,7 @@ function ElsDaySheet({ day, me, admin, onClose, onChanged }) {
               {others.map((s) => (
                 <div key={s.student_id} className="els-person">
                   <div className="els-person__head">
-                    <Avatar name={s.full_name} size={28} />
+                    <Avatar name={s.full_name} size={28} studentId={s.student_id} v={s.avatar_v} />
                     <strong>{s.full_name}</strong>
                     <span className="muted-sm">
                       {s.group_name ? `${s.group_name} · ` : ''}

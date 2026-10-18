@@ -63,7 +63,7 @@ export function OverviewPanel({ version, onSignOut }) {
               {data.recent.map((l) => (
                 <li key={l.id}>
                   <a href={`#/students/${l.student_id}`} className="mini-lesson card-white">
-                    <Avatar name={l.student_name} size={30} />
+                    <Avatar name={l.student_name} size={30} studentId={l.student_id} v={l.avatar_v} />
                     <span className="mini-lesson__text">
                       <strong>{l.student_name}</strong>
                       <span className="muted-sm">
@@ -98,7 +98,7 @@ export function StudentPanel({ data, onSignOut }) {
       <PanelTop title="Student" onSignOut={onSignOut} />
       <div className="profile">
         <span className="profile__halo">
-          <Avatar name={s.full_name} size={64} />
+          <Avatar name={s.full_name} size={64} studentId={s.id} v={s.avatar_v} />
         </span>
         <h2 className="profile__name">{s.full_name}</h2>
         <span className="pill pill--soft">

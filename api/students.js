@@ -1,6 +1,6 @@
 import { ApiError, json, readBody, route, searchParams } from '../server/http.js';
 import { requireAdmin } from '../server/auth.js';
-import { createStudent, deleteStudent, getStudent, id, listStudents, regenerateCode, updateStudent } from '../server/model.js';
+import { createStudent, deleteStudent, getStudent, id, listStudents, regenerateCode, setAvatar, updateStudent } from '../server/model.js';
 
 export const GET = route(async (request) => {
   requireAdmin(request);
@@ -21,6 +21,9 @@ export const POST = route(async (request) => {
       return json({ ok: true });
     case 'delete':
       await deleteStudent(id(body.id));
+      return json({ ok: true });
+    case 'remove-avatar':
+      await setAvatar(id(body.id), null);
       return json({ ok: true });
     case 'new-code':
       return json({ access_code: await regenerateCode(id(body.id)) });

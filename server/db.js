@@ -90,6 +90,10 @@ const SCHEMA = [
   )`,
   `CREATE INDEX IF NOT EXISTS els_photos_day ON els_photos (day, created_at)`,
   `CREATE INDEX IF NOT EXISTS els_photos_student ON els_photos (student_id, day)`,
+  // Profile photo (small square JPEG); avatar_v changes on every update for cache-busting.
+  `ALTER TABLE students ADD COLUMN IF NOT EXISTS avatar BYTEA`,
+  `ALTER TABLE students ADD COLUMN IF NOT EXISTS avatar_mime TEXT`,
+  `ALTER TABLE students ADD COLUMN IF NOT EXISTS avatar_v INTEGER`,
   `CREATE INDEX IF NOT EXISTS lessons_student_date ON lessons (student_id, lesson_date)`,
   `CREATE INDEX IF NOT EXISTS lessons_date ON lessons (lesson_date)`,
   `CREATE TABLE IF NOT EXISTS login_attempts (

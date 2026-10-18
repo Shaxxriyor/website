@@ -57,7 +57,7 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
       <BackLink />
 
       <section className="profile-hero">
-        <Avatar name={s.full_name} size={72} />
+        <Avatar name={s.full_name} size={72} studentId={s.id} v={s.avatar_v} />
         <div className="profile-hero__main">
           <div className="profile-hero__title">
             <h1 className="profile-hero__name">{s.full_name}</h1>
@@ -87,6 +87,18 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
           <button className="btn btn--glass" onClick={() => setEditing(true)}>
             <EditIcon size={15} /> Edit
           </button>
+          {s.avatar_v && (
+            <button
+              className="btn btn--glass btn--sm"
+              onClick={async () => {
+                await api.teacherRemoveAvatar(s.id);
+                notify('Profile photo removed');
+                onChanged();
+              }}
+            >
+              Remove photo
+            </button>
+          )}
           <button className="btn btn--dark" onClick={() => setRecording(true)}>
             <PlusIcon size={15} /> Record practice
           </button>

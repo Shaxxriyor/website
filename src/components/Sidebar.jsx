@@ -8,7 +8,7 @@ const nav = [
   { id: 'practice', label: 'Practice', icon: LessonIcon, href: '#/practice' },
 ];
 
-export function Sidebar({ active, userName }) {
+export function Sidebar({ active, userName, userId = null, userAvatar = null }) {
   return (
     <aside className="sidebar glass" aria-label="Primary">
       <a className="sidebar__logo" href="#/" aria-label="READING_CDI home">
@@ -28,7 +28,7 @@ export function Sidebar({ active, userName }) {
       </nav>
 
       <div className="sidebar__bottom">
-        {userName && <Avatar name={userName} size={40} className="sidebar__me" />}
+        {userName && <Avatar name={userName} size={40} className="sidebar__me" studentId={userId} v={userAvatar} />}
       </div>
     </aside>
   );

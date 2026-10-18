@@ -19,6 +19,7 @@ const api = {
   leaderboard: await import('../api/leaderboard.js'),
   els: await import('../api/els.js'),
   photo: await import('../api/photo.js'),
+  avatar: await import('../api/avatar.js'),
 };
 
 let cookie = '';
@@ -279,6 +280,23 @@ r = await call('els', { method: 'POST', body: { action: 'upload', day: 3, image:
 assert.equal(r.status, 403, 'teacher does not upload as a student');
 r = await asStudent('els', { method: 'POST', body: { action: 'delete', id: photoId } });
 assert.equal(r.status, 200, 'student deletes own photo');
+
+// profile photo: student sets it, classmates see it, teacher can remove it
+r = await asStudent('me', { method: 'POST', body: { action: 'avatar', image: PNG } });
+assert.equal(r.data.avatar_v, 1);
+r = await asStudent('leaderboard');
+assert.equal(r.data.students.find((x) => x.full_name === 'Kamola Nazarova').avatar_v, 1);
+r = await api.avatar.GET(new Request(`https://example.test/api/avatar?id=${kamola}&v=1`, { headers: { cookie: studentCookie } }));
+assert.equal(r.status, 200);
+assert.equal(r.headers.get('content-type'), 'image/png');
+r = await api.avatar.GET(new Request(`https://example.test/api/avatar?id=${kamola}`));
+assert.equal(r.status, 401, 'avatars need sign-in');
+r = await asStudent('me', { method: 'POST', body: { action: 'avatar', image: 'data:image/svg+xml;base64,PHN2Zz4=' } });
+assert.equal(r.status, 422, 'no SVG avatars');
+r = await call('students', { method: 'POST', body: { action: 'remove-avatar', id: kamola } });
+assert.equal(r.status, 200);
+r = await asStudent('me');
+assert.equal(r.data.student.avatar_v, null, 'teacher removed it');
 
 // new code: old one stops working; inactive students are signed out
 r = await call('students', { method: 'POST', body: { action: 'new-code', id: kamola } });

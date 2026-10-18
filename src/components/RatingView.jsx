@@ -66,7 +66,7 @@ export function RatingView({ signedIn, version }) {
                   onClick={() => setOpen(expanded ? null : s.id)}
                 >
                   <span className="rating__rank num">{!idle && i < 3 ? MEDALS[i] : i + 1}</span>
-                  <Avatar name={s.full_name} size={38} />
+                  <Avatar name={s.full_name} size={38} studentId={s.id} v={s.avatar_v} />
                   <span className="rating__who">
                     <strong>
                       {s.full_name}

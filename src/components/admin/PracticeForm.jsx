@@ -166,7 +166,7 @@ export function PracticeForm({ presetStudentId, onClose, onSaved }) {
                       aria-pressed={selected.has(s.id)}
                       onClick={() => toggle(s.id)}
                     >
-                      <Avatar name={s.full_name} size={28} />
+                      <Avatar name={s.full_name} size={28} studentId={s.id} v={s.avatar_v} />
                       <span className="picker__name">{s.full_name}</span>
                       <span className="muted-sm">{s.group_name}</span>
                       <span className="picker__check">{selected.has(s.id) && <CheckIcon size={14} />}</span>

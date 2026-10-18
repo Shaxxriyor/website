@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import { avatarUrl } from '../lib/api.js';
+
 // Placeholder avatar: deterministic gradient + initials (no external images).
 const palettes = [
   ['#f6c6a8', '#d98b6a'],
@@ -14,7 +17,13 @@ function hash(str) {
   return h;
 }
 
-export function Avatar({ name, size = 28, ring = false, className = '' }) {
+/**
+ * Round avatar: the student's profile photo when they have one (`studentId` + `v`),
+ * otherwise a gradient with their initials.
+ */
+export function Avatar({ name, size = 28, ring = false, className = '', studentId = null, v = null }) {
+  const [failed, setFailed] = useState(false);
+  const src = studentId && v && !failed ? avatarUrl(studentId, v) : null;
   const [a, b] = palettes[hash(name) % palettes.length];
   const initials = name
     .split(' ')
@@ -35,7 +44,7 @@ export function Avatar({ name, size = 28, ring = false, className = '' }) {
       aria-label={name}
       role="img"
     >
-      {initials}
+      {src ? <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} /> : initials}
     </span>
   );
 }

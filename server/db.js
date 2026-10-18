@@ -6,10 +6,21 @@ import { neon } from '@neondatabase/serverless';
 let client;
 let ready;
 
+// Vercel's Neon integration names its variables after a custom prefix
+// (DATABASE_URL, STORAGE_URL, …), so fall back to any Postgres URL it set.
+function databaseUrl() {
+  const env = process.env;
+  const named = env.DATABASE_URL || env.POSTGRES_URL || env.STORAGE_URL;
+  if (named) return named;
+  const candidates = Object.keys(env)
+    .filter((k) => /_URL$/.test(k) && /^postgres(ql)?:\/\//.test(env[k] || ''))
+    .sort((a, b) => a.length - b.length); // prefer FOO_URL over FOO_URL_UNPOOLED-style names
+  return candidates.length ? env[candidates[0]] : null;
+}
+
 function getClient() {
   if (client) return client;
-  // Vercel's Neon integration names the variable after the chosen prefix.
-  const url = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.STORAGE_URL;
+  const url = databaseUrl();
   if (url) {
     const sql = neon(url);
     client = { query: (text, params) => sql.query(text, params) };

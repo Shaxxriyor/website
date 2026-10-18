@@ -2988,3 +2988,110 @@ button.course-card {
     display: none;
   }
 }
+
+/* ---------- Reading Practice library & summary ---------- */
+.plib {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.plib__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px 10px 10px;
+  border-radius: var(--r-md);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: inset 0 1px 0 #fff, var(--shadow-sm);
+  transition: transform 0.45s var(--spring), box-shadow 0.3s var(--ease);
+}
+.plib__item:hover {
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 #fff, var(--shadow-md);
+}
+.plib__item:active {
+  transform: scale(0.985);
+  transition-duration: 0.1s;
+}
+.plib__no {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--tone);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.plib__item.is-done .plib__no {
+  background: var(--tone-deep);
+}
+.plib__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.plib__text strong {
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.plib__go {
+  color: var(--muted);
+  transition: transform 0.35s var(--spring), color 0.2s;
+}
+.plib__item:hover .plib__go {
+  color: var(--ink);
+  transform: translateX(3px);
+}
+.plib__score {
+  flex: none;
+  color: #1f7a52;
+}
+.plib__hint {
+  text-align: center;
+}
+.psum {
+  padding: 14px 16px 16px;
+}
+.psum__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.psum__rows li {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) 52px;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+}
+.psum__value {
+  text-align: right;
+  color: var(--ink-2);
+}
+.psum__avg {
+  margin-top: 10px;
+}
+.psum--compact {
+  padding: 12px 14px 14px;
+}
+.marathon-progress > .psum {
+  grid-column: 1 / -1;
+}
+@media (max-width: 1080px) {
+  .plib {
+    grid-template-columns: 1fr;
+  }
+}

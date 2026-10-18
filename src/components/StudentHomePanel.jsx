@@ -5,6 +5,7 @@ import { CheckIcon, LogoMark, LogoutIcon } from './Icons.jsx';
 import { Avatar } from './Avatar.jsx';
 import { ActivityChart } from './ActivityChart.jsx';
 import { MarathonGrid } from './MarathonGrid.jsx';
+import { PracticeSummary } from './PracticeSummary.jsx';
 
 /**
  * Right panel on the home page. Signed out: enter the code from the teacher.
@@ -16,7 +17,7 @@ export function StudentHomePanel({ me, onSignedIn, onSignOut }) {
   }
   if (!me) return <SignInPanel onSignedIn={onSignedIn} />;
 
-  const { student: s, stats, marathon, recent, activity } = me;
+  const { student: s, stats, marathon, practice, recent, activity } = me;
   return (
     <aside className="panel glass" aria-label="Your progress">
       <div className="panel__top panel__top--admin">
@@ -50,6 +51,7 @@ export function StudentHomePanel({ me, onSignedIn, onSignOut }) {
 
       <MarathonGrid skill="reading" label="Reading Marathon" tone="lilac" results={marathon} compact />
       <MarathonGrid skill="listening" label="Listening Marathon" tone="rose" results={marathon} compact />
+      <PracticeSummary results={practice} compact />
 
       {recent.length > 0 && (
         <>
@@ -103,7 +105,7 @@ function SignInPanel({ onSignedIn }) {
           <LogoMark size={44} />
         </span>
         <h2 className="profile__name">Save your progress</h2>
-        <p className="muted-sm">Enter the code from your teacher. Every marathon day you do is then saved automatically.</p>
+        <p className="muted-sm">Enter the code from your teacher. Every marathon day and practice passage you do is then saved automatically.</p>
         <input
           className="input input--code"
           value={code}

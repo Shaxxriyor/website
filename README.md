@@ -52,5 +52,7 @@ or to point at a real `DATABASE_URL`.
 - `api/` — `auth`, `students`, `lessons` (practice records), `overview`; student side: `me`, `track`
 - `server/` — `db.js` (Neon / PGlite + schema), `auth.js`, `model.js` (validation & queries), `http.js`
 - `dev/api-plugin.js` — serves `api/` from the Vite dev server
-- `public/track.js` — progress tracker for the marathon pages; `npm run add-tracker` adds it to new pages
+- `public/track.js` — progress tracker for marathon and practice pages; `npm run add-tracker` adds it to new pages
+- `public/practice/reading/` — Reading Practice passages (`p1-…`, `p2-…`, `p3-…`); add more with
+  `npm run import-practice -- "<folder with Passage 1/2/3>"` then `npm run add-tracker`
 - `public/marathon/` — Reading (`day-01` … `day-20`, no day 13 yet) and Listening (`day-01` … `day-20` + PDFs) Marathon pages

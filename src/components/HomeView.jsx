@@ -3,6 +3,7 @@ import { CategoryTabs } from './CategoryTabs.jsx';
 import { CourseCard } from './CourseCard.jsx';
 import { FeaturedCourse } from './FeaturedCourse.jsx';
 import { MarathonView } from './MarathonView.jsx';
+import { PracticeLibrary } from './PracticeLibrary.jsx';
 import { ReadingMarathonIcon, ListeningMarathonIcon, LogoMark, Wordmark, SparkleIcon } from './Icons.jsx';
 import { categories, popularCourses, listeningMarathon, readingMarathon } from '../data/mock.js';
 
@@ -12,7 +13,7 @@ const SOON = {
 };
 
 /** The public student-facing dashboard (marathons and courses). */
-export function HomeView({ results = [] }) {
+export function HomeView({ results = [], practice = [], signedIn = false }) {
   const [tab, setTab] = useState('all');
 
   return (
@@ -33,7 +34,9 @@ export function HomeView({ results = [] }) {
 
       <CategoryTabs items={categories} active={tab} onChange={setTab} />
 
-      {tab === 'listening-marathon' ? (
+      {tab === 'reading-practice' ? (
+        <PracticeLibrary results={practice} signedIn={signedIn} />
+      ) : tab === 'listening-marathon' ? (
         <MarathonView marathon={listeningMarathon} icon={ListeningMarathonIcon} skill="listening" results={results} />
       ) : tab === 'reading-marathon' ? (
         <MarathonView marathon={readingMarathon} icon={ReadingMarathonIcon} skill="reading" results={results} />
@@ -52,27 +55,21 @@ export function HomeView({ results = [] }) {
         <>
           <section aria-labelledby="popular-title">
             <div className="section-head">
-              <h2 id="popular-title" className="label">
-                {tab === 'reading' ? 'Reading' : tab === 'listening' ? 'Listening' : 'Most popular'}
-              </h2>
+              <h2 id="popular-title" className="label">Most popular</h2>
             </div>
             <div className="course-grid">
-              {popularCourses
-                .filter((c) => tab === 'all' || c.skill === tab)
-                .map((c) => (
-                  <CourseCard key={c.id} course={c} onOpen={setTab} />
-                ))}
+              {popularCourses.map((c) => (
+                <CourseCard key={c.id} course={c} onOpen={setTab} />
+              ))}
             </div>
           </section>
 
-          {tab !== 'listening' && (
-            <section aria-labelledby="featured-title">
-              <div className="section-head">
-                <h2 id="featured-title" className="label">Featured</h2>
-              </div>
-              <FeaturedCourse results={results} />
-            </section>
-          )}
+          <section aria-labelledby="featured-title">
+            <div className="section-head">
+              <h2 id="featured-title" className="label">Featured</h2>
+            </div>
+            <FeaturedCourse results={results} />
+          </section>
         </>
       )}
     </>

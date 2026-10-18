@@ -1,12 +1,16 @@
-// Adds the progress tracker to every marathon page (safe to run again).
+// Adds the progress tracker to every marathon and practice page (safe to run again).
 // Run after adding new days: npm run add-tracker
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const TAG = '<script src="../../track.js" defer></script>';
 let changed = 0;
-for (const skill of ['reading', 'listening']) {
-  const dir = join('public', 'marathon', skill);
+const DIRS = [
+  join('public', 'marathon', 'reading'),
+  join('public', 'marathon', 'listening'),
+  join('public', 'practice', 'reading'),
+];
+for (const dir of DIRS) {
   for (const file of readdirSync(dir).filter((f) => f.endsWith('.html'))) {
     const path = join(dir, file);
     const html = readFileSync(path, 'utf8');

@@ -69,7 +69,11 @@ const SCHEMA = [
   // Automatic tracking from the marathon pages, and student sign-in codes.
   `ALTER TABLE lessons ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT 'teacher'`,
   `ALTER TABLE lessons ADD COLUMN IF NOT EXISTS active_seconds INTEGER NOT NULL DEFAULT 0`,
-  `CREATE UNIQUE INDEX IF NOT EXISTS lessons_auto_day ON lessons (student_id, kind, skill, day, lesson_date) WHERE source = 'auto'`,
+  // Reading Practice passages are identified by `item` (their page id).
+  `ALTER TABLE lessons ADD COLUMN IF NOT EXISTS item TEXT`,
+  `DROP INDEX IF EXISTS lessons_auto_day`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS lessons_auto_once ON lessons
+     (student_id, kind, skill, (COALESCE(day, 0)), (COALESCE(item, '')), lesson_date) WHERE source = 'auto'`,
   `ALTER TABLE students ADD COLUMN IF NOT EXISTS access_code TEXT`,
   `ALTER TABLE students ADD COLUMN IF NOT EXISTS last_active_at TIMESTAMPTZ`,
   `UPDATE students SET access_code = upper(substr(md5(random()::text || id::text), 1, 8)) WHERE access_code IS NULL`,

@@ -193,12 +193,32 @@ assert.equal(r.status, 422, 'score cannot exceed 13');
 r = await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'listening', day: 2, seconds: 5000 } });
 assert.equal(r.status, 422, 'one heartbeat cannot claim more than 15 minutes');
 
+// Reading Practice passages: tracked per passage, total comes from the page
+const pr = { kind: 'exercise', skill: 'reading', item: 'p2-coral-reefs', topic: 'Passage 2 · Coral Reefs', date: today };
+r = await asStudent('track', { method: 'POST', body: { ...pr, seconds: 90 } });
+assert.equal(r.status, 200);
+r = await asStudent('track', { method: 'POST', body: { ...pr, seconds: 30, correct: 11, total: 14 } });
+assert.equal(r.data.active_seconds, 120);
+assert.equal(r.data.correct, 11);
+assert.equal(r.data.total, 14);
+r = await asStudent('track', { method: 'POST', body: { ...pr, seconds: 5, correct: 15, total: 14 } });
+assert.equal(r.status, 422, 'score cannot exceed the page total');
+r = await asStudent('track', { method: 'POST', body: { ...pr, item: '../../etc', seconds: 5 } });
+assert.equal(r.status, 422, 'unknown passage ids are rejected');
+r = await asStudent('track', { method: 'POST', body: { ...pr, item: 'p1-rubber', topic: 'Passage 1 · Rubber', seconds: 70 } });
+assert.equal(r.status, 200, 'a second passage on the same day is its own record');
+
 r = await asStudent('me');
+assert.deepEqual(
+  r.data.practice.map((x) => [x.item, x.correct]).sort(),
+  [['p1-rubber', null], ['p2-coral-reefs', 11]],
+);
+assert.equal(r.data.stats.exercise_count, 2);
 assert.equal(r.data.stats.marathon_days, 1);
-assert.equal(r.data.stats.total_minutes, 2);
+assert.equal(r.data.stats.total_minutes, 5);
 assert.equal(r.data.recent[0].source, 'auto');
 assert.equal(r.data.recent[0].notes, undefined);
-r = await call('lessons', { query: `?student_id=${kamola}` });
+r = await call('lessons', { query: `?student_id=${kamola}&kind=marathon` });
 assert.equal(r.data.lessons.length, 1);
 assert.equal(r.data.lessons[0].source, 'auto');
 assert.equal(r.data.lessons[0].topic, 'Keeping the water away');

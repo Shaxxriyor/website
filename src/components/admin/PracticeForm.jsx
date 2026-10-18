@@ -72,7 +72,7 @@ export function PracticeForm({ presetStudentId, onClose, onSaved }) {
     const local = {};
     if (!selected.size) local.student_ids = 'Choose at least one student';
     if (isMarathon && !form.day) local.day = 'Choose a day';
-    if (!isMarathon && !form.topic.trim()) local.topic = 'Name the exercise';
+    if (!isMarathon && !form.topic.trim()) local.topic = 'Name the passage or exercise';
     if (Object.keys(local).length) {
       setErrors(local);
       return;
@@ -104,7 +104,7 @@ export function PracticeForm({ presetStudentId, onClose, onSaved }) {
   return (
     <Sheet
       title="Record practice"
-      subtitle="A marathon day or an exercise — for one student or a whole group."
+      subtitle="A marathon day or a practice passage — for one student or a whole group."
       size="lg"
       onClose={onClose}
       onSubmit={submit}
@@ -187,7 +187,7 @@ export function PracticeForm({ presetStudentId, onClose, onSaved }) {
               onChange={set('kind')}
               options={[
                 { value: 'marathon', label: 'Marathon' },
-                { value: 'exercise', label: 'Exercise' },
+                { value: 'exercise', label: 'Practice' },
               ]}
             />
           </Field>
@@ -219,7 +219,7 @@ export function PracticeForm({ presetStudentId, onClose, onSaved }) {
               </select>
             </Field>
           ) : (
-            <Field label="Exercise" error={errors.topic} wide htmlFor="pf-topic">
+            <Field label="Passage or exercise" error={errors.topic} wide htmlFor="pf-topic">
               <input
                 id="pf-topic"
                 className="input"

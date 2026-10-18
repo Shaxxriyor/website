@@ -3,6 +3,7 @@ import { api } from '../../lib/api.js';
 import { navigate } from '../../lib/router.js';
 import { formatCode, formatDate, hours, levelName, relativeDay, timeAgo } from '../../lib/format.js';
 import { MarathonGrid } from '../MarathonGrid.jsx';
+import { PracticeSummary } from '../PracticeSummary.jsx';
 import { ArrowLeft, CheckIcon, EditIcon, LessonIcon, MailIcon, PhoneIcon, PlusIcon, TrashIcon } from '../Icons.jsx';
 import { Avatar } from '../Avatar.jsx';
 import { ConfirmSheet, EmptyState, ErrorNote, Skeleton, StatusPill, useLoad } from './ui.jsx';
@@ -46,7 +47,7 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
     );
   }
 
-  const { student: s, stats, marathon, lessons } = data;
+  const { student: s, stats, marathon, practice, lessons } = data;
   const shown = showAll ? lessons : lessons.slice(0, RECENT);
 
   return (
@@ -92,7 +93,7 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
 
       <div className="stat-grid">
         <Stat tone="lilac" label="Marathon days done" value={stats.marathon_days} />
-        <Stat tone="mint" label="Exercises done" value={stats.exercise_count} />
+        <Stat tone="mint" label="Practice done" value={stats.exercise_count} />
         <Stat tone="rose" label="Study hours" value={hours(stats.total_minutes)} />
         <Stat
           tone="peach"
@@ -107,7 +108,7 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
 
       <section aria-labelledby="marathon-title">
         <div className="section-head">
-          <h2 id="marathon-title" className="label">Marathon progress</h2>
+          <h2 id="marathon-title" className="label">Progress</h2>
           <span className="link-sm">
             {s.last_active_at
               ? `On the site ${timeAgo(s.last_active_at)}`
@@ -117,6 +118,7 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
         <div className="marathon-progress">
           <MarathonGrid skill="reading" label="Reading Marathon" tone="lilac" results={marathon} />
           <MarathonGrid skill="listening" label="Listening Marathon" tone="rose" results={marathon} />
+          <PracticeSummary results={practice} />
         </div>
       </section>
 
@@ -237,7 +239,7 @@ function AccessCard({ student, notify, onChanged }) {
         <span className="label">Student sign-in code</span>
         <p className="muted-sm">
           {student.status === 'active'
-            ? 'Give this to the student. They enter it once on the home page, then every marathon day they open is saved here automatically.'
+            ? 'Give this to the student. They enter it once on the home page, then every marathon day and practice passage they open is saved here automatically.'
             : 'Inactive students can’t sign in. Set them to Active to let them use their code.'}
         </p>
       </div>

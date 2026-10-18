@@ -20,8 +20,8 @@ export const MARATHON_TOTAL = { reading: 13, listening: 20 };
 export const CATEGORIES = [
   { key: 'marathon_reading', kind: 'marathon', skill: 'reading', label: 'Reading Marathon', short: 'Reading Marathon', color: 'var(--chart-reading)', tone: 'lilac' },
   { key: 'marathon_listening', kind: 'marathon', skill: 'listening', label: 'Listening Marathon', short: 'Listening Marathon', color: 'var(--chart-listening)', tone: 'rose' },
-  { key: 'exercise_reading', kind: 'exercise', skill: 'reading', label: 'Reading exercise', short: 'Reading ex.', color: 'var(--chart-vocabulary)', tone: 'peach' },
-  { key: 'exercise_listening', kind: 'exercise', skill: 'listening', label: 'Listening exercise', short: 'Listening ex.', color: 'var(--chart-mock)', tone: 'mint' },
+  { key: 'exercise_reading', kind: 'exercise', skill: 'reading', label: 'Reading practice', short: 'Reading practice', color: 'var(--chart-vocabulary)', tone: 'peach' },
+  { key: 'exercise_listening', kind: 'exercise', skill: 'listening', label: 'Listening practice', short: 'Listening practice', color: 'var(--chart-mock)', tone: 'mint' },
 ];
 export const categoryOf = (l) => CATEGORIES.find((c) => c.kind === l.kind && c.skill === l.skill) ?? CATEGORIES[2];
 

@@ -86,7 +86,7 @@ export function lessonInput(input) {
     day = optionalInt(input, 'day', 1, MARATHON_DAYS);
     if (day === null) fail('day', 'Choose a day');
   } else if (!topic) {
-    fail('topic', 'Name the exercise');
+    fail('topic', 'Name the passage or exercise');
   }
 
   const correct = optionalInt(input, 'correct', 0, 200);
@@ -118,7 +118,7 @@ const STUDENT_COLUMNS = `s.id, s.full_name, s.phone, s.email, s.group_name, s.le
   to_char(s.last_active_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_active_at`;
 
 const LESSON_COLUMNS = `l.id, l.student_id, l.lesson_date::text AS lesson_date, l.kind, l.skill, l.day, l.topic,
-  l.correct, l.total, l.duration_minutes, l.notes, l.source, s.full_name AS student_name, s.group_name`;
+  l.correct, l.total, l.duration_minutes, l.notes, l.source, l.item, s.full_name AS student_name, s.group_name`;
 
 export async function listStudents() {
   return query(
@@ -136,7 +136,7 @@ export async function getStudent(studentId) {
   const [student] = await query(`SELECT ${STUDENT_COLUMNS} FROM students s WHERE s.id = $1`, [studentId]);
   if (!student) throw new ApiError('Student not found.', 404);
 
-  const [[stats], marathon, lessons, activity] = await Promise.all([
+  const [[stats], marathon, lessons, activity, practice] = await Promise.all([
     query(
       `SELECT COUNT(*)::int AS lesson_count,
          COUNT(*) FILTER (WHERE kind = 'exercise')::int AS exercise_count,
@@ -156,8 +156,15 @@ export async function getStudent(studentId) {
     ),
     listLessons({ studentId, limit: 100 }),
     monthlyActivity(studentId),
+    // Best result per Reading Practice passage.
+    query(
+      `SELECT DISTINCT ON (item) item, correct, total, lesson_date::text AS lesson_date
+       FROM lessons WHERE student_id = $1 AND item IS NOT NULL
+       ORDER BY item, (correct::float8 / NULLIF(total, 0)) DESC NULLS LAST, lesson_date DESC`,
+      [studentId],
+    ),
   ]);
-  return { student, stats, marathon, lessons, activity };
+  return { student, stats, marathon, lessons, activity, practice };
 }
 
 export async function listLessons({ studentId, kind, skill, from, to, limit = 300 } = {}) {
@@ -311,6 +318,7 @@ export async function studentSelf(studentId) {
     student: { id: sid, full_name, group_name, level },
     stats: data.stats,
     marathon: data.marathon,
+    practice: data.practice,
     recent: data.lessons.slice(0, 8).map(({ notes, ...l }) => l),
     activity: data.activity,
   };
@@ -322,13 +330,29 @@ export async function studentSelf(studentId) {
  * when the page reports one. Marathon totals are fixed, whatever the page says.
  */
 export async function track(studentId, input) {
-  const kind = oneOf(input, 'kind', ['marathon']);
+  const kind = oneOf(input, 'kind', KINDS);
   const skill = oneOf(input, 'skill', SKILLS);
-  const day = optionalInt(input, 'day', 1, MARATHON_DAYS);
-  if (day === null) fail('day', 'Choose a day');
   const seconds = optionalInt(input, 'seconds', 0, 900) ?? 0;
-  const correct = optionalInt(input, 'correct', 0, MARATHON_TOTAL[skill]);
-  const total = correct === null ? null : MARATHON_TOTAL[skill];
+  const topic = text(input, 'topic', { max: 200 });
+
+  let day = null;
+  let item = null;
+  let correct;
+  let total;
+  if (kind === 'marathon') {
+    day = optionalInt(input, 'day', 1, MARATHON_DAYS);
+    if (day === null) fail('day', 'Choose a day');
+    correct = optionalInt(input, 'correct', 0, MARATHON_TOTAL[skill]);
+    total = correct === null ? null : MARATHON_TOTAL[skill];
+  } else {
+    // A Reading Practice passage, identified by its page id.
+    item = String(input.item ?? '');
+    if (!/^p[1-3]-[a-z0-9-]{1,90}$/.test(item)) fail('item', 'Unknown passage');
+    if (!topic) fail('topic', 'Missing title');
+    correct = optionalInt(input, 'correct', 0, 60);
+    total = correct === null ? null : optionalInt(input, 'total', 1, 60);
+    if (correct !== null && (total === null || correct > total)) fail('total', 'Invalid score');
+  }
 
   // The page sends its local date (Tashkent is UTC+5); accept it within a day of the server's.
   let lessonDate = new Date().toISOString().slice(0, 10);
@@ -336,12 +360,11 @@ export async function track(studentId, input) {
     const d = date(input, 'date');
     if (Math.abs(new Date(`${d}T12:00:00Z`) - Date.now()) <= 36 * 3600 * 1000) lessonDate = d;
   }
-  const topic = text(input, 'topic', { max: 200 });
 
   const [row] = await query(
-    `INSERT INTO lessons (student_id, lesson_date, kind, skill, day, topic, duration_minutes, active_seconds, correct, total, source)
-     VALUES ($1, $2, $3, $4, $5, $6, GREATEST(1, ROUND($7 / 60.0))::int, $7, $8, $9, 'auto')
-     ON CONFLICT (student_id, kind, skill, day, lesson_date) WHERE source = 'auto'
+    `INSERT INTO lessons (student_id, lesson_date, kind, skill, day, item, topic, duration_minutes, active_seconds, correct, total, source)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, GREATEST(1, ROUND($8 / 60.0))::int, $8, $9, $10, 'auto')
+     ON CONFLICT (student_id, kind, skill, (COALESCE(day, 0)), (COALESCE(item, '')), lesson_date) WHERE source = 'auto'
      DO UPDATE SET
        active_seconds = lessons.active_seconds + EXCLUDED.active_seconds,
        duration_minutes = GREATEST(1, ROUND((lessons.active_seconds + EXCLUDED.active_seconds) / 60.0))::int,
@@ -349,7 +372,7 @@ export async function track(studentId, input) {
        total = COALESCE(EXCLUDED.total, lessons.total),
        topic = CASE WHEN lessons.topic = '' THEN EXCLUDED.topic ELSE lessons.topic END
      RETURNING id, active_seconds, correct, total`,
-    [studentId, lessonDate, kind, skill, day, topic, seconds, correct, total],
+    [studentId, lessonDate, kind, skill, day, item, topic, seconds, correct, total],
   );
   await query('UPDATE students SET last_active_at = now() WHERE id = $1', [studentId]);
   return row;

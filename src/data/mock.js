@@ -13,8 +13,7 @@ const asset = (path) => `${import.meta.env.BASE_URL}${path}`;
 
 export const categories = [
   { id: 'all', label: 'All' },
-  { id: 'reading', label: 'Reading', icon: ReadingIcon },
-  { id: 'listening', label: 'Listening', icon: ListeningIcon },
+  { id: 'reading-practice', label: 'Reading Practice', icon: ReadingIcon },
   { id: 'reading-marathon', label: 'Reading Marathon', icon: ReadingMarathonIcon },
   { id: 'listening-marathon', label: 'Listening Marathon', icon: ListeningMarathonIcon },
   { id: 'vocabulary', label: 'Vocabulary', icon: VocabularyIcon },
@@ -46,13 +45,15 @@ export const popularCourses = [
     tab: 'listening-marathon',
   },
   {
-    id: 'recent-reading',
+    id: 'reading-practice',
     tone: 'rose',
-    category: 'Reading',
+    category: 'Reading Practice',
     skill: 'reading',
     icon: ReadingIcon,
-    title: 'Recently Tested Reading: Academic Set 2026',
-    meta: 'Real exam passages from this year',
+    badge: 'New',
+    title: 'Reading Practice: 137 Real Exam Passages',
+    meta: 'Passage 1, 2 and 3 · 13–14 questions each',
+    tab: 'reading-practice',
   },
   {
     id: 'recent-listening',

@@ -77,7 +77,7 @@ export default function App() {
   let main;
   let panel;
   if (!isAdminRoute) {
-    main = <HomeView results={me?.marathon} />;
+    main = <HomeView results={me?.marathon} practice={me?.practice} signedIn={Boolean(me)} />;
     panel = (
       <StudentHomePanel
         me={me}

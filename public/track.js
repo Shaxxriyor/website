@@ -1,13 +1,18 @@
-/* READING_CDI progress tracker for the marathon pages.
+/* READING_CDI progress tracker for the marathon and Reading Practice pages.
    Signed-in students only: counts time while the page is visible and the
    student is active (or audio is playing), and saves the score as soon as the
    page shows one. Loaded by a <script> tag at the end of each marathon page. */
 (function () {
   'use strict';
+  // Marathon day pages and Reading Practice passages.
   var m = location.pathname.match(/marathon\/(reading|listening)\/day-(\d+)\.html$/);
-  if (!m || !window.fetch) return;
-  var skill = m[1];
-  var day = parseInt(m[2], 10);
+  var pm = location.pathname.match(/practice\/reading\/(p([1-3])-[a-z0-9-]+)\.html$/);
+  if ((!m && !pm) || !window.fetch) return;
+  var kind = m ? 'marathon' : 'exercise';
+  var skill = m ? m[1] : 'reading';
+  var day = m ? parseInt(m[2], 10) : null;
+  var item = pm ? pm[1] : null;
+  var passageNo = pm ? pm[2] : null;
   var base = new URL('../../', location.href).href;
 
   var IDLE_MS = 2 * 60 * 1000; // no input for 2 minutes = not studying (unless audio plays)
@@ -26,6 +31,11 @@
   }
 
   function topic() {
+    if (item) {
+      // "Passage 2: Coral Reefs" → "Passage 2 · Coral Reefs"
+      var pt = (document.title || '').replace(/^\s*Passage\s*\d+\s*[:\-–—]\s*/i, '').trim();
+      return 'Passage ' + passageNo + ' · ' + pt;
+    }
     var t = (document.title || '').split('—').slice(1).join('—').split('|')[0].trim();
     return skill === 'reading' ? t : 'Sections 2 & 3';
   }
@@ -33,7 +43,9 @@
   function send(extra, keepalive) {
     var seconds = Math.round(pending);
     pending -= seconds;
-    var body = { kind: 'marathon', skill: skill, day: day, seconds: seconds, date: today(), topic: topic() };
+    var body = { kind: kind, skill: skill, seconds: seconds, date: today(), topic: topic() };
+    if (day) body.day = day;
+    if (item) body.item = item;
     for (var k in extra) body[k] = extra[k];
     return fetch(base + 'api/track', {
       method: 'POST',
@@ -77,15 +89,16 @@
   }
 
   // ---- scores ----
+  // Returns { correct, total } once the page shows a result, else null.
   function readScore() {
     if (skill === 'reading') {
-      // The results card: first box is "Correct".
+      // The results card: first box is "Correct", second is "Questions".
       var nums = document.querySelectorAll('#stage-results .rcx-scorerow .rcx-sbox .num');
-      if (nums.length) return parseInt(nums[0].textContent, 10);
+      if (nums.length >= 2) return { correct: parseInt(nums[0].textContent, 10), total: parseInt(nums[1].textContent, 10) };
     } else {
       var sc = document.querySelector('#result .sc');
       var mm = sc && sc.textContent.match(/(\d+)\s*\/\s*(\d+)/);
-      if (mm) return parseInt(mm[1], 10);
+      if (mm) return { correct: parseInt(mm[1], 10), total: parseInt(mm[2], 10) };
     }
     return null;
   }
@@ -94,11 +107,15 @@
   function checkScore() {
     clearTimeout(scoreTimer);
     scoreTimer = setTimeout(function () {
-      var score = readScore();
-      if (!who || score === null || isNaN(score) || score === lastScore) return;
-      lastScore = score;
-      send({ correct: score }).then(function (ok) {
-        if (ok) toast('Score saved · ' + score + '/' + (skill === 'reading' ? 13 : 20));
+      var r = readScore();
+      if (!who || !r || isNaN(r.correct) || isNaN(r.total)) return;
+      var key = r.correct + '/' + r.total;
+      if (key === lastScore) return;
+      lastScore = key;
+      var extra = { correct: r.correct };
+      if (kind === 'exercise') extra.total = r.total;
+      send(extra).then(function (ok) {
+        if (ok) toast('Score saved · ' + (kind === 'marathon' ? r.correct + '/' + (skill === 'reading' ? 13 : 20) : key));
       });
     }, 400);
   }

@@ -82,17 +82,45 @@ const SCHEMA = [
   )`,
 ];
 
+// Two fresh instances can start at once (e.g. right after a deploy) and run the
+// same schema statements together; Postgres may then reject one with a
+// "concurrent update" / "already exists" error even though the end state is fine.
+const RACE = /already exists|duplicate key|concurrently|deadlock/i;
+const TRANSIENT = /fetch failed|ECONNRESET|socket|timeout|terminating connection|Connection terminated/i;
+
+async function migrate(c) {
+  for (const stmt of SCHEMA) {
+    try {
+      await c.query(stmt, []);
+    } catch (err) {
+      if (!RACE.test(String(err?.message))) throw err;
+      // Let the other instance finish, then make sure this statement holds.
+      await new Promise((r) => setTimeout(r, 300));
+      try {
+        await c.query(stmt, []);
+      } catch (again) {
+        if (!RACE.test(String(again?.message))) throw again;
+      }
+    }
+  }
+}
+
 /** Run a parameterised query and return its rows. Creates the schema on first use. */
 export async function query(text, params = []) {
   const c = getClient();
   if (!ready) {
-    ready = (async () => {
-      for (const stmt of SCHEMA) await c.query(stmt, []);
-    })().catch((err) => {
+    ready = migrate(c).catch((err) => {
       ready = undefined;
       throw err;
     });
   }
   await ready;
-  return c.query(text, params);
+  try {
+    return await c.query(text, params);
+  } catch (err) {
+    // One retry for a dropped connection (e.g. the database waking from sleep).
+    if (!TRANSIENT.test(String(err?.message))) throw err;
+    await new Promise((r) => setTimeout(r, 400));
+    return c.query(text, params);
+  }
 }

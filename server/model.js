@@ -392,3 +392,87 @@ export async function track(studentId, input) {
   await query('UPDATE students SET last_active_at = now() WHERE id = $1', [studentId]);
   return row;
 }
+
+// ---------- rating (visible to signed-in students and the teacher) ----------
+
+const PERIODS = { week: 7, month: 30, all: null };
+
+function streak(dates) {
+  // Longest run of consecutive study days.
+  const days = [...new Set(dates)].sort().map((d) => Date.parse(`${d}T00:00:00Z`) / 86400000);
+  let best = 0;
+  let run = 0;
+  for (let i = 0; i < days.length; i++) {
+    run = i && days[i] - days[i - 1] === 1 ? run + 1 : 1;
+    best = Math.max(best, run);
+  }
+  return best;
+}
+
+function badges(s) {
+  const out = [];
+  if (s.records >= 1) out.push({ id: 'first', label: 'First step', emoji: '🌱' });
+  if (s.marathon_reading >= 10 || s.marathon_listening >= 10) out.push({ id: 'half', label: 'Halfway marathoner', emoji: '🏃' });
+  if (s.marathon_reading >= 19 || s.marathon_listening >= 20) out.push({ id: 'finisher', label: 'Marathon finisher', emoji: '🏁' });
+  if (s.practice_done >= 10) out.push({ id: 'p10', label: '10 passages', emoji: '📚' });
+  if (s.practice_done >= 50) out.push({ id: 'p50', label: '50 passages', emoji: '🏆' });
+  if (s.minutes >= 300) out.push({ id: 'h5', label: '5-hour club', emoji: '⏱️' });
+  if (s.minutes >= 1200) out.push({ id: 'h20', label: '20-hour club', emoji: '🔥' });
+  if (s.best_streak >= 3) out.push({ id: 's3', label: '3-day streak', emoji: '✨' });
+  if (s.best_streak >= 7) out.push({ id: 's7', label: '7-day streak', emoji: '⚡' });
+  if (s.average_band >= 7) out.push({ id: 'b7', label: 'Band 7+', emoji: '⭐' });
+  if (s.top_band >= 9) out.push({ id: 'b9', label: 'Perfect 9', emoji: '💯' });
+  return out;
+}
+
+/**
+ * Every active student's study time and results, for the shared rating page.
+ * Only names, groups and levels are shown — never contacts or teacher notes.
+ */
+export async function leaderboard(period = 'all') {
+  const days = PERIODS[period] ?? null;
+  const since = days ? new Date(Date.now() - (days - 1) * 86400000).toISOString().slice(0, 10) : '0001-01-01';
+  const [students, rows] = await Promise.all([
+    query(`SELECT id, full_name, group_name, level FROM students WHERE status = 'active' ORDER BY lower(full_name)`),
+    query(
+      `SELECT l.student_id, l.lesson_date::text AS lesson_date, l.kind, l.skill, l.day, l.item, l.topic,
+         l.correct, l.total, l.duration_minutes
+       FROM lessons l JOIN students s ON s.id = l.student_id
+       WHERE s.status = 'active' AND l.lesson_date >= $1
+       ORDER BY l.lesson_date DESC, l.id DESC`,
+      [since],
+    ),
+  ]);
+  const by = new Map(students.map((s) => [s.id, []]));
+  for (const r of rows) by.get(r.student_id)?.push({ ...r, band: bandFor(r.skill, r.correct, r.total) });
+
+  const list = students.map((s) => {
+    const recs = by.get(s.id);
+    const marathon = (skill) => new Set(recs.filter((r) => r.kind === 'marathon' && r.skill === skill).map((r) => r.day)).size;
+    const bands = recs.map((r) => r.band).filter((b) => b != null);
+    const stats = {
+      minutes: recs.reduce((t, r) => t + r.duration_minutes, 0),
+      records: recs.length,
+      marathon_reading: marathon('reading'),
+      marathon_listening: marathon('listening'),
+      practice_done: new Set(recs.filter((r) => r.item).map((r) => r.item)).size,
+      average_band: averageBand(bands),
+      top_band: bands.length ? Math.max(...bands) : null,
+      best_streak: streak(recs.map((r) => r.lesson_date)),
+      last_date: recs[0]?.lesson_date ?? null,
+    };
+    return {
+      id: s.id,
+      full_name: s.full_name,
+      group_name: s.group_name,
+      level: s.level,
+      ...stats,
+      badges: badges(stats),
+      done: recs.slice(0, 30).map(({ kind, skill, day, item, topic, correct, total, band, lesson_date, duration_minutes }) => ({
+        kind, skill, day, item, topic, correct, total, band, lesson_date, duration_minutes,
+      })),
+    };
+  });
+  list.sort((a, b) => b.minutes - a.minutes || b.records - a.records || a.full_name.localeCompare(b.full_name));
+  return { period: days ? period : 'all', students: list };
+}

@@ -49,7 +49,7 @@ or to point at a real `DATABASE_URL`.
 - `src/components/admin/` — `StudentsView`, `StudentProfile`, `PracticeView`, `StudentForm`, `PracticeForm`,
   `AdminPanel` (right-hand panels), `LoginView`, shared `ui.jsx` (sheet, fields, segmented control)
 - `src/lib/` — `api.js` client, `router.js`, `format.js` (levels, skills, dates)
-- `api/` — `auth`, `students`, `lessons` (practice records), `overview`; student side: `me`, `track`
+- `api/` — `auth`, `students`, `lessons` (practice records), `overview`; student side: `me`, `track`, `leaderboard` (shared rating)
 - `server/` — `db.js` (Neon / PGlite + schema), `auth.js`, `model.js` (validation & queries), `http.js`
 - `dev/api-plugin.js` — serves `api/` from the Vite dev server
 - `public/track.js` — progress tracker for marathon and practice pages; `npm run add-tracker` adds it to new pages

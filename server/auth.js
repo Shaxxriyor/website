@@ -6,7 +6,7 @@ import { query } from './db.js';
 // (ADMIN_USERNAME / ADMIN_PASSWORD); the session is a signed, HttpOnly cookie.
 
 const COOKIE = 'rcdi_session';
-const MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+const MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 const STUDENT_COOKIE = 'rcdi_student';
 const STUDENT_MAX_AGE = 60 * 60 * 24 * 180; // students sign in once per device
 const MAX_FAILURES = 5; // per IP per 15 minutes

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { api } from '../../lib/api.js';
 import { LogoMark, Wordmark } from '../Icons.jsx';
 
-export function LoginView({ onSignedIn }) {
+export function LoginView({ onSignedIn, studentName }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -29,7 +29,13 @@ export function LoginView({ onSignedIn }) {
         </span>
         <Wordmark />
         <h1 className="login__title">Teacher sign in</h1>
-        <p className="muted-sm">Students and lessons are private. Sign in to manage them.</p>
+        <p className="muted-sm">Students and their results are private. Sign in with the teacher username and password.</p>
+        {studentName && (
+          <p className="login__note">
+            This device is signed in as the student <strong>{studentName}</strong>. That code only saves practice — the
+            teacher area needs the teacher login.
+          </p>
+        )}
         <label className="field">
           <span className="field__label">Username</span>
           <input

@@ -245,3 +245,11 @@ export const ClockIcon = make(
     <path d="M12 7.5V12l3 2" />
   </>
 );
+
+export const TrophyIcon = make(
+  <>
+    <path d="M8 4h8v5a4 4 0 0 1-8 0Z" />
+    <path d="M8 5.5H5a2.5 2.5 0 0 0 3 3.5M16 5.5h3a2.5 2.5 0 0 1-3 3.5" />
+    <path d="M12 13v3.5M8.5 20h7M10 16.5h4l.5 3.5h-5Z" />
+  </>
+);

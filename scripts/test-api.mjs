@@ -16,6 +16,7 @@ const api = {
   overview: await import('../api/overview.js'),
   me: await import('../api/me.js'),
   track: await import('../api/track.js'),
+  leaderboard: await import('../api/leaderboard.js'),
 };
 
 let cookie = '';
@@ -230,6 +231,24 @@ assert.equal(r.data.lessons[0].source, 'auto');
 assert.equal(r.data.lessons[0].topic, 'Keeping the water away');
 r = await call('students');
 assert.ok(r.data.students.find((x) => x.id === kamola).last_active_at, 'last active is recorded');
+
+// rating: students see each other (names only), anonymous visitors don't
+r = await asStudent('leaderboard');
+assert.equal(r.status, 200);
+const kRow = r.data.students.find((x) => x.full_name === 'Kamola Nazarova');
+assert.equal(r.data.me, kRow.id);
+assert.equal(kRow.practice_done, 2);
+assert.equal(kRow.marathon_reading, 1);
+assert.ok(kRow.badges.some((b) => b.id === 'first'));
+assert.ok(kRow.done.length >= 3);
+assert.equal(kRow.phone, undefined, 'no contact details in the rating');
+assert.equal(JSON.stringify(r.data).includes('@example.com'), false, 'no emails anywhere in the rating');
+assert.ok(r.data.students.every((x) => x.full_name !== 'Malika Rahimova'), 'deleted students are not listed');
+const anonRes = await api.leaderboard.GET(new Request('https://example.test/api/leaderboard'));
+assert.equal(anonRes.status, 401);
+r = await call('leaderboard', { query: '?period=week' });
+assert.equal(r.status, 200, 'teacher can see the rating');
+assert.equal(r.data.period, 'week');
 
 // new code: old one stops working; inactive students are signed out
 r = await call('students', { method: 'POST', body: { action: 'new-code', id: kamola } });

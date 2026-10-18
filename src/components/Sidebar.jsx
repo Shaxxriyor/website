@@ -1,8 +1,9 @@
-import { LogoMark, HomeIcon, UsersIcon, LessonIcon } from './Icons.jsx';
+import { LogoMark, HomeIcon, UsersIcon, LessonIcon, TrophyIcon } from './Icons.jsx';
 import { Avatar } from './Avatar.jsx';
 
 const nav = [
   { id: 'home', label: 'Home', icon: HomeIcon, href: '#/' },
+  { id: 'rating', label: 'Rating', icon: TrophyIcon, href: '#/rating' },
   { id: 'students', label: 'Students', icon: UsersIcon, href: '#/students' },
   { id: 'practice', label: 'Practice', icon: LessonIcon, href: '#/practice' },
 ];

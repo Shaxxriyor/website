@@ -8,7 +8,8 @@ const byId = new Map(readingPractice.map((p) => [p.id, p]));
  * Reading Practice progress: passages done per passage number, the average band,
  * and (unless compact) every passage the student has done with its result.
  */
-export function PracticeSummary({ results = [], compact = false, title = 'Reading Practice' }) {
+export function PracticeSummary({ results = [], attempts = [], compact = false, title = 'Reading Practice' }) {
+  const tries = new Map((attempts ?? []).filter((g) => g.item).map((g) => [g.item, g.tries]));
   const done = new Set(results.map((r) => r.item));
   const avg = averageBand(results.map((r) => r.band));
   const rows = [1, 2, 3].map((n) => {
@@ -49,8 +50,8 @@ export function PracticeSummary({ results = [], compact = false, title = 'Readin
           <thead>
             <tr>
               <th>Passage</th>
-              <th className="num">Correct</th>
-              <th className="num">Band</th>
+              <th className="num">Correct (attempts)</th>
+              <th className="num">Best band</th>
               <th>Date</th>
             </tr>
           </thead>
@@ -62,7 +63,13 @@ export function PracticeSummary({ results = [], compact = false, title = 'Readin
                   <td>
                     <span className="psum__p">P{p.passage}</span> {p.title}
                   </td>
-                  <td className="num">{r.correct != null ? `${r.correct}/${r.total}` : '—'}</td>
+                  <td className="num">
+                    {tries.get(r.item)?.length > 1
+                      ? `${tries.get(r.item).map((t) => t.correct).join(' → ')} / ${r.total}`
+                      : r.correct != null
+                        ? `${r.correct}/${r.total}`
+                        : '—'}
+                  </td>
                   <td className="num">
                     <strong>{formatBand(r.band)}</strong>
                   </td>

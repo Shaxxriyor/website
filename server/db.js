@@ -100,6 +100,22 @@ const SCHEMA = [
     ip TEXT NOT NULL,
     attempted_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`,
+  // Every scored try is kept: 1st attempt, 2nd attempt, … (a record keeps the day's best).
+  `CREATE TABLE IF NOT EXISTS attempts (
+    id SERIAL PRIMARY KEY,
+    lesson_id INTEGER NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+    correct INTEGER NOT NULL,
+    total INTEGER NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS attempts_lesson ON attempts (lesson_id, created_at)`,
+  // One attempt per page visit (sitting): the page sends a random id with its score.
+  `ALTER TABLE attempts ADD COLUMN IF NOT EXISTS sitting TEXT`,
+  // Scores recorded before attempts existed become each record's first attempt.
+  `INSERT INTO attempts (lesson_id, correct, total, created_at)
+   SELECT l.id, l.correct, l.total, l.lesson_date::timestamptz + interval '12 hours' FROM lessons l
+   WHERE l.correct IS NOT NULL AND l.total IS NOT NULL
+     AND NOT EXISTS (SELECT 1 FROM attempts a WHERE a.lesson_id = l.id)`,
 ];
 
 // Two fresh instances can start at once (e.g. right after a deploy) and run the

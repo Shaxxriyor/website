@@ -19,7 +19,8 @@ function startedDays(days) {
   return started;
 }
 
-export function MarathonView({ marathon, icon: Icon, skill, results = [], signedIn = false }) {
+export function MarathonView({ marathon, icon: Icon, skill, results = [], attempts = [], signedIn = false }) {
+  const tries = useMemo(() => new Map((attempts ?? []).filter((g) => g.kind === 'marathon' && g.skill === skill).map((g) => [g.day, g.tries])), [attempts, skill]);
   const days = marathon.days;
   const local = useMemo(() => startedDays(days), [days]);
   // Signed-in students: saved results from the server (best attempt per day).
@@ -95,7 +96,9 @@ export function MarathonView({ marathon, icon: Icon, skill, results = [], signed
                   <span className="day-card__num">{String(d.day).padStart(2, '0')}</span>
                   <span className="day-card__meta">
                     <span className="day-card__name">{d.title}</span>
-                    {d.questions} questions
+                    {tries.get(d.day)?.length > 1
+                      ? tries.get(d.day).map((t) => t.correct).join(' → ') + ` / ${d.questions}`
+                      : `${d.questions} questions`}
                   </span>
                   <span className="day-card__go" aria-hidden="true">
                     {locked ? <LockIcon size={15} /> : <ArrowRight size={16} />}

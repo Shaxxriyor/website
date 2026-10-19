@@ -299,6 +299,26 @@ assert.equal(r.status, 200);
 r = await asStudent('me');
 assert.equal(r.data.student.avatar_v, null, 'teacher removed it');
 
+// attempts: every try is kept in order; the record keeps the best
+const t1 = await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'reading', day: 9, seconds: 70, correct: 10 } });
+assert.equal(t1.status, 200);
+await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'reading', day: 9, seconds: 5, correct: 10 } }); // same score resent: ignored
+await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'reading', day: 9, seconds: 60, correct: 13 } });
+await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'reading', day: 9, seconds: 60, correct: 12 } });
+r = await asStudent('me');
+const d9 = r.data.attempts.find((g) => g.key === 'reading-9');
+assert.deepEqual(d9.tries.map((x) => x.correct), [10, 13, 12], 'attempts in order');
+assert.equal(d9.tries[1].band, 9);
+assert.equal(r.data.marathon.find((m) => m.skill === 'reading' && m.day === 9).correct, 13, 'grid keeps the best');
+// sittings: same score twice in two page visits = two attempts; re-sent within one visit = one
+for (const sitting of ['visitaaaa1', 'visitaaaa1', 'visitbbbb2']) {
+  await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'listening', day: 5, seconds: 60, correct: 15, sitting } });
+}
+r = await asStudent('me');
+assert.deepEqual(r.data.attempts.find((g) => g.key === 'listening-5').tries.map((x) => x.correct), [15, 15]);
+r = await call('students', { query: `?id=${kamola}` });
+assert.ok(r.data.attempts.some((g) => g.key === 'p2-coral-reefs' && g.tries.length === 1), 'teacher sees attempts; older scores backfilled');
+
 // course materials: day 1 free, the rest for signed-in students / teacher
 const get = (path, cookieHeader) =>
   api.content.GET(new Request(`https://example.test/api/content?path=${encodeURIComponent(path)}`, { headers: cookieHeader ? { cookie: cookieHeader } : {} }));

@@ -6,6 +6,7 @@ import { Avatar } from './Avatar.jsx';
 import { ActivityChart } from './ActivityChart.jsx';
 import { MarathonGrid } from './MarathonGrid.jsx';
 import { PracticeSummary } from './PracticeSummary.jsx';
+import { AttemptsList } from './AttemptsList.jsx';
 
 /**
  * Right panel on the home page. Signed out: enter the code from the teacher.
@@ -17,7 +18,7 @@ export function StudentHomePanel({ me, onSignedIn, onSignOut, onChanged, notify 
   }
   if (!me) return <SignInPanel onSignedIn={onSignedIn} />;
 
-  const { student: s, stats, marathon, practice, recent, activity } = me;
+  const { student: s, stats, marathon, practice, recent, activity, attempts } = me;
   return (
     <aside className="panel glass" aria-label="Your progress">
       <div className="panel__top panel__top--admin">
@@ -50,6 +51,7 @@ export function StudentHomePanel({ me, onSignedIn, onSignOut, onChanged, notify 
       <MarathonGrid skill="reading" label="Reading Marathon" tone="lilac" results={marathon} compact />
       <MarathonGrid skill="listening" label="Listening Marathon" tone="rose" results={marathon} compact />
       <PracticeSummary results={practice} compact />
+      <AttemptsList groups={attempts} limit={8} compact title="My attempts" />
 
       {recent.length > 0 && (
         <>

@@ -109,6 +109,8 @@
   var lastInput = Date.now();
   var lastTick = Date.now();
   var lastScore = null;
+  // This visit to the page = one attempt.
+  var sitting = Math.random().toString(36).slice(2, 12) + Date.now().toString(36);
   var who = null;
 
   function today() {
@@ -198,7 +200,7 @@
       var key = r.correct + '/' + r.total;
       if (key === lastScore) return;
       lastScore = key;
-      var extra = { correct: r.correct };
+      var extra = { correct: r.correct, sitting: sitting };
       if (kind === 'exercise') extra.total = r.total;
       send(extra).then(function (ok) {
         if (ok) toast('Score saved · ' + (kind === 'marathon' ? r.correct + '/' + (skill === 'reading' ? 13 : 20) : key));

@@ -173,10 +173,12 @@ export async function getStudent(studentId) {
   stats.average_band = averageBand(scored.map((r) => bandFor(r.skill, r.correct, r.total)));
   const withBand = (r) => ({ ...r, band: bandFor(r.skill ?? 'reading', r.correct, r.total) });
   const elsDays = await elsForStudent(studentId);
+  const attempts = await attemptsFor(studentId);
   return {
     student,
     stats,
     els: elsDays,
+    attempts,
     marathon: marathon.map(withBand),
     lessons,
     activity,
@@ -313,11 +315,19 @@ export async function createLessons(input) {
 
   const params = [l.lesson_date, l.kind, l.skill, l.day, l.topic, l.correct, l.total, l.duration_minutes, l.notes];
   const values = l.student_ids.map((sid) => `($${params.push(sid)}, $1, $2, $3, $4, $5, $6, $7, $8, $9)`);
-  await query(
+  const rows = await query(
     `INSERT INTO lessons (student_id, lesson_date, kind, skill, day, topic, correct, total, duration_minutes, notes)
-     VALUES ${values.join(', ')}`,
+     VALUES ${values.join(', ')} RETURNING id`,
     params,
   );
+  if (l.correct !== null) {
+    await query(`INSERT INTO attempts (lesson_id, correct, total, created_at) VALUES ($1, $2, $3, $4::date + interval '12 hours')`, [
+      rows[0].id,
+      l.correct,
+      l.total,
+      l.lesson_date,
+    ]);
+  }
   return l.student_ids.length;
 }
 
@@ -337,6 +347,7 @@ export async function studentSelf(studentId) {
     stats: data.stats,
     marathon: data.marathon,
     practice: data.practice,
+    attempts: data.attempts,
     recent: data.lessons.slice(0, 8).map(({ notes, ...l }) => l),
     activity: data.activity,
   };
@@ -352,6 +363,7 @@ export async function track(studentId, input) {
   const skill = oneOf(input, 'skill', SKILLS);
   const seconds = optionalInt(input, 'seconds', 0, 900) ?? 0;
   const topic = text(input, 'topic', { max: 200 });
+  const sitting = /^[a-z0-9]{6,40}$/i.test(String(input.sitting ?? '')) ? String(input.sitting) : null;
 
   let day = null;
   let item = null;
@@ -386,12 +398,32 @@ export async function track(studentId, input) {
      DO UPDATE SET
        active_seconds = lessons.active_seconds + EXCLUDED.active_seconds,
        duration_minutes = GREATEST(1, ROUND((lessons.active_seconds + EXCLUDED.active_seconds) / 60.0))::int,
-       correct = COALESCE(EXCLUDED.correct, lessons.correct),
+       -- the day's record keeps its best score; each try is stored in attempts
+       correct = CASE WHEN EXCLUDED.correct IS NULL THEN lessons.correct
+                      WHEN lessons.correct IS NULL THEN EXCLUDED.correct
+                      ELSE GREATEST(lessons.correct, EXCLUDED.correct) END,
        total = COALESCE(EXCLUDED.total, lessons.total),
        topic = CASE WHEN lessons.topic = '' THEN EXCLUDED.topic ELSE lessons.topic END
      RETURNING id, active_seconds, correct, total`,
     [studentId, lessonDate, kind, skill, day, item, topic, seconds, correct, total],
   );
+  if (correct !== null) {
+    // One attempt per page visit: a re-sent result from the same sitting updates it instead.
+    // Without a sitting id, the same score re-sent within a minute is treated as a duplicate.
+    const updated = sitting
+      ? await query('UPDATE attempts SET correct = $2, total = $3 WHERE lesson_id = $1 AND sitting = $4 RETURNING id', [
+          row.id, correct, total, sitting,
+        ])
+      : [];
+    if (!updated.length) {
+      await query(
+        `INSERT INTO attempts (lesson_id, correct, total, sitting)
+         SELECT $1, $2, $3, $4 WHERE $4::text IS NOT NULL OR NOT EXISTS (
+           SELECT 1 FROM attempts WHERE lesson_id = $1 AND correct = $2 AND created_at > now() - interval '60 seconds')`,
+        [row.id, correct, total, sitting],
+      );
+    }
+  }
   await query('UPDATE students SET last_active_at = now() WHERE id = $1', [studentId]);
   return row;
 }
@@ -621,4 +653,28 @@ export async function getAvatar(studentId) {
   );
   if (!row) throw new ApiError('No photo.', 404);
   return { mime: row.mime, body: Buffer.from(row.b64, 'base64') };
+}
+
+// ---------- attempts ----------
+
+/**
+ * Every scored try, grouped per marathon day / practice passage / exercise, oldest
+ * attempt first; groups ordered by their latest attempt (newest first).
+ */
+export async function attemptsFor(studentId) {
+  const rows = await query(
+    `SELECT l.kind, l.skill, l.day, l.item, l.topic, a.correct, a.total,
+       to_char(a.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS at
+     FROM attempts a JOIN lessons l ON l.id = a.lesson_id
+     WHERE l.student_id = $1
+     ORDER BY a.created_at, a.id`,
+    [studentId],
+  );
+  const groups = new Map();
+  for (const r of rows) {
+    const key = r.item || (r.kind === 'marathon' ? `${r.skill}-${r.day}` : `topic:${r.skill}:${r.topic}`);
+    if (!groups.has(key)) groups.set(key, { key, kind: r.kind, skill: r.skill, day: r.day, item: r.item, topic: r.topic, tries: [] });
+    groups.get(key).tries.push({ correct: r.correct, total: r.total, band: bandFor(r.skill, r.correct, r.total), at: r.at });
+  }
+  return [...groups.values()].sort((a, b) => b.tries.at(-1).at.localeCompare(a.tries.at(-1).at));
 }

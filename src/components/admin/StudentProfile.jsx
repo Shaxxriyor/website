@@ -4,6 +4,7 @@ import { navigate } from '../../lib/router.js';
 import { formatCode, formatDate, hours, levelName, relativeDay, timeAgo } from '../../lib/format.js';
 import { MarathonGrid } from '../MarathonGrid.jsx';
 import { PracticeSummary } from '../PracticeSummary.jsx';
+import { AttemptsList } from '../AttemptsList.jsx';
 import { PhotoViewer } from '../ElsView.jsx';
 import { els } from '../../data/els.js';
 import { ArrowLeft, CheckIcon, EditIcon, LessonIcon, MailIcon, PhoneIcon, PlusIcon, TrashIcon } from '../Icons.jsx';
@@ -49,7 +50,7 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
     );
   }
 
-  const { student: s, stats, marathon, practice, lessons, els: elsDone } = data;
+  const { student: s, stats, marathon, practice, lessons, els: elsDone, attempts } = data;
   const shown = showAll ? lessons : lessons.slice(0, RECENT);
 
   return (
@@ -132,8 +133,9 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
         <div className="marathon-progress">
           <MarathonGrid skill="reading" label="Reading Marathon" tone="lilac" results={marathon} />
           <MarathonGrid skill="listening" label="Listening Marathon" tone="rose" results={marathon} />
-          <PracticeSummary results={practice} />
+          <PracticeSummary results={practice} attempts={attempts} />
           <ElsSummary days={elsDone} />
+          <AttemptsList groups={attempts} title="Attempts — marathons & real exam passages" />
         </div>
       </section>
 

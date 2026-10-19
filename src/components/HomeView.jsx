@@ -47,11 +47,11 @@ export function HomeView({ tab: routeTab, results = [], practice = [], signedIn 
       {tab === 'els' ? (
         <ElsView me={me} admin={admin} unlocked={unlocked} />
       ) : tab === 'reading-practice' ? (
-        <PracticeLibrary results={practice} signedIn={signedIn} unlocked={unlocked} />
+        <PracticeLibrary results={practice} attempts={me?.attempts} signedIn={signedIn} unlocked={unlocked} />
       ) : tab === 'listening-marathon' ? (
-        <MarathonView marathon={listeningMarathon} icon={ListeningMarathonIcon} skill="listening" results={results} signedIn={unlocked} />
+        <MarathonView marathon={listeningMarathon} icon={ListeningMarathonIcon} skill="listening" results={results} attempts={me?.attempts} signedIn={unlocked} />
       ) : tab === 'reading-marathon' ? (
-        <MarathonView marathon={readingMarathon} icon={ReadingMarathonIcon} skill="reading" results={results} signedIn={unlocked} />
+        <MarathonView marathon={readingMarathon} icon={ReadingMarathonIcon} skill="reading" results={results} attempts={me?.attempts} signedIn={unlocked} />
       ) : SOON[tab] ? (
         <div className="empty card-white">
           <span className="empty__icon">

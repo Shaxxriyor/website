@@ -14,7 +14,7 @@ const FILTERS = [
 ];
 
 /** Reading Practice: every single-passage test, with the signed-in student's best score. */
-export function PracticeLibrary({ results = [], signedIn = false, unlocked = signedIn }) {
+export function PracticeLibrary({ results = [], attempts = [], signedIn = false, unlocked = signedIn }) {
   const [passage, setPassage] = useState(0);
   const [q, setQ] = useState('');
   const best = useMemo(() => new Map(results.map((r) => [r.item, r])), [results]);
@@ -55,7 +55,7 @@ export function PracticeLibrary({ results = [], signedIn = false, unlocked = sig
         )}
       </header>
 
-      {signedIn && results.length > 0 && <PracticeSummary results={results} title="My results" />}
+      {signedIn && results.length > 0 && <PracticeSummary results={results} attempts={attempts} title="My results" />}
 
       <div className="toolbar">
         <label className="search">

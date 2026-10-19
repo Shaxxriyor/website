@@ -57,13 +57,17 @@
   function inField(t) {
     return t && t.closest && t.closest('input, textarea, [contenteditable="true"]');
   }
+  // Reading pages (marathon + practice passages): text can be selected and copied.
+  var allowCopy = skill === 'reading';
+  // Reading Marathon pages: no watermark over the passage.
+  var showWatermark = !(kind === 'marathon' && skill === 'reading');
   ['copy', 'cut'].forEach(function (ev) {
     document.addEventListener(ev, function (e) {
-      if (!inField(e.target)) e.preventDefault();
+      if (!allowCopy && !inField(e.target)) e.preventDefault();
     }, true);
   });
   document.addEventListener('contextmenu', function (e) {
-    if (!inField(e.target)) e.preventDefault();
+    if (!allowCopy && !inField(e.target)) e.preventDefault();
   }, true);
   document.addEventListener('dragstart', function (e) {
     if (!inField(e.target)) e.preventDefault();
@@ -71,7 +75,7 @@
   document.addEventListener('keydown', function (e) {
     var k = (e.key || '').toLowerCase();
     var mod = e.ctrlKey || e.metaKey;
-    if ((mod && (k === 's' || k === 'p' || k === 'u')) || (mod && !inField(e.target) && (k === 'c' || k === 'x'))) {
+    if ((mod && (k === 's' || k === 'p' || k === 'u')) || (!allowCopy && mod && !inField(e.target) && (k === 'c' || k === 'x'))) {
       e.preventDefault();
       e.stopPropagation();
     }
@@ -84,6 +88,7 @@
 
   // Faint watermark with the student's name, so screenshots can be traced.
   function watermark(text) {
+    if (!showWatermark) return;
     var old = document.getElementById('rcdi-wm');
     if (old) old.remove();
     var svg =

@@ -31,7 +31,7 @@ export const popularCourses = [
     icon: ReadingMarathonIcon,
     badge: 'New',
     title: 'Reading Marathon: One Real Passage a Day',
-    meta: '19 days · 13 questions each · Uzbek translation',
+    meta: 'Each day: reading test + ELS exercise & translation',
     tab: 'reading-marathon',
   },
   {
@@ -89,7 +89,7 @@ export const listeningMarathon = {
 // progress, so these days have no `storagePrefix`.
 export const readingMarathon = {
   title: 'Reading Marathon',
-  subtitle: 'Read the passage with its Uzbek translation, then take the test in CDI format',
+  subtitle: 'Each day: the reading test in CDI format + the ELS Reading exercise with your notebook translation',
   days: [
     [1, 'The History of Pencil'],
     [2, 'The Origin of Paper'],

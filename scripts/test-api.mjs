@@ -100,7 +100,12 @@ assert.equal(r.status, 422);
 r = await call('students', { query: `?id=${malika}` });
 assert.equal(r.status, 200);
 assert.equal(r.data.stats.lesson_count, 4);
-assert.equal(r.data.stats.marathon_days, 2, 'reading day 7 counted once');
+assert.equal(r.data.stats.marathon_days, 1, 'reading day 7 needs its ELS translation too; listening day 3 counts');
+{
+  const d7 = r.data.marathon.find((m) => m.skill === 'reading' && m.day === 7);
+  assert.equal(d7.tested, true);
+  assert.equal(d7.complete, false, 'test only: not accepted');
+}
 assert.equal(r.data.stats.exercise_count, 1);
 assert.equal(r.data.stats.total_minutes, 195);
 // (11/13 + 15/20 + 6/8) / 3 ≈ 78%
@@ -220,7 +225,7 @@ assert.deepEqual(
   [['p1-rubber', null], ['p2-coral-reefs', 11]],
 );
 assert.equal(r.data.stats.exercise_count, 2);
-assert.equal(r.data.stats.marathon_days, 1);
+assert.equal(r.data.stats.marathon_days, 0, 'reading day 4 tested but no ELS yet');
 // bands: 11/14 → 31/40 → 7.0 (reading); 11/13 → 34/40 → 7.5; average 7.25 → 7.5 (IELTS rounding)
 assert.equal(r.data.practice.find((x) => x.item === 'p2-coral-reefs').band, 7);
 assert.equal(r.data.marathon.find((x) => x.day === 4).band, 7.5);
@@ -242,7 +247,7 @@ assert.equal(r.status, 200);
 const kRow = r.data.students.find((x) => x.full_name === 'Kamola Nazarova');
 assert.equal(r.data.me, kRow.id);
 assert.equal(kRow.practice_done, 2);
-assert.equal(kRow.marathon_reading, 1);
+assert.equal(kRow.marathon_reading, 0);
 assert.ok(kRow.badges.some((b) => b.id === 'first'));
 assert.ok(kRow.done.length >= 3);
 assert.equal(kRow.phone, undefined, 'no contact details in the rating');
@@ -280,6 +285,15 @@ assert.deepEqual(r.data.students.find((x) => x.full_name === 'Kamola Nazarova').
 r = await call('els', { method: 'POST', body: { action: 'upload', day: 3, image: PNG } });
 assert.equal(r.status, 403, 'teacher does not upload as a student');
 r = await asStudent('els', { method: 'POST', body: { action: 'delete', id: photoId } });
+// ELS day 4 + reading test day 4 (scored earlier) = Reading Marathon day 4 complete
+r = await asStudent('els', { method: 'POST', body: { action: 'upload', day: 4, image: PNG } });
+assert.equal(r.status, 201);
+r = await asStudent('me');
+assert.equal(r.data.marathon.find((m) => m.skill === 'reading' && m.day === 4).complete, true);
+assert.equal(r.data.stats.marathon_days, 1);
+assert.ok(r.data.els.some((e) => e.day === 4));
+r = await asStudent('leaderboard');
+assert.equal(r.data.students.find((x) => x.full_name === 'Kamola Nazarova').marathon_reading, 1);
 assert.equal(r.status, 200, 'student deletes own photo');
 
 // profile photo: student sets it, classmates see it, teacher can remove it

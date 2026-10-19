@@ -17,7 +17,7 @@ const SOON = {
 /** The public student-facing dashboard (marathons and courses). */
 // The open tab lives in the address (#/reading-practice), so the test pages'
 // back button and the browser's Back button return to the same tab.
-export function HomeView({ tab: routeTab, results = [], practice = [], signedIn = false, checking = false, me = null, admin = null }) {
+export function HomeView({ onChanged, tab: routeTab, results = [], practice = [], signedIn = false, checking = false, me = null, admin = null }) {
   const tab = categories.some((c) => c.id === routeTab) ? routeTab : 'all';
   const setTab = (id) => navigate(id === 'all' ? '/' : `/${id}`);
   // Signed-in students and the teacher can open everything; visitors get Day 1 of each section.
@@ -51,7 +51,7 @@ export function HomeView({ tab: routeTab, results = [], practice = [], signedIn 
       ) : tab === 'listening-marathon' ? (
         <MarathonView marathon={listeningMarathon} icon={ListeningMarathonIcon} skill="listening" results={results} attempts={me?.attempts} signedIn={unlocked} />
       ) : tab === 'reading-marathon' ? (
-        <MarathonView marathon={readingMarathon} icon={ReadingMarathonIcon} skill="reading" results={results} attempts={me?.attempts} signedIn={unlocked} />
+        <MarathonView marathon={readingMarathon} icon={ReadingMarathonIcon} skill="reading" results={results} attempts={me?.attempts} signedIn={unlocked} me={me} admin={admin} onChanged={onChanged} />
       ) : SOON[tab] ? (
         <div className="empty card-white">
           <span className="empty__icon">

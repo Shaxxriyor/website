@@ -173,13 +173,21 @@ export async function getStudent(studentId) {
   stats.average_band = averageBand(scored.map((r) => bandFor(r.skill, r.correct, r.total)));
   const withBand = (r) => ({ ...r, band: bandFor(r.skill ?? 'reading', r.correct, r.total) });
   const elsDays = await elsForStudent(studentId);
+  // A Reading Marathon day = the reading test (with a score) + that day's ELS translation.
+  const elsSet = new Set(elsDays.map((e) => e.day));
+  const marathonDays = marathon.map((r) => {
+    if (r.skill !== 'reading') return { ...withBand(r), complete: true };
+    const tested = r.correct != null;
+    return { ...withBand(r), tested, els: elsSet.has(r.day), complete: tested && elsSet.has(r.day) };
+  });
+  stats.marathon_days = marathonDays.filter((r) => r.complete).length;
   const attempts = await attemptsFor(studentId);
   return {
     student,
     stats,
     els: elsDays,
     attempts,
-    marathon: marathon.map(withBand),
+    marathon: marathonDays,
     lessons,
     activity,
     practice: practice.map((r) => ({ ...r, band: bandFor('reading', r.correct, r.total) })),
@@ -346,6 +354,7 @@ export async function studentSelf(studentId, { recent = 8 } = {}) {
     student: { id: sid, full_name, group_name, level, avatar_v },
     stats: data.stats,
     marathon: data.marathon,
+    els: data.els,
     practice: data.practice,
     attempts: data.attempts,
     recent: data.lessons.slice(0, recent).map(({ notes, ...l }) => l),
@@ -495,6 +504,11 @@ export async function leaderboard(period = 'all') {
      WHERE p.created_at >= $1::date ORDER BY p.day, p.id`,
     [since],
   );
+  const elsEver = new Map();
+  for (const r of await query('SELECT DISTINCT student_id, day FROM els_photos')) {
+    if (!elsEver.has(r.student_id)) elsEver.set(r.student_id, new Set());
+    elsEver.get(r.student_id).add(r.day);
+  }
   const els = new Map();
   for (const r of elsRows) {
     if (!els.has(r.student_id)) els.set(r.student_id, new Map());
@@ -505,7 +519,15 @@ export async function leaderboard(period = 'all') {
 
   const list = students.map((s) => {
     const recs = by.get(s.id);
-    const marathon = (skill) => new Set(recs.filter((r) => r.kind === 'marathon' && r.skill === skill).map((r) => r.day)).size;
+    // Reading Marathon days count only with the test scored and that day's ELS translation uploaded.
+    const elsAll = elsEver.get(s.id) ?? new Set();
+    const marathon = (skill) =>
+      new Set(
+        recs
+          .filter((r) => r.kind === 'marathon' && r.skill === skill)
+          .filter((r) => skill !== 'reading' || (r.correct != null && elsAll.has(r.day)))
+          .map((r) => r.day),
+      ).size;
     const bands = recs.map((r) => r.band).filter((b) => b != null);
     const stats = {
       minutes: recs.reduce((t, r) => t + r.duration_minutes, 0),

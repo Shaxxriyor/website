@@ -101,7 +101,7 @@ export function ElsView({ me, admin, unlocked = false }) {
   );
 }
 
-function ElsDaySheet({ day, me, admin, onClose, onChanged }) {
+export function ElsDaySheet({ day, me, admin, onClose, onChanged }) {
   const signedIn = Boolean(me || admin);
   const [version, setVersion] = useState(0);
   const [busy, setBusy] = useState('');

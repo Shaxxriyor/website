@@ -109,7 +109,7 @@ export default function App() {
     main = <RatingView signedIn={Boolean(me) || Boolean(admin)} version={version} />;
     panel = !me && admin ? <OverviewPanel version={version} onSignOut={signOut} /> : studentPanel;
   } else if (!isAdminRoute) {
-    main = <HomeView tab={route.name} results={me?.marathon} practice={me?.practice} signedIn={Boolean(me)} checking={me === undefined} me={me} admin={admin} />;
+    main = <HomeView tab={route.name} results={me?.marathon} practice={me?.practice} signedIn={Boolean(me)} checking={me === undefined} me={me} admin={admin} onChanged={loadMe} />;
     panel = studentPanel;
   } else if (admin === undefined) {
     main = <Skeleton rows={4} />;

@@ -7,6 +7,7 @@ import { els } from '../data/els.js';
 import { PhotoViewer } from './ElsView.jsx';
 import { ChevronDown, TrophyIcon } from './Icons.jsx';
 import { Avatar } from './Avatar.jsx';
+import { PrizeBanner } from './PrizeBanner.jsx';
 import { EmptyState, ErrorNote, Segmented, Skeleton, useLoad } from './admin/ui.jsx';
 
 const PERIODS = [
@@ -24,7 +25,7 @@ function doneTitle(r) {
 
 /** Shared rating: every active student's study time, progress and badges. */
 export function RatingView({ signedIn, version }) {
-  const [period, setPeriod] = useState('week');
+  const [period, setPeriod] = useState('month');
   const [open, setOpen] = useState(null);
   const [viewing, setViewing] = useState(null);
   const { data, error, loading, reload } = useLoad(() => api.leaderboard(period), [period, signedIn, version]);
@@ -40,6 +41,11 @@ export function RatingView({ signedIn, version }) {
           <Segmented label="Period" value={period} onChange={setPeriod} options={PERIODS} />
         </div>
       </header>
+
+      <PrizeBanner
+        compact
+        leader={period === 'month' && data?.students?.[0]?.minutes > 0 ? data.students[0].full_name : null}
+      />
 
       {error?.status === 401 ? (
         <EmptyState icon={TrophyIcon} title="Sign in to see the rating">
@@ -71,6 +77,7 @@ export function RatingView({ signedIn, version }) {
                     <strong>
                       {s.full_name}
                       {isMe && <span className="rating__you">You</span>}
+                      {period === 'month' && i === 0 && !idle && <span className="rating__prize">🏆 Prize leader</span>}
                     </strong>
                     <span className="muted-sm">
                       {s.group_name ? `${s.group_name} · ` : ''}

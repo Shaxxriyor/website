@@ -5,6 +5,7 @@ import { FeaturedCourse } from './FeaturedCourse.jsx';
 import { MarathonView } from './MarathonView.jsx';
 import { PracticeLibrary } from './PracticeLibrary.jsx';
 import { ElsView } from './ElsView.jsx';
+import { PrizeBanner } from './PrizeBanner.jsx';
 import { ReadingMarathonIcon, ListeningMarathonIcon, LogoMark, Wordmark, SparkleIcon } from './Icons.jsx';
 import { categories, popularCourses, listeningMarathon, readingMarathon } from '../data/mock.js';
 
@@ -38,6 +39,8 @@ export function HomeView({ tab: routeTab, results = [], practice = [], signedIn 
         <br />
         the best
       </h1>
+
+      {tab === 'all' && <PrizeBanner />}
 
       <CategoryTabs items={categories} active={tab} onChange={setTab} />
 

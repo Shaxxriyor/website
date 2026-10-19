@@ -437,7 +437,13 @@ function badges(s) {
  */
 export async function leaderboard(period = 'all') {
   const days = PERIODS[period] ?? null;
-  const since = days ? new Date(Date.now() - (days - 1) * 86400000).toISOString().slice(0, 10) : '0001-01-01';
+  const tashkent = new Date(Date.now() + 5 * 3600 * 1000).toISOString().slice(0, 10);
+  const since =
+    period === 'month'
+      ? `${tashkent.slice(0, 7)}-01` // calendar month: the monthly prize period
+      : days
+        ? new Date(Date.now() - (days - 1) * 86400000).toISOString().slice(0, 10)
+        : '0001-01-01';
   const [students, rows] = await Promise.all([
     query(`SELECT id, full_name, group_name, level, avatar_v FROM students WHERE status = 'active' ORDER BY lower(full_name)`),
     query(

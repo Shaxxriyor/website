@@ -3,6 +3,7 @@ import { Sidebar } from './components/Sidebar.jsx';
 import { HomeView } from './components/HomeView.jsx';
 import { StudentHomePanel } from './components/StudentHomePanel.jsx';
 import { RatingView } from './components/RatingView.jsx';
+import { PublicProfile } from './components/PublicProfile.jsx';
 import { StudentsView } from './components/admin/StudentsView.jsx';
 import { StudentProfile } from './components/admin/StudentProfile.jsx';
 import { PracticeView } from './components/admin/PracticeView.jsx';
@@ -101,7 +102,10 @@ export default function App() {
       notify={notify}
     />
   );
-  if (route.name === 'rating') {
+  if (route.name === 'u' && route.id) {
+    main = <PublicProfile id={route.id} myId={me?.student.id} />;
+    panel = !me && admin ? <OverviewPanel version={version} onSignOut={signOut} /> : studentPanel;
+  } else if (route.name === 'rating') {
     main = <RatingView signedIn={Boolean(me) || Boolean(admin)} version={version} />;
     panel = !me && admin ? <OverviewPanel version={version} onSignOut={signOut} /> : studentPanel;
   } else if (!isAdminRoute) {
@@ -133,8 +137,8 @@ export default function App() {
       </div>
 
       <div className="shell">
-        <Sidebar active={isAdminRoute || route.name === 'rating' ? route.name : 'home'} userName={isAdminRoute ? admin || null : me?.student.full_name} userId={isAdminRoute ? null : me?.student.id} userAvatar={isAdminRoute ? null : me?.student.avatar_v} teacher={Boolean(admin) || isAdminRoute} />
-        <main className="main" key={isAdminRoute || route.name === 'rating' ? `${route.name}/${route.id ?? ''}` : 'home'}>
+        <Sidebar active={isAdminRoute ? route.name : route.name === 'rating' || route.name === 'u' ? 'rating' : 'home'} userName={isAdminRoute ? admin || null : me?.student.full_name} userId={isAdminRoute ? null : me?.student.id} userAvatar={isAdminRoute ? null : me?.student.avatar_v} teacher={Boolean(admin) || isAdminRoute} />
+        <main className="main" key={isAdminRoute || route.name === 'rating' || route.name === 'u' ? `${route.name}/${route.id ?? ''}` : 'home'}>
           {main}
         </main>
         {panel}

@@ -3752,3 +3752,31 @@ img {
 .attempts--compact .attempts__list li {
   font-size: 12px;
 }
+
+/* ---------- Public profile ---------- */
+a.rating__row {
+  color: inherit;
+}
+a.rating__row:hover .rating__who strong {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+a.rating__row:hover .rating__chev {
+  transform: translateX(3px);
+}
+.rating__badges--hero {
+  padding: 0;
+}
+.stat-grid--5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+@media (max-width: 1080px) {
+  .stat-grid--5 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 720px) {
+  .stat-grid--5 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

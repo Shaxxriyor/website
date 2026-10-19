@@ -346,6 +346,20 @@ for (const bad of ['../package.json', 'marathon/../../.env', '/etc/passwd', 'mar
   assert.equal(r.status, 404, `blocked: ${bad}`);
 }
 
+// public profile from the rating
+{
+  const res = await api.leaderboard.GET(new Request(`https://example.test/api/leaderboard?id=${kamola}`, { headers: { cookie: studentCookie } }));
+  assert.equal(res.status, 200);
+  const prof = await res.json();
+  assert.equal(prof.student.full_name, 'Kamola Nazarova');
+  assert.ok(prof.rank >= 1 && prof.summary.minutes > 0);
+  assert.ok(prof.attempts.length > 0 && prof.recent.length > 0);
+  const raw = JSON.stringify(prof);
+  assert.ok(!raw.includes('@example.com') && !raw.includes('+998') && !raw.includes('access_code'), 'no private data');
+  const anon = await api.leaderboard.GET(new Request(`https://example.test/api/leaderboard?id=${kamola}`));
+  assert.equal(anon.status, 401);
+}
+
 // new code: old one stops working; inactive students are signed out
 r = await call('students', { method: 'POST', body: { action: 'new-code', id: kamola } });
 assert.notEqual(r.data.access_code, code);

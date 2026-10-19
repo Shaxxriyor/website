@@ -339,7 +339,7 @@ export async function deleteLesson(lessonId) {
 // ---------- student self-service & automatic tracking ----------
 
 /** What a signed-in student sees about themselves — no contact details, no teacher notes. */
-export async function studentSelf(studentId) {
+export async function studentSelf(studentId, { recent = 8 } = {}) {
   const data = await getStudent(studentId);
   const { id: sid, full_name, group_name, level, avatar_v } = data.student;
   return {
@@ -348,7 +348,7 @@ export async function studentSelf(studentId) {
     marathon: data.marathon,
     practice: data.practice,
     attempts: data.attempts,
-    recent: data.lessons.slice(0, 8).map(({ notes, ...l }) => l),
+    recent: data.lessons.slice(0, recent).map(({ notes, ...l }) => l),
     activity: data.activity,
   };
 }
@@ -677,4 +677,37 @@ export async function attemptsFor(studentId) {
     groups.get(key).tries.push({ correct: r.correct, total: r.total, band: bandFor(r.skill, r.correct, r.total), at: r.at });
   }
   return [...groups.values()].sort((a, b) => b.tries.at(-1).at.localeCompare(a.tries.at(-1).at));
+}
+
+/**
+ * A classmate's public profile (for the Rating): progress, attempts, translations,
+ * badges and rank — never contacts or teacher notes. Active students only.
+ */
+export async function publicProfile(studentId) {
+  const [row] = await query(`SELECT id FROM students WHERE id = $1 AND status = 'active'`, [studentId]);
+  if (!row) throw new ApiError('Student not found.', 404);
+  const [self, board, els] = await Promise.all([
+    studentSelf(studentId, { recent: 40 }),
+    leaderboard('all'),
+    elsForStudent(studentId),
+  ]);
+  const rank = board.students.findIndex((s) => s.id === studentId);
+  const entry = board.students[rank];
+  return {
+    ...self,
+    els,
+    badges: entry?.badges ?? [],
+    rank: rank + 1,
+    of: board.students.length,
+    summary: entry
+      ? {
+          minutes: entry.minutes,
+          marathon_days: entry.marathon_reading + entry.marathon_listening,
+          practice_done: entry.practice_done,
+          els_days: entry.els_days,
+          average_band: entry.average_band,
+          best_streak: entry.best_streak,
+        }
+      : null,
+  };
 }

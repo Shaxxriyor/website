@@ -52,6 +52,7 @@ export const api = {
 
   // Student side
   leaderboard: (period) => request('leaderboard', { params: { period } }),
+  studentPage: (id) => request('leaderboard', { params: { id } }),
   elsProgress: () => request('els'),
   elsDay: (day) => request('els', { params: { day } }),
   elsUpload: (day, image) => request('els', { body: { action: 'upload', day, image } }),

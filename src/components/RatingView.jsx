@@ -37,7 +37,7 @@ export function RatingView({ signedIn, version }) {
 
       {error?.status === 401 ? (
         <EmptyState icon={TrophyIcon} title="Sign in to see the rating">
-          Enter the code from your teacher under “Save your progress” on the right.
+          Enter the code from your teacher under “Save your progress”.
         </EmptyState>
       ) : error ? (
         <ErrorNote error={error} onRetry={reload} />

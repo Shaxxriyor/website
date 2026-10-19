@@ -114,7 +114,7 @@ function SignInPanel({ onSignedIn }) {
   }
 
   return (
-    <aside className="panel glass" aria-label="Sign in to save your progress">
+    <aside className="panel glass panel--signin" aria-label="Sign in to save your progress">
       <form className="student-signin" onSubmit={submit}>
         <span className="brand__mark brand__mark--lg">
           <LogoMark size={44} />

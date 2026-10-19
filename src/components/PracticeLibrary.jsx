@@ -132,7 +132,7 @@ export function PracticeLibrary({ results = [], attempts = [], signedIn = false,
         </ul>
       )}
       {!signedIn && (
-        <p className="muted-sm plib__hint">Sign in with your code (right panel) to save your scores on each passage.</p>
+        <p className="muted-sm plib__hint">Sign in with your code to save your scores on each passage.</p>
       )}
     </section>
   );

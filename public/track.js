@@ -83,6 +83,8 @@
   var guard = document.createElement('style');
   guard.textContent =
     '@media print{html,body{display:none!important}}' +
+    // Printing is blocked, so hide the pages' own print buttons.
+    'button[onclick*="print("]{display:none!important}' +
     'img{-webkit-user-drag:none;user-drag:none;-webkit-touch-callout:none}';
   (document.head || document.documentElement).appendChild(guard);
 
@@ -229,15 +231,25 @@
         'font:500 12px/1.2 system-ui,-apple-system,"Segoe UI",sans-serif;color:#fff;background:rgba(29,27,26,.86);' +
         'box-shadow:0 10px 24px -10px rgba(0,0,0,.45);pointer-events:none;opacity:0;transform:translateY(6px);' +
         'transition:opacity .3s ease,transform .3s ease';
+      // Phones: show it at the top (below the back button) so it never covers the page's buttons.
+      if (window.matchMedia('(max-width: 600px)').matches) {
+        pill.style.left = '50%';
+        pill.style.bottom = 'auto';
+        pill.style.top = '50px';
+        pill.style.maxWidth = 'calc(100vw - 32px)';
+        pill.style.textAlign = 'center';
+        pill.style.transform = 'translateX(-50%) translateY(-6px)';
+        pill.dataset.top = '1';
+      }
       document.body.appendChild(pill);
     }
     pill.textContent = text;
     pill.style.opacity = '1';
-    pill.style.transform = 'none';
+    pill.style.transform = pill.dataset.top ? 'translateX(-50%)' : 'none';
     clearTimeout(pill._t);
     pill._t = setTimeout(function () {
       pill.style.opacity = '0';
-      pill.style.transform = 'translateY(6px)';
+      pill.style.transform = pill.dataset.top ? 'translateX(-50%) translateY(-6px)' : 'translateY(6px)';
     }, 4000);
   }
 

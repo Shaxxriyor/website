@@ -3856,3 +3856,66 @@ a.rating__row:hover .rating__chev {
     justify-content: center;
   }
 }
+
+/* ---------- Phone fixes ---------- */
+/* Grid columns may shrink below their content (long passage titles). */
+@media (max-width: 1080px) {
+  .plib {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.plib li,
+.plib__item {
+  min-width: 0;
+}
+@media (max-width: 720px) {
+  .plib__text strong {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .rating__who strong {
+    flex-wrap: wrap;
+    white-space: normal;
+    row-gap: 2px;
+  }
+}
+/* Sheets never grow wider than the screen (long names in the student picker). */
+.sheet-backdrop {
+  grid-template-columns: minmax(0, 1fr);
+}
+.sheet {
+  min-width: 0;
+  justify-self: center;
+}
+.picker__item > .muted-sm {
+  flex: none;
+  max-width: 40%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 720px) {
+  /* Search boxes in column toolbars kept their 260px flex-basis as height. */
+  .toolbar .search {
+    flex: none;
+  }
+  /* Visitors: the code box comes first on phones (compact), so it's easy to find. */
+  .panel--signin {
+    order: -1;
+    padding: 4px 14px 10px;
+  }
+  .panel--signin .brand__mark,
+  .panel--signin .student-signin__points {
+    display: none;
+  }
+  .panel--signin .student-signin {
+    gap: 10px;
+    padding-top: 10px;
+  }
+  /* The decorative panel next to the teacher sign-in adds nothing on a phone. */
+  .panel--quiet {
+    display: none;
+  }
+}

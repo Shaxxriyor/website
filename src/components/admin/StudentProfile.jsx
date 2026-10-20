@@ -66,9 +66,12 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
           </div>
           <div className="profile-hero__meta">
             <span className="pill pill--glass">{s.group_name || 'No group'}</span>
-            <span className="pill pill--glass" title={levelName(s.level)}>
-              {s.level} · {levelName(s.level)}
-            </span>
+            {s.level && (
+              <span className="pill pill--glass" title={levelName(s.level)}>
+                {s.level} · {levelName(s.level)}
+              </span>
+            )}
+            {s.self_registered && <span className="pill pill--glass">Signed up on the site</span>}
             <span className="pill pill--glass">Registered {formatDate(s.registered_at)}</span>
           </div>
           <div className="profile-hero__contact">
@@ -117,6 +120,7 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
         />
       </div>
 
+      <PracticeAccess student={s} notify={notify} onChanged={onChanged} />
       <AccessCard student={s} notify={notify} onChanged={onChanged} />
 
       {s.notes && <p className="profile-notes card-white">{s.notes}</p>}
@@ -234,6 +238,40 @@ function Stat({ tone, label, value, small }) {
 }
 
 
+/** Reading Practice is opened per student; marathons are free for every account. */
+function PracticeAccess({ student, notify, onChanged }) {
+  const [busy, setBusy] = useState(false);
+  const on = student.practice_access;
+  async function toggle() {
+    setBusy(true);
+    try {
+      await api.setPracticeAccess(student.id, !on);
+      notify(on ? 'Reading Practice closed' : 'Reading Practice opened');
+      onChanged();
+    } catch (err) {
+      notify(err.message);
+    }
+    setBusy(false);
+  }
+  return (
+    <section className={`access card-white practice-access ${on ? 'is-on' : ''}`} aria-label="Reading Practice access">
+      <div className="access__text">
+        <span className="label">Reading Practice access</span>
+        <p className="muted-sm">
+          {on
+            ? `${student.full_name} can open all Reading Practice passages.`
+            : 'Marathon only. Reading Practice is locked (the first passage of each part stays free).'}
+        </p>
+      </div>
+      <div className="access__actions">
+        <button className={`btn btn--sm ${on ? 'btn--glass' : 'btn--dark'}`} disabled={busy} onClick={toggle} aria-pressed={on}>
+          {busy ? 'Saving…' : on ? 'Close Reading Practice' : 'Give Reading Practice access'}
+        </button>
+      </div>
+    </section>
+  );
+}
+
 /** The code a student types on the home page to sign in and have their progress saved. */
 function AccessCard({ student, notify, onChanged }) {
   const [copied, setCopied] = useState(false);
@@ -256,7 +294,9 @@ function AccessCard({ student, notify, onChanged }) {
         <span className="label">Student sign-in code</span>
         <p className="muted-sm">
           {student.status === 'active'
-            ? 'Give this to the student. They enter it once on the home page, then every marathon day and practice passage they open is saved here automatically.'
+            ? student.has_password
+              ? 'This student signs in with their email and password. If they forget the password, send them this code — it signs them in too.'
+              : 'Give this to the student. They enter it once on the home page, then every marathon day and practice passage they open is saved here automatically.'
             : 'Inactive students can’t sign in. Set them to Active to let them use their code.'}
         </p>
       </div>

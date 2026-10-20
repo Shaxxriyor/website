@@ -32,7 +32,7 @@ export async function readContent(path) {
 }
 
 /** Friendly page shown instead of a locked lesson. */
-export function lockedPage(path) {
+export function lockedPage(path, reason = 'signin') {
   const back = path.startsWith('practice/')
     ? 'reading-practice'
     : path.startsWith('els/')
@@ -48,7 +48,13 @@ color:#1d1b1a;background:radial-gradient(120% 90% at 10% 0%,#d2f5e7,#bfeedd 45%,
 box-shadow:0 30px 80px -20px rgba(24,74,58,.28)}.i{font-size:40px}h1{margin:8px 0 6px;font-size:22px;font-weight:600}
 p{margin:0 0 20px;color:#4a4542}a{display:inline-block;padding:12px 22px;border-radius:999px;color:#fff;text-decoration:none;
 font-weight:600;background:linear-gradient(180deg,#34302d,#141211)}</style></head>
-<body><div class="c"><div class="i">🔒</div><h1>For READING_CDI students</h1>
-<p>Day 1 of each section is free. Sign in with the code from your teacher to open everything.</p>
-<a href="/#/${back}">Sign in on READING_CDI</a></div></body></html>`;
+<body><div class="c"><div class="i">🔒</div>${
+    reason === 'practice'
+      ? `<h1>Reading Practice is for course students</h1>
+<p>The marathons are free for everyone. Ask your teacher to open Reading Practice for your account.</p>
+<a href="https://t.me/READING_CDI">Write on Telegram</a>`
+      : `<h1>Create a free account</h1>
+<p>The Reading and Listening Marathons are free. Sign up with your email on READING_CDI to open every day.</p>
+<a href="/#/${back}">Sign up on READING_CDI</a>`
+  }</div></body></html>`;
 }

@@ -20,9 +20,11 @@ const SOON = {
 export function HomeView({ onChanged, tab: routeTab, results = [], practice = [], signedIn = false, checking = false, me = null, admin = null }) {
   const tab = categories.some((c) => c.id === routeTab) ? routeTab : 'all';
   const setTab = (id) => navigate(id === 'all' ? '/' : `/${id}`);
-  // Signed-in students and the teacher can open everything; visitors get Day 1 of each section.
+  // Marathons and ELS are free with an account; visitors get Day 1 of each section.
   // While the session is still being checked nothing is shown as locked (the server enforces it anyway).
   const unlocked = signedIn || Boolean(admin) || checking;
+  // Reading Practice: only for students the teacher has opened it for.
+  const practiceOpen = Boolean(admin) || checking || Boolean(me?.student?.practice_access);
 
   return (
     <>
@@ -47,7 +49,7 @@ export function HomeView({ onChanged, tab: routeTab, results = [], practice = []
       {tab === 'els' ? (
         <ElsView me={me} admin={admin} unlocked={unlocked} />
       ) : tab === 'reading-practice' ? (
-        <PracticeLibrary results={practice} attempts={me?.attempts} signedIn={signedIn} unlocked={unlocked} />
+        <PracticeLibrary results={practice} attempts={me?.attempts} signedIn={signedIn} unlocked={practiceOpen} />
       ) : tab === 'listening-marathon' ? (
         <MarathonView marathon={listeningMarathon} icon={ListeningMarathonIcon} skill="listening" results={results} attempts={me?.attempts} signedIn={unlocked} />
       ) : tab === 'reading-marathon' ? (

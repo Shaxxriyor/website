@@ -1,6 +1,8 @@
-import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
+import { createHash, createHmac, randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
+import { promisify } from 'node:util';
 import { ApiError } from './http.js';
 import { query } from './db.js';
+import { registerStudent, signupInput } from './model.js';
 
 // Teacher sign-in. Credentials come from Vercel environment variables
 // (ADMIN_USERNAME / ADMIN_PASSWORD); the session is a signed, HttpOnly cookie.
@@ -10,6 +12,7 @@ const MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 const STUDENT_COOKIE = 'rcdi_student';
 const STUDENT_MAX_AGE = 60 * 60 * 24 * 180; // students sign in once per device
 const MAX_FAILURES = 5; // per IP per 15 minutes
+const MAX_SIGNUPS = 10; // new accounts per IP per hour (a whole class can share one Wi-Fi)
 
 function credentials() {
   const username = process.env.ADMIN_USERNAME || 'admin';
@@ -126,12 +129,62 @@ export async function studentLogin(request, code, ip) {
   return cookieHeader(request, issue({ s: student.id }, STUDENT_MAX_AGE), STUDENT_MAX_AGE, STUDENT_COOKIE);
 }
 
+// ---------- email + password (self sign-up) ----------
+
+const scryptAsync = promisify(scrypt);
+
+async function hashPassword(password) {
+  const salt = randomBytes(16).toString('base64url');
+  const key = await scryptAsync(password, salt, 32);
+  return `scrypt:${salt}:${key.toString('base64url')}`;
+}
+
+async function checkPassword(password, stored) {
+  const [, salt, hash] = String(stored || 'scrypt:x:x').split(':');
+  const key = await scryptAsync(password, salt, 32);
+  return safeEqual(key.toString('base64url'), hash) && Boolean(stored);
+}
+
+/** Create a free account (marathons) and sign it in. */
+export async function studentSignup(request, input, ip) {
+  const { full_name, email, password } = signupInput(input);
+  const signupKey = `signup:${ip}`;
+  const [{ recent }] = await query(
+    `SELECT COUNT(*)::int AS recent FROM login_attempts WHERE ip = $1 AND attempted_at > now() - interval '1 hour'`,
+    [signupKey],
+  );
+  if (recent >= MAX_SIGNUPS) throw new ApiError('Too many new accounts from this network. Please try again later.', 429);
+  const student = await registerStudent({ full_name, email, password_hash: await hashPassword(password) });
+  await query('INSERT INTO login_attempts (ip) VALUES ($1)', [signupKey]);
+  return cookieHeader(request, issue({ s: student.id }, STUDENT_MAX_AGE), STUDENT_MAX_AGE, STUDENT_COOKIE);
+}
+
+export async function studentPasswordLogin(request, email, password, ip) {
+  await checkThrottle(ip);
+  const [student] = await query(
+    `SELECT id, password_hash FROM students WHERE lower(email) = lower($1) AND password_hash IS NOT NULL AND status = 'active'`,
+    [String(email ?? '').trim()],
+  );
+  // Hash even for an unknown email so timing doesn't reveal which accounts exist.
+  const ok = await checkPassword(String(password ?? ''), student?.password_hash);
+  if (!student || !ok) {
+    await recordFailure(ip);
+    throw new ApiError('Wrong email or password.', 401);
+  }
+  return cookieHeader(request, issue({ s: student.id }, STUDENT_MAX_AGE), STUDENT_MAX_AGE, STUDENT_COOKIE);
+}
+
 /** The signed-in student's id (still registered and active), or null. */
 export async function currentStudentId(request) {
+  return (await currentStudent(request))?.id ?? null;
+}
+
+/** The signed-in active student as { id, practice_access }, or null. */
+export async function currentStudent(request) {
   const sid = verify(readCookie(request, STUDENT_COOKIE))?.s;
   if (!sid) return null;
-  const [row] = await query(`SELECT id FROM students WHERE id = $1 AND status = 'active'`, [sid]);
-  return row ? row.id : null;
+  const [row] = await query(`SELECT id, practice_access FROM students WHERE id = $1 AND status = 'active'`, [sid]);
+  return row ?? null;
 }
 
 export async function requireStudent(request) {

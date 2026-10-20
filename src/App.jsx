@@ -90,9 +90,9 @@ export default function App() {
   const studentPanel = (
     <StudentHomePanel
       me={me}
-      onSignedIn={async () => {
+      onSignedIn={async (isNew) => {
         await loadMe();
-        notify('Signed in — your progress will be saved');
+        notify(isNew ? 'Welcome! Your free account is ready — every marathon day is open' : 'Signed in — your progress will be saved');
       }}
       onSignOut={studentSignOut}
       onChanged={async () => {

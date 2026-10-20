@@ -100,6 +100,12 @@ const SCHEMA = [
     ip TEXT NOT NULL,
     attempted_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`,
+  // Self sign-up (email + password) for the free marathons. Reading Practice is opened
+  // per student by the teacher; students added by the teacher before this keep it.
+  `ALTER TABLE students ADD COLUMN IF NOT EXISTS password_hash TEXT`,
+  `ALTER TABLE students ADD COLUMN IF NOT EXISTS self_registered BOOLEAN NOT NULL DEFAULT false`,
+  `ALTER TABLE students ADD COLUMN IF NOT EXISTS practice_access BOOLEAN NOT NULL DEFAULT true`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS students_login_email ON students (lower(email)) WHERE password_hash IS NOT NULL`,
   // Every scored try is kept: 1st attempt, 2nd attempt, … (a record keeps the day's best).
   `CREATE TABLE IF NOT EXISTS attempts (
     id SERIAL PRIMARY KEY,

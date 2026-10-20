@@ -3535,6 +3535,67 @@ button.plib__item {
   background: rgba(205, 199, 247, 0.4);
   animation: rise 0.4s var(--ease) both;
 }
+.signin-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-self: stretch;
+}
+.signin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+.signin-field .input {
+  height: 46px;
+}
+.signin-switch {
+  margin: 0;
+}
+.signin-forgot {
+  margin: 0;
+  font-size: 12px;
+}
+.link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.signin-fields.is-wanted {
+  animation: nudge 0.5s var(--ease);
+}
+.practice-gate {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: var(--r-md, 18px);
+  font-size: 13.5px;
+  line-height: 1.45;
+  background: rgba(205, 199, 247, 0.45);
+  animation: rise 0.4s var(--ease) both;
+}
+.practice-gate p {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+.practice-gate .btn {
+  flex: none;
+}
+@media (max-width: 720px) {
+  .practice-gate {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
 .input--code.is-wanted {
   animation: nudge 0.5s var(--ease);
   box-shadow: inset 0 0 0 1.5px var(--ink), 0 0 0 5px rgba(176, 167, 240, 0.35);
@@ -3918,4 +3979,19 @@ a.rating__row:hover .rating__chev {
   .panel--quiet {
     display: none;
   }
+}
+
+/* ---------- Free sign-up / Reading Practice access ---------- */
+.tag--muted {
+  color: var(--ink-2);
+  background: rgba(205, 199, 247, 0.45);
+}
+.student-row__access {
+  margin-left: 6px;
+  font-size: 11px;
+  padding: 2px 8px;
+}
+.practice-access.is-on .label::after {
+  content: ' ✓';
+  color: var(--success);
 }

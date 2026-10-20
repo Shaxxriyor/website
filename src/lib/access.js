@@ -1,7 +1,8 @@
 import { readingPractice } from '../data/readingPractice.js';
 
 // What visitors (not signed in) may open: Day 1 of each section and the first
-// passage of each Passage group. Shared by the server (api/content) and the UI.
+// passage of each Passage group. With a free account: every marathon and ELS day;
+// Reading Practice only once the teacher opens it for the student. Shared by the server (api/content) and the UI.
 export const FREE_PRACTICE_IDS = [1, 2, 3].map((n) => readingPractice.find((p) => p.passage === n)?.id).filter(Boolean);
 
 const FREE = new Set([
@@ -19,6 +20,6 @@ export const isFreeDay = (day) => day === 1;
 export const isFreePractice = (id) => FREE_PRACTICE_IDS.includes(id);
 
 /** Ask the sign-in panel to show itself (used when a visitor taps a locked item). */
-export function askToSignIn(what) {
-  window.dispatchEvent(new CustomEvent('rcdi:need-signin', { detail: what }));
+export function askToSignIn(what, kind = 'marathon') {
+  window.dispatchEvent(new CustomEvent('rcdi:need-signin', { detail: { what, kind } }));
 }

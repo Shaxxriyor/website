@@ -17,6 +17,14 @@ const FILTERS = [
 export function PracticeLibrary({ results = [], attempts = [], signedIn = false, unlocked = signedIn }) {
   const [passage, setPassage] = useState(0);
   const [q, setQ] = useState('');
+  // Signed in, but Reading Practice isn't opened for this account yet.
+  const [gate, setGate] = useState(0);
+  const gated = signedIn && !unlocked;
+  const askForPractice = (title) => {
+    if (!gated) return askToSignIn(title, 'practice');
+    setGate((n) => n + 1);
+    setTimeout(() => document.querySelector('.practice-gate')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 0);
+  };
   const best = useMemo(() => new Map(results.map((r) => [r.item, r])), [results]);
   const done = readingPractice.filter((p) => best.has(p.id)).length;
   const pct = Math.round((done / readingPractice.length) * 100);
@@ -54,6 +62,18 @@ export function PracticeLibrary({ results = [], attempts = [], signedIn = false,
           </div>
         )}
       </header>
+
+      {gated && (
+        <div className="practice-gate" key={gate} role="status">
+          <p>
+            🔒 <b>Reading Practice is for course students.</b> The first passage of each part is free. Ask your teacher to
+            open all {readingPractice.length} passages for your account.
+          </p>
+          <a className="btn btn--dark btn--sm" href="https://t.me/READING_CDI" target="_blank" rel="noopener">
+            Ask on Telegram
+          </a>
+        </div>
+      )}
 
       {signedIn && results.length > 0 && <PracticeSummary results={results} attempts={attempts} title="My results" />}
 
@@ -100,7 +120,7 @@ export function PracticeLibrary({ results = [], attempts = [], signedIn = false,
               <li key={p.id}>
                 <Item
                   className={`plib__item tone-${tones[p.passage]} ${r ? 'is-done' : ''} ${locked ? 'is-locked' : ''}`}
-                  {...(locked ? { type: 'button', onClick: () => askToSignIn(p.title) } : { href: href(p.id) })}
+                  {...(locked ? { type: 'button', onClick: () => askForPractice(p.title) } : { href: href(p.id) })}
                 >
                   <span className="plib__no">P{p.passage}</span>
                   <span className="plib__text">
@@ -111,7 +131,7 @@ export function PracticeLibrary({ results = [], attempts = [], signedIn = false,
                     </span>
                   </span>
                   {locked ? (
-                    <span className="plib__go" aria-label="For students">
+                    <span className="plib__go" aria-label="For course students">
                       <LockIcon size={15} />
                     </span>
                   ) : !unlocked ? (
@@ -132,7 +152,7 @@ export function PracticeLibrary({ results = [], attempts = [], signedIn = false,
         </ul>
       )}
       {!signedIn && (
-        <p className="muted-sm plib__hint">Sign in with your code to save your scores on each passage.</p>
+        <p className="muted-sm plib__hint">Sign up free to save your scores. All passages open for course students.</p>
       )}
     </section>
   );

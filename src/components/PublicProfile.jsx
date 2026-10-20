@@ -28,7 +28,7 @@ export function PublicProfile({ id, myId }) {
       <>
         {back}
         <EmptyState icon={TrophyIcon} title="Sign in to see students’ pages">
-          Enter the code from your teacher under “Save your progress”.
+          Create a free account (or sign in) on the home page.
         </EmptyState>
       </>
     );
@@ -52,9 +52,11 @@ export function PublicProfile({ id, myId }) {
           <div className="profile-hero__meta">
             <span className="pill pill--glass">🏆 #{rank} of {of} · all time</span>
             {s.group_name && <span className="pill pill--glass">{s.group_name}</span>}
-            <span className="pill pill--glass">
-              {s.level} · {levelName(s.level)}
-            </span>
+            {s.level && (
+              <span className="pill pill--glass">
+                {s.level} · {levelName(s.level)}
+              </span>
+            )}
           </div>
           {badges.length > 0 && (
             <div className="rating__badges rating__badges--hero">

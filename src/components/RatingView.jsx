@@ -37,7 +37,7 @@ export function RatingView({ signedIn, version }) {
 
       {error?.status === 401 ? (
         <EmptyState icon={TrophyIcon} title="Sign in to see the rating">
-          Enter the code from your teacher under “Save your progress”.
+          Create a free account (or sign in) on the home page.
         </EmptyState>
       ) : error ? (
         <ErrorNote error={error} onRetry={reload} />
@@ -62,8 +62,7 @@ export function RatingView({ signedIn, version }) {
                       {period === 'month' && i === 0 && !idle && <span className="rating__prize">🏆 Prize leader</span>}
                     </strong>
                     <span className="muted-sm">
-                      {s.group_name ? `${s.group_name} · ` : ''}
-                      {s.level} {levelName(s.level)}
+                      {[s.group_name, s.level && `${s.level} ${levelName(s.level)}`].filter(Boolean).join(' · ') || 'Marathon participant'}
                     </span>
                   </span>
                   <span className="rating__stats">

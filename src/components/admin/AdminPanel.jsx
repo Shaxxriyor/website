@@ -102,7 +102,8 @@ export function StudentPanel({ data, onSignOut }) {
         </span>
         <h2 className="profile__name">{s.full_name}</h2>
         <span className="pill pill--soft">
-          {s.group_name || 'No group'} · {s.level} {levelName(s.level)}
+          {s.group_name || 'No group'}
+          {s.level ? ` · ${s.level} ${levelName(s.level)}` : ''}
         </span>
       </div>
 

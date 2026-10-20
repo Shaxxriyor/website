@@ -63,7 +63,7 @@ export function ElsView({ me, admin, unlocked = false }) {
                   <span className="day-card__label">Day</span>
                   {locked ? (
                     <span className="pill pill--glass day-card__status">
-                      <LockIcon size={12} /> Students
+                      <LockIcon size={12} /> Free · sign up
                     </span>
                   ) : !signedIn ? (
                     <span className="pill pill--glass day-card__status">Free</span>
@@ -196,7 +196,7 @@ export function ElsDaySheet({ day, me, admin, onClose, onChanged }) {
       </ol>
 
       {!signedIn ? (
-        <p className="els-note">Sign in with your code (right panel) to upload your translation and see your classmates’.</p>
+        <p className="els-note">Create a free account (or sign in) to upload your translation and see your classmates’.</p>
       ) : (
         <>
           {me && (

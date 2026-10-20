@@ -12,6 +12,7 @@ const EMPTY = {
   registered_at: todayISO(),
   status: 'active',
   notes: '',
+  practice_access: true,
 };
 
 /** Register a new student, or edit one when `student` is given. */
@@ -143,6 +144,17 @@ export function StudentForm({ student, groups = [], onClose, onSaved }) {
             options={[
               { value: 'active', label: 'Active' },
               { value: 'inactive', label: 'Inactive' },
+            ]}
+          />
+        </Field>
+        <Field label="Reading Practice" wide>
+          <Segmented
+            label="Reading Practice"
+            value={form.practice_access ? 'yes' : 'no'}
+            onChange={(v) => setForm((f) => ({ ...f, practice_access: v === 'yes' }))}
+            options={[
+              { value: 'yes', label: 'Open (course student)' },
+              { value: 'no', label: 'Marathon only' },
             ]}
           />
         </Field>

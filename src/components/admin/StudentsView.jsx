@@ -12,6 +12,8 @@ const STATUS_TABS = [
   { id: 'all', label: 'All' },
   { id: 'active', label: 'Active' },
   { id: 'inactive', label: 'Inactive' },
+  { id: 'marathon', label: 'Marathon only' },
+  { id: 'practice', label: 'Reading Practice' },
 ];
 
 export function StudentsView({ version, onChanged, notify }) {
@@ -29,12 +31,17 @@ export function StudentsView({ version, onChanged, notify }) {
     all: students.length,
     active: students.filter((s) => s.status === 'active').length,
     inactive: students.filter((s) => s.status === 'inactive').length,
+    marathon: students.filter((s) => !s.practice_access).length,
+    practice: students.filter((s) => s.practice_access).length,
   };
+  const matchesTab = (s) =>
+    status === 'all' ||
+    (status === 'marathon' ? !s.practice_access : status === 'practice' ? s.practice_access : s.status === status);
 
   const q = search.trim().toLowerCase();
   const visible = students.filter(
     (s) =>
-      (status === 'all' || s.status === status) &&
+      matchesTab(s) &&
       (!group || s.group_name === group) &&
       (!q || [s.full_name, s.phone, s.email, s.group_name].some((v) => v?.toLowerCase().includes(q))),
   );
@@ -128,8 +135,12 @@ export function StudentsView({ version, onChanged, notify }) {
               <span className="student-row__who" role="cell">
                 <Avatar name={s.full_name} size={36} studentId={s.id} v={s.avatar_v} />
                 <span>
-                  <strong>{s.full_name}</strong>
+                  <strong>
+                    {s.full_name}
+                    {!s.practice_access && <span className="tag tag--muted student-row__access">Marathon only</span>}
+                  </strong>
                   <span className="muted-sm">
+                    {s.self_registered ? 'Signed up · ' : ''}
                     {s.last_active_at ? `On the site ${timeAgo(s.last_active_at)}` : `Since ${formatDate(s.registered_at)}`}
                   </span>
                 </span>
@@ -138,7 +149,7 @@ export function StudentsView({ version, onChanged, notify }) {
                 {s.group_name ? <span className="tag">{s.group_name}</span> : <span className="muted-sm">—</span>}
               </span>
               <span role="cell" title={levelName(s.level)}>
-                <span className="level">{s.level}</span>
+                {s.level ? <span className="level">{s.level}</span> : <span className="muted-sm">—</span>}
               </span>
               <span role="cell" className="num">{s.lesson_count}</span>
               <span role="cell" className="num">{hours(s.total_minutes)}</span>

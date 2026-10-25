@@ -13,11 +13,11 @@ import { AttemptsList } from './AttemptsList.jsx';
  * email + password or the code from the teacher.
  * Signed in: the student's own progress, saved automatically from the marathon pages.
  */
-export function StudentHomePanel({ me, onSignedIn, onSignOut, onChanged, notify }) {
+export function StudentHomePanel({ me, onSignedIn, onAdminSignedIn, onSignOut, onChanged, notify }) {
   if (me === undefined) {
     return <aside className="panel glass" aria-label="Your progress" aria-busy="true" />;
   }
-  if (!me) return <SignInPanel onSignedIn={onSignedIn} />;
+  if (!me) return <SignInPanel onSignedIn={onSignedIn} onAdminSignedIn={onAdminSignedIn} />;
 
   const { student: s, stats, marathon, practice, recent, activity, attempts } = me;
   return (
@@ -86,11 +86,12 @@ const MODES = {
   signup: { title: 'Join the free marathons', button: 'Create free account', busy: 'Creating…' },
   login: { title: 'Welcome back', button: 'Sign in', busy: 'Signing in…' },
   code: { title: 'Sign in with your code', button: 'Sign in', busy: 'Signing in…' },
+  admin: { title: 'Teacher / admin', button: 'Sign in as admin', busy: 'Signing in…' },
 };
 
-function SignInPanel({ onSignedIn }) {
+function SignInPanel({ onSignedIn, onAdminSignedIn }) {
   const [mode, setMode] = useState('signup');
-  const [form, setForm] = useState({ full_name: '', email: '', password: '', code: '' });
+  const [form, setForm] = useState({ full_name: '', email: '', password: '', code: '', admin: '' });
   const [error, setError] = useState('');
   const [fields, setFields] = useState({});
   const [busy, setBusy] = useState(false);
@@ -123,7 +124,9 @@ function SignInPanel({ onSignedIn }) {
   }
 
   const ready =
-    mode === 'code'
+    mode === 'admin'
+      ? form.admin
+      : mode === 'code'
       ? form.code.trim()
       : form.email.trim() && form.password && (mode === 'login' || form.full_name.trim());
 
@@ -137,6 +140,12 @@ function SignInPanel({ onSignedIn }) {
     setBusy(true);
     setError('');
     try {
+      if (mode === 'admin') {
+        await api.login('', form.admin);
+        setBusy(false);
+        await onAdminSignedIn?.();
+        return;
+      }
       if (mode === 'signup') await api.signup({ full_name: form.full_name, email: form.email, password: form.password });
       else if (mode === 'login') await api.emailLogin(form.email, form.password);
       else await api.studentLogin(form.code);
@@ -169,9 +178,23 @@ function SignInPanel({ onSignedIn }) {
           <p className="muted-sm">Reading &amp; Listening Marathons and ELS Reading are free. Your scores and time are saved automatically.</p>
         )}
         {mode === 'code' && <p className="muted-sm">Enter the code from your teacher.</p>}
+        {mode === 'admin' && <p className="muted-sm">For the teacher: opens Students, Practice and every material.</p>}
 
         <div className={`signin-fields ${pulse ? 'is-wanted' : ''}`} key={`f-${pulse}-${mode}`}>
-          {mode === 'code' ? (
+          {mode === 'admin' ? (
+            <SignField error={fields.admin}>
+              <input
+                className="input"
+                type="password"
+                value={form.admin}
+                onChange={set('admin')}
+                placeholder="Admin password"
+                aria-label="Admin password"
+                autoComplete="current-password"
+                maxLength={200}
+              />
+            </SignField>
+          ) : mode === 'code' ? (
             <input
               className="input input--code"
               value={form.code}
@@ -254,7 +277,7 @@ function SignInPanel({ onSignedIn }) {
           )}
         </p>
         <p className="signin-switch muted-sm">
-          {mode === 'code' ? (
+          {mode === 'code' || mode === 'admin' ? (
             <button type="button" className="link-btn" onClick={() => switchTo('login')}>
               Sign in with email instead
             </button>
@@ -264,6 +287,11 @@ function SignInPanel({ onSignedIn }) {
             </button>
           )}
         </p>
+        {mode !== 'admin' && (
+          <button type="button" className="btn btn--glass btn--sm signin-admin" onClick={() => switchTo('admin')}>
+            Teacher / admin
+          </button>
+        )}
         {mode === 'login' && <p className="muted-sm signin-forgot">Forgot your password? Ask your teacher on Telegram for a sign-in code.</p>}
 
         <ul className="student-signin__points">

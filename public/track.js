@@ -95,17 +95,14 @@
     '@media print{html,body{display:none!important}}' +
     // Printing is blocked, so hide the pages' own print buttons.
     'button[onclick*="print("]{display:none!important}' +
-    'img{-webkit-user-drag:none;user-drag:none;-webkit-touch-callout:none}' +
-    // Listening tests on phones: the header is wider than the screen and hides its
-    // menu. Drop the logo (the back button sits there) and the less used icons.
-    (lm
-      ? '#hdr-left{padding-left:46px}' +
-        '@media (max-width:600px){#hdr .ielts-wordmark,#fs-btn,#wifi-btn,#bell-wrap{display:none!important}' +
-        '#hdr-left{flex:1 1 auto;min-width:0;padding-left:50px;overflow:hidden}' +
-        '#hdr-left .test-taker-block{min-width:0}#hdr-left .test-taker-block:not(#hdr-clock){display:none}' +
-        '#hdr .ttid-label,#hdr .ttid-sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
-        '#hdr-right{flex:0 0 auto}}'
-      : '');
+    'img{-webkit-user-drag:none;user-drag:none;-webkit-touch-callout:none}';
+  if (lm) {
+    // Listening tests: header clear of the back button, plus the phone layout and helpers.
+    guard.textContent += '#hdr-left{padding-left:46px}';
+    var phone = document.createElement('script');
+    phone.src = base + 'listening-phone.js?v=5';
+    (document.head || document.documentElement).appendChild(phone);
+  }
   (document.head || document.documentElement).appendChild(guard);
 
   // Faint watermark with the student's name, so screenshots can be traced.

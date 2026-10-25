@@ -4,8 +4,10 @@ import { ApiError } from './http.js';
 import { query } from './db.js';
 import { registerStudent, signupInput } from './model.js';
 
-// Teacher sign-in. Credentials come from Vercel environment variables
-// (ADMIN_USERNAME / ADMIN_PASSWORD); the session is a signed, HttpOnly cookie.
+// Teacher sign-in: the "Teacher / admin" button on the home page (password only),
+// or the teacher page. The password comes from the Vercel environment:
+// ADMIN_PASSWORD, or ADMIN_PASSWORD_HASH (an scrypt hash, "scrypt:<salt>:<key>").
+// The session is a signed, HttpOnly cookie.
 
 const COOKIE = 'rcdi_session';
 const MAX_AGE = 60 * 60 * 24 * 30; // 30 days
@@ -16,16 +18,21 @@ const MAX_SIGNUPS = 10; // new accounts per IP per hour (a whole class can share
 
 function credentials() {
   const username = process.env.ADMIN_USERNAME || 'admin';
-  const password = process.env.ADMIN_PASSWORD || '';
-  if (password.length < 8) {
+  // An ADMIN_PASSWORD shorter than 8 characters is ignored.
+  const password = (process.env.ADMIN_PASSWORD || '').length >= 8 ? process.env.ADMIN_PASSWORD : '';
+  const hash = process.env.ADMIN_PASSWORD_HASH || '';
+  if (!password && !hash) {
     throw new ApiError('Sign-in is not set up yet: set ADMIN_PASSWORD (8+ characters) in Vercel.', 503);
   }
-  return { username, password };
+  return { username, password, hash };
 }
 
-// Defaults to a key derived from the password, so changing the password signs everyone out.
+// Defaults to a key derived from the passwords, so changing them signs everyone out.
 function secret() {
-  return process.env.SESSION_SECRET || createHash('sha256').update(`rcdi:${credentials().password}`).digest('hex');
+  return (
+    process.env.SESSION_SECRET ||
+    createHash('sha256').update(`rcdi:${credentials().password || credentials().hash}`).digest('hex')
+  );
 }
 
 const sign = (payload) => createHmac('sha256', secret()).update(payload).digest('base64url');
@@ -95,12 +102,14 @@ async function recordFailure(ip) {
 export async function login(request, username, password, ip) {
   const creds = credentials();
   await checkThrottle(ip);
-  // Evaluate both comparisons so timing doesn't reveal which one failed.
-  const userOk = safeEqual(username, creds.username);
-  const passOk = safeEqual(password, creds.password);
-  if (!(userOk && passOk)) {
+  // The username is optional (the admin button asks only for the password); when
+  // given it must match. Every check runs so timing doesn't reveal which one failed.
+  const userOk = !username || safeEqual(username, creds.username);
+  const envOk = Boolean(creds.password) && safeEqual(password, creds.password);
+  const hashOk = Boolean(creds.hash) && (await checkPassword(password, creds.hash));
+  if (!(userOk && (envOk || hashOk))) {
     await recordFailure(ip);
-    throw new ApiError('Wrong username or password.', 401);
+    throw new ApiError('Wrong password.', 401);
   }
   await query('DELETE FROM login_attempts WHERE ip = $1', [ip]);
   return cookieHeader(request, issue({ u: creds.username }, MAX_AGE), MAX_AGE);

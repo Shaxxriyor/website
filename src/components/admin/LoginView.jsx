@@ -3,7 +3,6 @@ import { api } from '../../lib/api.js';
 import { LogoMark, Wordmark } from '../Icons.jsx';
 
 export function LoginView({ onSignedIn, studentName }) {
-  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -13,7 +12,7 @@ export function LoginView({ onSignedIn, studentName }) {
     setBusy(true);
     setError('');
     try {
-      await api.login(username.trim(), password);
+      await api.login('', password);
       onSignedIn();
     } catch (err) {
       setError(err.message);
@@ -29,7 +28,7 @@ export function LoginView({ onSignedIn, studentName }) {
         </span>
         <Wordmark />
         <h1 className="login__title">Teacher sign in</h1>
-        <p className="muted-sm">Students and their results are private. Sign in with the teacher username and password.</p>
+        <p className="muted-sm">Students and their results are private. Enter the admin password.</p>
         {studentName && (
           <p className="login__note">
             This device is signed in as the student <strong>{studentName}</strong>. That code only saves practice — the
@@ -37,22 +36,12 @@ export function LoginView({ onSignedIn, studentName }) {
           </p>
         )}
         <label className="field">
-          <span className="field__label">Username</span>
-          <input
-            className="input"
-            autoComplete="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            autoFocus
-            required
-          />
-        </label>
-        <label className="field">
           <span className="field__label">Password</span>
           <input
             className="input"
             type="password"
             autoComplete="current-password"
+            autoFocus
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required

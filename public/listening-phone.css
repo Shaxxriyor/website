@@ -1,0 +1,268 @@
+/* READING_CDI · phone layout for the full Listening Practice tests.
+   Loaded by track.js on practice/listening/test-N.html. The test pages are built
+   for a laptop screen; these rules only apply on narrow screens. */
+@media (max-width: 600px) {
+  /* Header: the back button takes the logo's place; keep the timer, menu and notes. */
+  #hdr .ielts-wordmark,
+  #fs-btn,
+  #wifi-btn,
+  #bell-wrap {
+    display: none !important;
+  }
+  #hdr-left {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding-left: 50px !important;
+    overflow: hidden;
+  }
+  #hdr-left .test-taker-block {
+    min-width: 0;
+  }
+  #hdr-left .test-taker-block:not(#hdr-clock) {
+    display: none;
+  }
+  #hdr .ttid-label,
+  #hdr .ttid-sub {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #hdr-right {
+    flex: 0 0 auto;
+  }
+
+  /* Questions: tables and gap-fills fit the screen; wide tables scroll sideways. */
+  #listening-render .section-block {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #listening-render table {
+    width: 100% !important;
+    min-width: 0 !important;
+    font-size: 14px;
+  }
+  #listening-render th,
+  #listening-render td {
+    padding: 7px 6px !important;
+    overflow-wrap: anywhere;
+  }
+  #listening-render input[type='text'],
+  #listening-render input:not([type]) {
+    max-width: 100%;
+    font-size: 16px !important; /* 16px stops iPhone zooming in on every tap */
+  }
+  #listening-render select {
+    max-width: 100%;
+    font-size: 16px;
+  }
+  #listening-render img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+  /* Room at the bottom so the last question can scroll above the arrows. */
+  #listening-area {
+    padding-bottom: 96px !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* Previous / next: small round buttons in the corner, above the question bar. */
+  #qnav-arrows {
+    position: fixed !important;
+    top: auto !important;
+    left: auto !important;
+    right: 10px !important;
+    bottom: 64px !important;
+    gap: 8px !important;
+    z-index: 600;
+  }
+  #qnav-arrows .qnav-btn {
+    width: 46px !important;
+    height: 46px !important;
+    border-radius: 50% !important;
+    box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.45);
+  }
+  #qnav-arrows .qnav-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  /* Question bar: swipe it sideways; the ✓ submit button always stays visible. */
+  #bnav {
+    overflow: hidden;
+  }
+  #listening-nav {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  #listening-nav::-webkit-scrollbar {
+    display: none;
+  }
+  #listening-nav > .bnav-section {
+    flex: 0 0 auto;
+  }
+  #listening-nav .bnav-part.other .bnav-plabel2 {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  #sub-btn {
+    position: sticky !important;
+    right: 0;
+    flex: 0 0 auto;
+    z-index: 2;
+    min-width: 58px;
+    box-shadow: -10px 0 14px -8px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Results and answer key. */
+  #results-content .rs-head,
+  #results-content .rs-parts {
+    flex-wrap: wrap;
+  }
+  #results-content .rs-table {
+    width: 100%;
+    font-size: 14px;
+  }
+  #results-content .rs-table td,
+  #results-content .rs-table th {
+    padding: 7px 6px;
+    overflow-wrap: anywhere;
+  }
+  #results-content .rs-cta {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+}
+
+/* Results header: leave room for the back button in the corner. */
+#stage-results .rs-top-l {
+  padding-left: 46px;
+}
+
+/* Review (answer analysis) on phones and small tablets. The test hides the
+   transcript below 880px; here it becomes a panel at the bottom of the screen
+   (tap its header to fold it away) and the audio player gets its own bar. */
+@media (max-width: 880px) {
+  body.review-mode.tp-active #transcript-panel {
+    display: flex !important;
+    top: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 53px !important;
+    width: auto !important;
+    height: 44vh !important;
+    height: 44dvh !important;
+    border-left: 0 !important;
+    border-top: 1px solid var(--line, #d0d0d0);
+    box-shadow: 0 -14px 32px -12px rgba(0, 0, 0, 0.22) !important;
+    z-index: 540;
+    transition: height 0.25s ease;
+  }
+  body.review-mode.tp-active.rcdi-tp-min #transcript-panel {
+    height: 46px !important;
+  }
+  body.review-mode.tp-active #transcript-panel .tp-hdr {
+    flex: 0 0 auto;
+    padding-right: 104px !important;
+  }
+  .rcdi-tp-toggle {
+    display: none;
+  }
+  body.review-mode.tp-active .rcdi-tp-toggle {
+    display: inline-flex;
+    position: absolute;
+    top: 7px;
+    right: 10px;
+    z-index: 3;
+    align-items: center;
+    gap: 4px;
+    height: 32px;
+    padding: 0 14px;
+    border: 1px solid var(--line, #d0d0d0);
+    border-radius: 999px;
+    background: var(--paper, #fff);
+    color: inherit;
+    font: 700 13px/1 Arial, sans-serif;
+  }
+  .rcdi-tp-toggle .when-min,
+  body.rcdi-tp-min .rcdi-tp-toggle .when-open {
+    display: none;
+  }
+  body.rcdi-tp-min .rcdi-tp-toggle .when-min {
+    display: inline;
+  }
+  body.review-mode.tp-active #listening-area {
+    padding-top: 52px !important;
+    padding-bottom: calc(44vh + 24px) !important;
+  }
+  body.review-mode.tp-active.rcdi-tp-min #listening-area {
+    padding-bottom: 110px !important;
+  }
+  body.review-mode.tp-active #qnav-arrows {
+    position: fixed !important;
+    top: auto !important;
+    left: auto !important;
+    right: 10px !important;
+    bottom: calc(44vh + 62px) !important;
+  }
+  body.review-mode.tp-active.rcdi-tp-min #qnav-arrows {
+    bottom: 110px !important;
+  }
+
+  /* Audio player: a full-width bar under the header. */
+  body.review-mode #pbar-audio {
+    position: fixed !important;
+    top: 56px;
+    left: 0;
+    right: 0;
+    z-index: 545;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 6px !important;
+    height: 46px !important;
+    margin: 0 !important;
+    padding: 0 10px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    border-bottom: 1px solid var(--line, #d0d0d0) !important;
+    background: var(--paper, #fff) !important;
+  }
+  body.review-mode #pbar-audio #vol-slider,
+  body.review-mode #pbar-audio #audio-state-badge,
+  body.review-mode #pbar-audio > span:not([id]) {
+    display: none !important;
+  }
+  body.review-mode #pbar-audio #audio-progress-track {
+    flex: 1 1 auto;
+    min-width: 36px;
+  }
+  body.review-mode #pbar-audio #speed-select {
+    flex: 0 0 auto;
+  }
+  body.review-mode #pbar-audio #audio-time-display {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+@media (max-width: 600px) {
+  .ielts-wordmark {
+    display: none !important;
+  }
+}
+
+/* Matching questions: the word picked by a tap, and the boxes it can go to. */
+.drag-chip.rcdi-picked {
+  outline: 3px solid #2563eb !important;
+  outline-offset: 1px;
+  background: #e8f0ff !important;
+}
+body.rcdi-picking .drag-drop {
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.45) !important;
+}

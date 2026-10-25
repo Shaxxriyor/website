@@ -11,7 +11,7 @@ import { LoginView } from './components/admin/LoginView.jsx';
 import { OverviewPanel, SignedOutPanel, StudentPanel } from './components/admin/AdminPanel.jsx';
 import { Skeleton } from './components/admin/ui.jsx';
 import { api, setUnauthorizedHandler } from './lib/api.js';
-import { useRoute } from './lib/router.js';
+import { navigate, useRoute } from './lib/router.js';
 
 const ADMIN_ROUTES = ['students', 'practice'];
 
@@ -93,6 +93,12 @@ export default function App() {
       onSignedIn={async (isNew) => {
         await loadMe();
         notify(isNew ? 'Welcome! Your free account is ready — every marathon day is open' : 'Signed in — your progress will be saved');
+      }}
+      onAdminSignedIn={async () => {
+        const s = await api.session().catch(() => ({ admin: null }));
+        setAdmin(s.admin);
+        notify('Signed in as admin');
+        navigate('/students');
       }}
       onSignOut={studentSignOut}
       onChanged={async () => {

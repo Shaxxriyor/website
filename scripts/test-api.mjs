@@ -6,6 +6,11 @@ import { PGlite } from '@electric-sql/pglite';
 
 process.env.ADMIN_USERNAME = 'teacher';
 process.env.ADMIN_PASSWORD = 'correct-horse';
+// A second admin password, given as a hash (ADMIN_PASSWORD_HASH).
+{
+  const { scryptSync } = await import('node:crypto');
+  process.env.ADMIN_PASSWORD_HASH = `scrypt:testsalt:${scryptSync('admin-button-pass', 'testsalt', 32).toString('base64url')}`;
+}
 delete process.env.DATABASE_URL;
 globalThis.__RCDI_DEV_DB__ = new PGlite();
 
@@ -49,6 +54,24 @@ assert.equal(r.status, 200);
 assert.match(cookie, /^rcdi_session=/);
 r = await call('auth');
 assert.equal(r.data.admin, 'teacher');
+// the admin button: password only (ADMIN_PASSWORD or the built-in admin password)
+{
+  const keep = cookie;
+  cookie = '';
+  r = await call('auth', { method: 'POST', body: { password: 'admin-button-pass' }, ip: '5.5.5.5' });
+  assert.equal(r.status, 200, 'hashed admin password works without a username');
+  r = await call('auth');
+  assert.equal(r.data.admin, 'teacher');
+  cookie = '';
+  r = await call('auth', { method: 'POST', body: { password: 'correct-horse' }, ip: '5.5.5.5' });
+  assert.equal(r.status, 200, 'ADMIN_PASSWORD works without a username');
+  cookie = '';
+  r = await call('auth', { method: 'POST', body: { password: 'Admin-button-pass' }, ip: '5.5.5.5' });
+  assert.equal(r.status, 401, 'wrong password (case matters)');
+  r = await call('auth', { method: 'POST', body: { username: 'someone', password: 'admin-button-pass' }, ip: '5.5.5.5' });
+  assert.equal(r.status, 401, 'a wrong username is still refused');
+  cookie = keep;
+}
 const res = await api.students.POST(
   new Request('https://example.test/api/students', { method: 'POST', headers: { cookie }, body: '{"action":"create"}' }),
 );

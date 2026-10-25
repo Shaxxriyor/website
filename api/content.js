@@ -1,13 +1,14 @@
 import { json, route, searchParams } from '../server/http.js';
 import { currentAdmin, currentStudent } from '../server/auth.js';
-import { cleanPath, isFree, lockedPage, readContent } from '../server/content.js';
+import { cleanPath, isEngine, isFree, lockedPage, readContent } from '../server/content.js';
 
 // Serves /marathon/*, /practice/* and /els/* (rewritten here by vercel.json).
 export const GET = route(async (request) => {
   const path = cleanPath(searchParams(request).get('path'));
   if (!path) return json({ error: 'Not found.' }, 404);
 
-  const free = isFree(path);
+  const engine = isEngine(path);
+  const free = engine || isFree(path);
   if (!free && !currentAdmin(request)) {
     // Marathons and ELS: any signed-in student (sign-up is free).
     // Reading Practice: only students the teacher has opened it for.
@@ -30,7 +31,8 @@ export const GET = route(async (request) => {
     headers: {
       'content-type': file.type,
       // Never stored by shared caches; signed-in copies stay in this browser only.
-      'cache-control': free ? 'public, max-age=3600' : 'private, no-store',
+      // Engine files are named by their content hash, so they never change.
+      'cache-control': engine ? 'public, max-age=31536000, immutable' : free ? 'public, max-age=3600' : 'private, no-store',
       'x-content-type-options': 'nosniff',
       'x-robots-tag': 'noindex, noarchive',
       'referrer-policy': 'same-origin',

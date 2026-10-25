@@ -1,9 +1,13 @@
 import { formatDate } from '../lib/format.js';
 import { formatBand } from '../lib/band.js';
 import { readingPractice } from '../data/readingPractice.js';
+import { listeningPractice } from '../data/listeningPractice.js';
 import { readingMarathon } from '../data/mock.js';
 
-const practiceTitle = new Map(readingPractice.map((p) => [p.id, `Passage ${p.passage} · ${p.title}`]));
+const practiceTitle = new Map([
+  ...readingPractice.map((p) => [p.id, `Passage ${p.passage} · ${p.title}`]),
+  ...listeningPractice.map((t) => [t.id, `Listening Practice · Test ${t.no}`]),
+]);
 const readingDay = new Map(readingMarathon.days.map((d) => [d.day, d.title]));
 const ORD = ['1st', '2nd', '3rd'];
 const ordinal = (n) => ORD[n - 1] ?? `${n}th`;

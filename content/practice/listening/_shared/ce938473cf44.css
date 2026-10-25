@@ -1,0 +1,183 @@
+
+/* ══════════════════════════════════════════════════════════════════════
+   REVIEW MODE, RE-SKINNED — READING_CDI
+   The transcript panel and the transport strip were drawn in the retired
+   certificate palette: cream paper, navy and gold, a display serif. They now
+   read from the same skin as the exam itself — white paper, grey rules, Arial,
+   and IELTS red as the single accent. Nothing structural changes; every rule
+   below only re-points a token the original review CSS already uses, so the
+   layout, the sync and the timecodes are untouched.
+   ══════════════════════════════════════════════════════════════════════ */
+body.review-mode{
+  --pw-ui:var(--sans); --pw-display:var(--sans);
+  --rv-ink:#0d0d0d; --rv-ink-2:#1f1f1f; --rv-ink-3:#666666; --rv-ink-4:#999999;
+  --rv-paper:#ffffff; --rv-paper-2:#fafafa; --rv-paper-3:#f2f2f2;
+  --rv-line:#d8d8d8; --rv-line-2:#c2c2c2;
+  --rv-navy:#c41230; --rv-navy-ink:#ffffff; --rv-gold:#c41230; --rv-gold-ink:#8a0c22;
+  --rv-green:#2e7d32; --rv-rose:#c41230;
+  --rv-mark:rgba(196,18,48,.13); --rv-mark-edge:rgba(196,18,48,.40);
+  --rv-cur:rgba(196,18,48,.05);
+  --rv-track:#d0d0d0; --rv-buffer:#bcbcbc;
+  --rv-panel-shadow:-8px 0 22px -14px rgba(0,0,0,.30);
+}
+body.dark-mode.review-mode{
+  --rv-ink:#eaeaea; --rv-ink-2:#cfcfcf; --rv-ink-3:#9a9a9a; --rv-ink-4:#7e7e7e;
+  --rv-paper:#1f1f1f; --rv-paper-2:#1a1a1a; --rv-paper-3:#262626;
+  --rv-line:#3a3a3a; --rv-line-2:#4a4a4a;
+  --rv-navy:#ff5a72; --rv-navy-ink:#1a0a0e; --rv-gold:#ff5a72; --rv-gold-ink:#ff8094;
+  --rv-green:#5fd17a; --rv-rose:#ff5a72;
+  --rv-mark:rgba(255,90,114,.16); --rv-mark-edge:rgba(255,90,114,.38);
+  --rv-cur:rgba(255,90,114,.08);
+  --rv-track:#3a3a3a; --rv-buffer:#4a4a4a;
+  --rv-panel-shadow:-10px 0 26px -14px rgba(0,0,0,.65);
+}
+body.theme-sepia.review-mode{
+  --rv-ink:#3a2c1a; --rv-ink-2:#5a4632; --rv-ink-3:#9a8670; --rv-ink-4:#bba585;
+  --rv-paper:#faf6ef; --rv-paper-2:#f5f0e8; --rv-paper-3:#efe7d8;
+  --rv-line:#dccaa9; --rv-line-2:#cbb691;
+  --rv-navy:#b03521; --rv-navy-ink:#fffdf8; --rv-gold:#b03521; --rv-gold-ink:#8f2a19;
+  --rv-green:#3f6b33; --rv-rose:#b03521;
+  --rv-mark:rgba(176,53,33,.14); --rv-mark-edge:rgba(176,53,33,.40);
+  --rv-cur:rgba(176,53,33,.06);
+  --rv-track:#dccaa9; --rv-buffer:#cbb691;
+}
+
+/* The panel is exam furniture: square corners, a hard rule, Arial throughout. */
+body.review-mode #transcript-panel{font-family:var(--sans)}
+body.review-mode #transcript-panel *{font-family:var(--sans)}
+body.review-mode .tp-hdr{background:var(--rv-paper-3);border-bottom:1px solid var(--rv-line-2)}
+/* one flat red rule instead of the old navy-to-gold gradient */
+body.review-mode .tp-hdr::after{background:var(--rv-navy);opacity:1;height:3px}
+body.review-mode .tp-hdr-lbl{color:var(--rv-ink-2);font-weight:800;letter-spacing:.14em}
+body.review-mode .tp-live-dot{background:var(--rv-navy);
+  box-shadow:0 0 0 0 color-mix(in srgb,var(--rv-navy) 45%,transparent)}
+body.review-mode .tp-hdr-count{color:var(--rv-ink-3);font-weight:700}
+body.review-mode .tp-item.tp-cur{border-left-color:var(--rv-navy)}
+body.review-mode .tp-item:not(.tp-break):hover{background:color-mix(in srgb,var(--rv-navy) 6%,transparent)}
+body.review-mode .tp-item:not(.tp-break):focus-visible{outline-color:var(--rv-navy)}
+
+/* ── the transport strip ─────────────────────────────────────────────── */
+body.review-mode .seek-btn{
+  border-radius:var(--radius);border:1px solid var(--rv-line-2);
+  background:var(--rv-paper);color:var(--rv-ink-2);font-weight:700}
+body.review-mode .seek-btn:hover{border-color:var(--rv-navy);color:var(--rv-navy);background:var(--rv-paper)}
+body.review-mode .pp-btn{background:var(--rv-navy);color:var(--rv-navy-ink);border:none}
+body.review-mode .pp-btn:hover{background:#a50f28;filter:none}
+body.review-mode #audio-progress-track{background:var(--rv-track);border-radius:99px}
+body.review-mode #audio-progress-fill{background:var(--rv-navy)}
+body.review-mode #audio-buffered{background:var(--rv-buffer)}
+body.review-mode #audio-time-display{color:var(--rv-ink-3);font-weight:700}
+body.review-mode #audio-state-badge{color:var(--rv-ink-3)}
+body.review-mode #audio-state-badge.is-ready{color:var(--emerald)}
+body.review-mode #audio-state-badge.is-error{color:var(--rv-navy)}
+body.review-mode #vol-slider::-webkit-slider-thumb{background:var(--rv-navy)}
+body.review-mode #vol-slider::-moz-range-thumb{background:var(--rv-navy)}
+/* The panel re-points the same tokens inside its own scope (so that the
+   transport outside it could stay a different colour). Both scopes now carry
+   the exam skin, otherwise the speaker rules and timecodes stay azure. */
+body.review-mode #transcript-panel{
+  --rv-paper:#ffffff; --rv-paper-2:#fafafa; --rv-paper-3:#f2f2f2;
+  --rv-ink:#0d0d0d;   --rv-ink-2:#1f1f1f; --rv-ink-3:#666666; --rv-ink-4:#999999;
+  --rv-line:#e0e0e0;  --rv-line-2:#c8c8c8;
+  --rv-navy:#c41230;  --rv-navy-ink:#ffffff;
+  --rv-gold:#c41230;  --rv-gold-ink:#8a0c22;
+  --rv-green:#2e7d32; --rv-rose:#c41230;
+  --rv-cur:rgba(196,18,48,.05);
+  --rv-mark:rgba(196,18,48,.13); --rv-mark-edge:rgba(196,18,48,.40);
+  --rv-track:#d0d0d0; --rv-buffer:#bcbcbc;
+  --rv-panel-shadow:-8px 0 22px -14px rgba(0,0,0,.30);
+  background:#ffffff;
+  border-left:1px solid var(--line-2);
+}
+body.dark-mode.review-mode #transcript-panel{
+  --rv-paper:#1f1f1f; --rv-paper-2:#1a1a1a; --rv-paper-3:#262626;
+  --rv-ink:#eaeaea;   --rv-ink-2:#cfcfcf; --rv-ink-3:#9a9a9a; --rv-ink-4:#7e7e7e;
+  --rv-line:#3a3a3a;  --rv-line-2:#4a4a4a;
+  --rv-navy:#ff5a72;  --rv-navy-ink:#1a0a0e;
+  --rv-gold:#ff5a72;  --rv-gold-ink:#ff8094;
+  --rv-cur:rgba(255,90,114,.08);
+  --rv-mark:rgba(255,90,114,.16); --rv-mark-edge:rgba(255,90,114,.38);
+  background:#1f1f1f;
+}
+body.theme-sepia.review-mode #transcript-panel{
+  --rv-paper:#faf6ef; --rv-paper-2:#f5f0e8; --rv-paper-3:#efe7d8;
+  --rv-ink:#3a2c1a;   --rv-ink-2:#5a4632; --rv-ink-3:#9a8670; --rv-ink-4:#bba585;
+  --rv-line:#e2d5bc;  --rv-line-2:#cbb691;
+  --rv-navy:#b03521;  --rv-gold:#b03521; --rv-gold-ink:#8f2a19;
+  --rv-cur:rgba(176,53,33,.06);
+  background:#faf6ef;
+}
+
+/* the timecode beside each question, in the exam's red */
+body.review-mode .q-jump-btn{border:1px solid #d8c2c7;background:#fff;color:#c41230}
+body.review-mode .q-jump-btn:hover{background:#c41230;border-color:#c41230;color:#fff;
+  box-shadow:0 2px 8px -5px rgba(196,18,48,.8)}
+body.review-mode .q-jump-btn.is-correct{
+  border-color:rgba(46,125,50,.42);background:rgba(46,125,50,.07);color:#2e7d32}
+body.review-mode .q-jump-btn.is-correct:hover{background:#2e7d32;border-color:#2e7d32;color:#fff}
+body.review-mode .q-jump-btn.is-wrong{
+  border-color:rgba(196,18,48,.42);background:rgba(196,18,48,.07);color:#c41230}
+body.review-mode .q-jump-btn.is-wrong:hover{background:#c41230;border-color:#c41230;color:#fff}
+body.review-mode .q-jump-btn.is-skipped{
+  border-color:var(--line-2);background:var(--bg-elev);color:var(--ink-mute)}
+body.review-mode .q-jump-btn.is-skipped:hover{background:#666;border-color:#666;color:#fff}
+
+body.review-mode #rate-select,body.review-mode .rate-select{
+  border-radius:var(--radius);border:1px solid var(--rv-line-2);
+  background:var(--rv-paper);color:var(--rv-ink-2);font-family:var(--sans)}
+
+/* ── MAP / OPTION BOX / WIDE DROPS ──────────────────────────────────────── */
+.opt-box{border:1px solid var(--line,#c8ccd4);background:#fafbfc;border-radius:4px;
+  padding:11px 14px;margin:14px 0 18px;max-width:820px}
+.opt-box.drag-pool{display:block;min-height:0;columns:2;column-gap:34px}
+.eh-opt{break-inside:avoid;display:flex;gap:12px;align-items:baseline;width:100%;
+  height:auto;min-height:30px;margin:0;padding:3px 7px;border:1px solid transparent;
+  border-radius:5px;background:transparent;font-size:16px;line-height:1.5;cursor:grab}
+.eh-opt:hover{border-color:#b9c0cb;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.eh-opt-l{flex:0 0 18px;font-weight:700}
+.eh-opt-t{flex:1 1 auto}
+.eh-opt.dm-ghost{background:#fff;border-color:rgb(65,142,200);box-shadow:0 6px 18px rgba(0,0,0,.18);
+  width:auto!important;height:auto!important;padding:3px 9px}
+.wide-drops .drag-drop{min-width:260px;justify-content:flex-start;padding:0 6px;text-align:left}
+.wide-drops .drag-drop .drag-chip{justify-content:flex-start;padding:0 2px;font-size:14px;
+  line-height:1.25;min-height:23px;height:auto;gap:8px}
+.wide-drops .drag-drop .eh-opt-l{flex:0 0 14px}
+.wide-drops .drag-drop .eh-opt-t{flex:0 1 auto}
+.wide-drops .drag-item-label{min-width:120px}
+.eh-row{display:flex;align-items:flex-start;gap:28px;margin:16px 0 20px;flex-wrap:wrap}
+.eh-diagram{flex:1 1 480px;min-width:360px;margin:0;padding:4px 0}
+.eh-diagram svg{max-width:100%;max-height:430px}
+.eh-diagram img{width:100%;max-width:620px;height:auto;display:block;margin:0 auto;border-radius:3px}
+.qtab{border-collapse:collapse;width:100%;max-width:1000px;margin:14px 0 20px;font-size:16px;line-height:1.6}
+.qtab th,.qtab td{border:1px solid #2b2f36;padding:11px 13px;vertical-align:top;text-align:left}
+.qtab th{font-weight:700;background:#f4f5f7;white-space:nowrap}
+.qtab td:first-child{white-space:nowrap;font-weight:600}
+.opt-box-ttl{font-weight:700;margin:0 0 8px;column-span:all;text-align:center}
+.tp-item[data-at] .tp-ans-w{cursor:pointer;border-bottom:1px dotted currentColor}
+.tp-item[data-at] .tp-ans-w:hover{background:rgba(201,162,39,.22);border-radius:3px}
+.tp-item[data-at] .tp-tx:after{content:"\25B6 play from here";font-size:11px;letter-spacing:.3px;
+  color:var(--rv-ink-3,#6b7280);margin-left:8px;opacity:.75;white-space:nowrap}
+.qtab{border-collapse:collapse;width:100%;max-width:1000px;margin:14px 0 20px;font-size:16px;line-height:1.6}
+.qtab th,.qtab td{border:1px solid #2b2f36;padding:11px 13px;vertical-align:top;text-align:left}
+.qtab th{font-weight:700;background:#f4f5f7;white-space:nowrap}
+.qtab td:first-child{white-space:nowrap;font-weight:600}
+.opt-box-ttl{font-weight:700;margin:0 0 8px;column-span:all;text-align:center}
+.stmt-rows .drag-item-label{min-width:0;flex:1 1 auto;padding-right:14px;line-height:1.45}
+.stmt-rows .drag-item-row{align-items:flex-start}
+.stmt-rows .drag-drop{flex:0 0 auto}
+.eh-side{flex:0 1 330px;min-width:290px;padding-top:6px}
+.eh-side .kb-help{margin:0 0 10px}
+.eh-side .drag-match-layout{margin:0}
+.eh-side .drag-col-hdr{white-space:nowrap}
+.eh-side .drag-right .drag-col-hdr{margin-left:18px}
+.eh-side .drag-pool{margin:0 0 0 18px}
+.eh-side .drag-item-label{min-width:118px}
+@media (max-width:1100px){.eh-diagram{flex:1 1 100%}.eh-side{flex:1 1 100%}}
+/* ── TRANSCRIPT TABS ────────────────────────────────────────────────────── */
+.tp-tabs{display:flex;gap:6px;padding:9px 14px 10px;border-bottom:1px solid var(--rv-line,#e3e6eb);flex:0 0 auto}
+.tp-tab{flex:1 1 0;min-width:0;padding:6px 4px;border-radius:7px;border:1px solid var(--rv-line-2,#dfe3e9);
+  background:#fff;color:var(--rv-ink-3,#5b6472);font:600 12px/1.2 var(--sans,Arial,sans-serif);
+  cursor:pointer;white-space:nowrap;text-align:center}
+.tp-tab.is-on{background:var(--rv-navy,#c41230);border-color:var(--rv-navy,#c41230);color:#fff}
+body.dark-mode .opt-box{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.18)}
+

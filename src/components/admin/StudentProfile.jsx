@@ -137,7 +137,8 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
         <div className="marathon-progress">
           <MarathonGrid skill="reading" label="Reading Marathon" tone="lilac" results={marathon} />
           <MarathonGrid skill="listening" label="Listening Marathon" tone="rose" results={marathon} />
-          <PracticeSummary results={practice} attempts={attempts} />
+          <PracticeSummary skill="reading" results={practice} attempts={attempts} />
+          <PracticeSummary skill="listening" results={practice} attempts={attempts} />
           <ElsSummary days={elsDone} />
           <AttemptsList groups={attempts} title="Attempts — marathons & real exam passages" />
         </div>
@@ -238,7 +239,7 @@ function Stat({ tone, label, value, small }) {
 }
 
 
-/** Reading Practice is opened per student; marathons are free for every account. */
+/** Reading & Listening Practice are opened per student; marathons are free for every account. */
 function PracticeAccess({ student, notify, onChanged }) {
   const [busy, setBusy] = useState(false);
   const on = student.practice_access;
@@ -246,7 +247,7 @@ function PracticeAccess({ student, notify, onChanged }) {
     setBusy(true);
     try {
       await api.setPracticeAccess(student.id, !on);
-      notify(on ? 'Reading Practice closed' : 'Reading Practice opened');
+      notify(on ? 'Practice closed' : 'Reading & Listening Practice opened');
       onChanged();
     } catch (err) {
       notify(err.message);
@@ -254,18 +255,18 @@ function PracticeAccess({ student, notify, onChanged }) {
     setBusy(false);
   }
   return (
-    <section className={`access card-white practice-access ${on ? 'is-on' : ''}`} aria-label="Reading Practice access">
+    <section className={`access card-white practice-access ${on ? 'is-on' : ''}`} aria-label="Practice access">
       <div className="access__text">
-        <span className="label">Reading Practice access</span>
+        <span className="label">Reading &amp; Listening Practice access</span>
         <p className="muted-sm">
           {on
-            ? `${student.full_name} can open all Reading Practice passages.`
-            : 'Marathon only. Reading Practice is locked (the first passage of each part stays free).'}
+            ? `${student.full_name} can open all Reading Practice passages and Listening Practice tests.`
+            : 'Marathon only. Reading & Listening Practice are locked (the first passage of each part and Listening Test 1 stay free).'}
         </p>
       </div>
       <div className="access__actions">
         <button className={`btn btn--sm ${on ? 'btn--glass' : 'btn--dark'}`} disabled={busy} onClick={toggle} aria-pressed={on}>
-          {busy ? 'Saving…' : on ? 'Close Reading Practice' : 'Give Reading Practice access'}
+          {busy ? 'Saving…' : on ? 'Close practice' : 'Give practice access'}
         </button>
       </div>
     </section>

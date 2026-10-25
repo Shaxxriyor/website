@@ -1,6 +1,7 @@
 // Home page content: categories, course cards and the marathon day lists.
 import {
   ReadingIcon,
+  ListeningIcon,
   ReadingMarathonIcon,
   ListeningMarathonIcon,
   VocabularyIcon,
@@ -14,6 +15,7 @@ const asset = (path) => `${import.meta.env.BASE_URL}${path}`;
 export const categories = [
   { id: 'all', label: 'All' },
   { id: 'reading-practice', label: 'Reading Practice', icon: ReadingIcon },
+  { id: 'listening-practice', label: 'Listening Practice', icon: ListeningIcon },
   { id: 'reading-marathon', label: 'Reading Marathon', icon: ReadingMarathonIcon },
   { id: 'listening-marathon', label: 'Listening Marathon', icon: ListeningMarathonIcon },
   { id: 'els', label: 'ELS Reading', icon: BookIcon },
@@ -55,6 +57,17 @@ export const popularCourses = [
     title: 'Reading Practice: 137 Real Exam Passages',
     meta: 'Passage 1, 2 and 3 · 13–14 questions each',
     tab: 'reading-practice',
+  },
+  {
+    id: 'listening-practice',
+    tone: 'peach',
+    category: 'Listening Practice',
+    skill: 'listening',
+    icon: ListeningIcon,
+    badge: 'New',
+    title: 'Listening Practice: 101 Full IELTS Tests',
+    meta: '4 parts · 40 questions · audio & transcripts',
+    tab: 'listening-practice',
   },
   {
     id: 'els',

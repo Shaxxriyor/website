@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test:api": "node scripts/test-api.mjs",
     "add-tracker": "node scripts/add-tracker.mjs",
-    "import-practice": "node scripts/import-practice.mjs"
+    "import-practice": "node scripts/import-practice.mjs",
+    "import-listening": "node scripts/import-listening.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",

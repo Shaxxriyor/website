@@ -417,6 +417,31 @@ selfCookie = '';
 r = await asSelf({ action: 'signup', full_name: 'Spam X', email: 'spamx@example.com', password: 'longenough1' }, '9.9.9.9');
 assert.equal(r.status, 429, 'sign-ups are rate-limited per network');
 
+// Listening Practice: test 1 free, the engine is public, the rest need practice access
+r = await get('practice/listening/test-1.html');
+assert.equal(r.status, 200, 'Listening Test 1 is free');
+r = await get('practice/listening/test-9.html');
+assert.equal(r.status, 401);
+r = await get('practice/listening/test-9.html', studentCookie);
+assert.equal(r.status, 200, 'course student opens listening tests');
+const { readdirSync } = await import('node:fs');
+const engineFile = readdirSync('content/practice/listening/_shared').find((f) => f.endsWith('.js'));
+r = await get(`practice/listening/_shared/${engineFile}`);
+assert.equal(r.status, 200, 'shared engine is public');
+assert.match(r.headers.get('cache-control'), /immutable/);
+r = await get('practice/listening/_shared/../../../package.json');
+assert.equal(r.status, 404);
+r = await get('marathon/reading/evil.js', studentCookie);
+assert.equal(r.status, 404, 'scripts only from the shared engine folder');
+r = await asStudent('track', { method: 'POST', body: { kind: 'exercise', skill: 'listening', item: 'test-9', topic: 'Listening Test 9', seconds: 120, correct: 31, total: 40, sitting: 'listen0001' } });
+assert.equal(r.status, 200, 'listening test score saved');
+r = await asStudent('track', { method: 'POST', body: { kind: 'exercise', skill: 'listening', item: 'p1-rubber', topic: 'x', correct: 1, total: 40 } });
+assert.equal(r.status, 422, 'listening items are test-N');
+r = await asStudent('me');
+const lt = r.data.practice.find((p) => p.item === 'test-9');
+assert.equal(lt.skill, 'listening');
+assert.equal(lt.band, 7, '31/40 listening → band 7.0');
+
 for (const bad of ['../package.json', 'marathon/../../.env', '/etc/passwd', 'marathon/reading/day-01.js', 'src/App.jsx']) {
   r = await get(bad, studentCookie);
   assert.equal(r.status, 404, `blocked: ${bad}`);

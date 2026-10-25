@@ -76,7 +76,7 @@ export function RatingView({ signedIn, version }) {
                     </span>
                     <span className="rating__stat">
                       <b className="num">{s.practice_done}</b>
-                      <small>{s.practice_done === 1 ? 'passage' : 'passages'}</small>
+                      <small>{s.practice_done === 1 ? 'test' : 'tests'}</small>
                     </span>
                     <span className="rating__stat">
                       <b className="num">{s.els_days}</b>

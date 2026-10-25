@@ -1,4 +1,4 @@
-/* READING_CDI progress tracker for the marathon and Reading Practice pages.
+/* READING_CDI progress tracker for the marathon, Reading and Listening Practice pages.
    Signed-in students only: counts time while the page is visible and the
    student is active (or audio is playing), and saves the score as soon as the
    page shows one. Loaded by a <script> tag at the end of each marathon page. */
@@ -7,16 +7,17 @@
   // Marathon day pages and Reading Practice passages.
   var m = location.pathname.match(/marathon\/(reading|listening)\/day-(\d+)\.html$/);
   var pm = location.pathname.match(/practice\/reading\/(p([1-3])-[a-z0-9-]+)\.html$/);
-  if ((!m && !pm) || !window.fetch) return;
+  var lm = location.pathname.match(/practice\/listening\/(test-(\d{1,3}))\.html$/);
+  if ((!m && !pm && !lm) || !window.fetch) return;
   var kind = m ? 'marathon' : 'exercise';
-  var skill = m ? m[1] : 'reading';
+  var skill = m ? m[1] : lm ? 'listening' : 'reading';
   var day = m ? parseInt(m[2], 10) : null;
-  var item = pm ? pm[1] : null;
+  var item = pm ? pm[1] : lm ? lm[1] : null;
   var passageNo = pm ? pm[2] : null;
   var base = new URL('../../', location.href).href;
 
   // ---- "back to the site" button, for everyone ----
-  var backTab = item ? 'reading-practice' : skill === 'reading' ? 'reading-marathon' : 'listening-marathon';
+  var backTab = lm ? 'listening-practice' : item ? 'reading-practice' : skill === 'reading' ? 'reading-marathon' : 'listening-marathon';
   function addBackButton() {
     if (document.getElementById('rcdi-back')) return;
     var a = document.createElement('a');
@@ -34,16 +35,24 @@
       'background:rgba(29,27,26,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);' +
       'box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 10px 24px -10px rgba(0,0,0,.5);' +
       'transition:transform .35s cubic-bezier(.34,1.56,.64,1),background-color .2s';
-    a.onmouseenter = function () { a.style.transform = 'translateX(-50%) translateY(-1px)'; a.style.background = 'rgba(29,27,26,.96)'; };
-    a.onmouseleave = function () { a.style.transform = 'translateX(-50%)'; a.style.background = 'rgba(29,27,26,.86)'; };
-    a.onmousedown = function () { a.style.transform = 'translateX(-50%) scale(.95)'; };
-    // Phones: a small round arrow so it doesn't cover the page header.
-    if (window.matchMedia('(max-width: 600px)').matches) {
+    // Listening tests have the candidate's name in the middle of their header:
+    // the button goes to the top-left corner there instead.
+    var shift = lm ? '' : 'translateX(-50%) ';
+    if (lm) {
+      a.style.left = '10px';
+      a.style.top = '10px';
+      a.style.transform = 'none';
+    }
+    a.onmouseenter = function () { a.style.transform = shift + 'translateY(-1px)'; a.style.background = 'rgba(29,27,26,.96)'; };
+    a.onmouseleave = function () { a.style.transform = shift || 'none'; a.style.background = 'rgba(29,27,26,.86)'; };
+    a.onmousedown = function () { a.style.transform = shift + 'scale(.95)'; };
+    // Phones (and listening tests): a small round arrow so it doesn't cover the page header.
+    if (lm || window.matchMedia('(max-width: 600px)').matches) {
       a.querySelector('span').style.display = 'none';
       a.style.width = a.style.height = '34px';
       a.style.padding = '0';
       a.style.justifyContent = 'center';
-      a.style.top = '8px';
+      a.style.top = lm ? '11px' : '8px';
     }
     document.body.appendChild(a);
   }
@@ -60,7 +69,8 @@
   // Reading pages (marathon + practice passages): text can be selected and copied.
   var allowCopy = skill === 'reading';
   // Reading Marathon pages: no watermark over the passage.
-  var showWatermark = !(kind === 'marathon' && skill === 'reading');
+  // No watermark on the Reading Marathon or the full Listening Practice tests.
+  var showWatermark = !(kind === 'marathon' && skill === 'reading') && !lm;
   ['copy', 'cut'].forEach(function (ev) {
     document.addEventListener(ev, function (e) {
       if (!allowCopy && !inField(e.target)) e.preventDefault();
@@ -85,7 +95,17 @@
     '@media print{html,body{display:none!important}}' +
     // Printing is blocked, so hide the pages' own print buttons.
     'button[onclick*="print("]{display:none!important}' +
-    'img{-webkit-user-drag:none;user-drag:none;-webkit-touch-callout:none}';
+    'img{-webkit-user-drag:none;user-drag:none;-webkit-touch-callout:none}' +
+    // Listening tests on phones: the header is wider than the screen and hides its
+    // menu. Drop the logo (the back button sits there) and the less used icons.
+    (lm
+      ? '#hdr-left{padding-left:46px}' +
+        '@media (max-width:600px){#hdr .ielts-wordmark,#fs-btn,#wifi-btn,#bell-wrap{display:none!important}' +
+        '#hdr-left{flex:1 1 auto;min-width:0;padding-left:50px;overflow:hidden}' +
+        '#hdr-left .test-taker-block{min-width:0}#hdr-left .test-taker-block:not(#hdr-clock){display:none}' +
+        '#hdr .ttid-label,#hdr .ttid-sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+        '#hdr-right{flex:0 0 auto}}'
+      : '');
   (document.head || document.documentElement).appendChild(guard);
 
   // Faint watermark with the student's name, so screenshots can be traced.
@@ -126,6 +146,7 @@
   }
 
   function topic() {
+    if (lm) return 'Listening Test ' + lm[2];
     if (item) {
       // "Passage 2: Coral Reefs" → "Passage 2 · Coral Reefs"
       var pt = (document.title || '').replace(/^\s*Passage\s*\d+\s*[:\-–—]\s*/i, '').trim();
@@ -190,6 +211,11 @@
       // The results card: first box is "Correct", second is "Questions".
       var nums = document.querySelectorAll('#stage-results .rcx-scorerow .rcx-sbox .num');
       if (nums.length >= 2) return { correct: parseInt(nums[0].textContent, 10), total: parseInt(nums[1].textContent, 10) };
+    } else if (lm) {
+      // Full listening test: "Your result" card, "26 / 40".
+      var rs = document.querySelector('#results-content .rs-score .n');
+      var lmm = rs && rs.textContent.match(/(\d+)\s*\/\s*(\d+)/);
+      if (lmm) return { correct: parseInt(lmm[1], 10), total: parseInt(lmm[2], 10) };
     } else {
       var sc = document.querySelector('#result .sc');
       var mm = sc && sc.textContent.match(/(\d+)\s*\/\s*(\d+)/);
@@ -199,9 +225,12 @@
   }
 
   var scoreTimer = null;
+  // Throttled, not debounced: some pages (the listening tests' clock and audio bar)
+  // change every few hundred ms, which would postpone a debounced check forever.
   function checkScore() {
-    clearTimeout(scoreTimer);
+    if (scoreTimer) return;
     scoreTimer = setTimeout(function () {
+      scoreTimer = null;
       var r = readScore();
       if (!who || !r || isNaN(r.correct) || isNaN(r.total)) return;
       var key = r.correct + '/' + r.total;
@@ -263,6 +292,12 @@
       who = data.student;
       watermark(who.full_name + ' · READING_CDI');
       toast('✓ Progress saving for ' + who.full_name.split(' ')[0]);
+      // Listening tests ask for the candidate's name first: fill it in.
+      var nameField = document.getElementById('entry-name');
+      if (nameField && !nameField.value) {
+        nameField.value = who.full_name;
+        nameField.dispatchEvent(new Event('input', { bubbles: true }));
+      }
       ['mousemove', 'keydown', 'scroll', 'touchstart', 'click', 'input', 'wheel'].forEach(function (ev) {
         addEventListener(ev, function () { lastInput = Date.now(); }, { passive: true, capture: true });
       });

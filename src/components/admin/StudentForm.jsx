@@ -147,9 +147,9 @@ export function StudentForm({ student, groups = [], onClose, onSaved }) {
             ]}
           />
         </Field>
-        <Field label="Reading Practice" wide>
+        <Field label="Reading & Listening Practice" wide>
           <Segmented
-            label="Reading Practice"
+            label="Reading & Listening Practice"
             value={form.practice_access ? 'yes' : 'no'}
             onChange={(v) => setForm((f) => ({ ...f, practice_access: v === 'yes' }))}
             options={[

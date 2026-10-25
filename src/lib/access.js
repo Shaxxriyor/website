@@ -13,11 +13,12 @@ const FREE = new Set([
   'els/day-01-2.webp',
   'els/day-01.pdf',
   ...FREE_PRACTICE_IDS.map((id) => `practice/reading/${id}.html`),
+  'practice/listening/test-1.html',
 ]);
 
 export const isFreePath = (path) => FREE.has(path);
 export const isFreeDay = (day) => day === 1;
-export const isFreePractice = (id) => FREE_PRACTICE_IDS.includes(id);
+export const isFreePractice = (id) => FREE_PRACTICE_IDS.includes(id) || id === 'test-1';
 
 /** Ask the sign-in panel to show itself (used when a visitor taps a locked item). */
 export function askToSignIn(what, kind = 'marathon') {

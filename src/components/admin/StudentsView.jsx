@@ -13,7 +13,7 @@ const STATUS_TABS = [
   { id: 'active', label: 'Active' },
   { id: 'inactive', label: 'Inactive' },
   { id: 'marathon', label: 'Marathon only' },
-  { id: 'practice', label: 'Reading Practice' },
+  { id: 'practice', label: 'Practice access' },
 ];
 
 export function StudentsView({ version, onChanged, notify }) {

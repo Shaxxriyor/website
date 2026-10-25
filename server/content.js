@@ -14,15 +14,21 @@ const TYPES = {
   '.webp': 'image/webp',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
+  '.js': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
 };
 
 export const isFree = isFreePath;
+/** The Listening Practice exam engine, shared by every test page (no test content in it). */
+export const isEngine = (path) => /^practice\/listening\/_shared\/[a-f0-9]{12}\.(js|css)$/.test(path);
 
 /** Clean a requested path; null when it tries to leave /content or isn't a known file type. */
 export function cleanPath(raw) {
   const path = normalize(String(raw || '')).replace(/^([/\\])+/, '');
   if (!path || path.startsWith('..') || path.includes('\0') || !TYPES[extname(path)]) return null;
   if (!/^(marathon|practice|els)\//.test(path)) return null;
+  // Scripts and styles only for the shared engine.
+  if (/\.(js|css)$/.test(path) && !isEngine(path)) return null;
   return path;
 }
 
@@ -33,8 +39,10 @@ export async function readContent(path) {
 
 /** Friendly page shown instead of a locked lesson. */
 export function lockedPage(path, reason = 'signin') {
-  const back = path.startsWith('practice/')
-    ? 'reading-practice'
+  const back = path.startsWith('practice/listening/')
+    ? 'listening-practice'
+    : path.startsWith('practice/')
+      ? 'reading-practice'
     : path.startsWith('els/')
       ? 'els'
       : path.includes('/listening/')

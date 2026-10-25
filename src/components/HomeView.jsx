@@ -49,7 +49,9 @@ export function HomeView({ onChanged, tab: routeTab, results = [], practice = []
       {tab === 'els' ? (
         <ElsView me={me} admin={admin} unlocked={unlocked} />
       ) : tab === 'reading-practice' ? (
-        <PracticeLibrary results={practice} attempts={me?.attempts} signedIn={signedIn} unlocked={practiceOpen} />
+        <PracticeLibrary key="reading" skill="reading" results={practice} attempts={me?.attempts} signedIn={signedIn} unlocked={practiceOpen} />
+      ) : tab === 'listening-practice' ? (
+        <PracticeLibrary key="listening" skill="listening" results={practice} attempts={me?.attempts} signedIn={signedIn} unlocked={practiceOpen} />
       ) : tab === 'listening-marathon' ? (
         <MarathonView marathon={listeningMarathon} icon={ListeningMarathonIcon} skill="listening" results={results} attempts={me?.attempts} signedIn={unlocked} />
       ) : tab === 'reading-marathon' ? (

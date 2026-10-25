@@ -74,7 +74,7 @@ export function PublicProfile({ id, myId }) {
         <div className="stat-grid stat-grid--5">
           <Stat tone="rose" label="Studied" value={hours(sum.minutes)} />
           <Stat tone="lilac" label="Marathon days" value={sum.marathon_days} />
-          <Stat tone="peach" label="Passages" value={sum.practice_done} />
+          <Stat tone="peach" label="Practice tests" value={sum.practice_done} />
           <Stat tone="mint" label="Translations" value={sum.els_days} />
           <Stat tone="sand" label="Average band" value={formatBand(sum.average_band)} />
         </div>
@@ -87,7 +87,10 @@ export function PublicProfile({ id, myId }) {
         <div className="marathon-progress">
           <MarathonGrid skill="reading" label="Reading Marathon" tone="lilac" results={marathon} />
           <MarathonGrid skill="listening" label="Listening Marathon" tone="rose" results={marathon} />
-          <PracticeSummary results={practice} attempts={attempts} title="Real exam passages" />
+          <PracticeSummary skill="reading" results={practice} attempts={attempts} title="Real exam passages" />
+          {practice.some((r) => r.skill === 'listening') && (
+            <PracticeSummary skill="listening" results={practice} attempts={attempts} title="Listening tests" />
+          )}
           <AttemptsList groups={attempts} title="Attempts — marathons & real exam passages" />
         </div>
       </section>

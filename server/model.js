@@ -173,7 +173,7 @@ export async function getStudent(studentId) {
     monthlyActivity(studentId),
     // Best result per Reading Practice passage.
     query(
-      `SELECT DISTINCT ON (item) item, correct, total, lesson_date::text AS lesson_date
+      `SELECT DISTINCT ON (item) item, skill, correct, total, lesson_date::text AS lesson_date
        FROM lessons WHERE student_id = $1 AND item IS NOT NULL
        ORDER BY item, (correct::float8 / NULLIF(total, 0)) DESC NULLS LAST, lesson_date DESC`,
       [studentId],
@@ -203,7 +203,7 @@ export async function getStudent(studentId) {
     marathon: marathonDays,
     lessons,
     activity,
-    practice: practice.map((r) => ({ ...r, band: bandFor('reading', r.correct, r.total) })),
+    practice: practice.map((r) => ({ ...r, band: bandFor(r.skill, r.correct, r.total) })),
   };
 }
 
@@ -429,9 +429,10 @@ export async function track(studentId, input) {
     correct = optionalInt(input, 'correct', 0, MARATHON_TOTAL[skill]);
     total = correct === null ? null : MARATHON_TOTAL[skill];
   } else {
-    // A Reading Practice passage, identified by its page id.
+    // A Reading Practice passage or Listening Practice test, identified by its page id.
     item = String(input.item ?? '');
-    if (!/^p[1-3]-[a-z0-9-]{1,90}$/.test(item)) fail('item', 'Unknown passage');
+    const known = skill === 'reading' ? /^p[1-3]-[a-z0-9-]{1,90}$/ : /^test-\d{1,3}$/;
+    if (!known.test(item)) fail('item', 'Unknown passage');
     if (!topic) fail('topic', 'Missing title');
     correct = optionalInt(input, 'correct', 0, 60);
     total = correct === null ? null : optionalInt(input, 'total', 1, 60);

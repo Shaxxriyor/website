@@ -1081,6 +1081,11 @@ a {
     border-radius: 0;
     background: rgba(251, 248, 244, 0.9);
     box-shadow: none;
+    /* A blur filter or transform here would pin the fixed tab bar to the end of
+       the page instead of the screen, so the shell keeps neither on phones. */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    animation: none;
   }
   .sidebar {
     position: fixed;

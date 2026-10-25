@@ -52,7 +52,8 @@ export function StudentHomePanel({ me, onSignedIn, onSignOut, onChanged, notify 
 
       <MarathonGrid skill="reading" label="Reading Marathon" tone="lilac" results={marathon} compact />
       <MarathonGrid skill="listening" label="Listening Marathon" tone="rose" results={marathon} compact />
-      <PracticeSummary results={practice} compact />
+      <PracticeSummary skill="reading" results={practice} compact />
+      {practice.some((r) => r.skill === 'listening') && <PracticeSummary skill="listening" results={practice} compact />}
       <AttemptsList groups={attempts} limit={8} compact title="My attempts" />
 
       {recent.length > 0 && (
@@ -160,7 +161,7 @@ function SignInPanel({ onSignedIn }) {
           <p key={pulse} className="signin-locked">
             🔒 <b>{wanted.what}</b>{' '}
             {wanted.kind === 'practice'
-              ? '— Reading Practice is for course students. Sign in, then ask your teacher to open it for your account.'
+              ? '— Reading & Listening Practice are for course students. Sign in, then ask your teacher to open them for your account.'
               : '— create a free account (or sign in) to open every marathon day.'}
           </p>
         )}
@@ -273,7 +274,7 @@ function SignInPanel({ onSignedIn }) {
             <CheckIcon size={14} /> Scores and time saved automatically
           </li>
           <li>
-            <CheckIcon size={14} /> Reading Practice (137 real exam passages) — for course students
+            <CheckIcon size={14} /> Reading &amp; Listening Practice (137 passages, 101 full tests) — for course students
           </li>
         </ul>
       </form>

@@ -33,6 +33,16 @@ function speak(text) {
 }
 const canSpeak = typeof window !== 'undefined' && 'speechSynthesis' in window;
 
+/** An example sentence in IELTS context (writing or speaking topics). */
+function Ielts({ text }) {
+  if (!text) return null;
+  return (
+    <p className="fc-face__ielts">
+      <span>IELTS</span> {text}
+    </p>
+  );
+}
+
 /** The words of a collocation that the gap hides, for highlighting on the back. */
 function filled(card) {
   const shown = new Set(card.g.toLowerCase().split(' '));
@@ -319,11 +329,17 @@ export function Flashcards({ book, unit, saved = [], canSave = false, onSaved, o
                             </button>
                           )}
                         </span>
+                        {card.uz && (
+                          <span className="fc-face__uz" lang="uz">
+                            {card.uz}
+                          </span>
+                        )}
                         <span className="fc-face__ru" lang="ru">
-                          {card.ru}
+                          <b>RU</b> {card.ru}
                         </span>
                         {!reverse && <p className="fc-face__def">{card.d}</p>}
                         <p className="fc-face__ex">{card.e}</p>
+                        <Ielts text={card.ielts} />
                       </>
                     ) : (
                       <>
@@ -339,7 +355,13 @@ export function Flashcards({ book, unit, saved = [], canSave = false, onSaved, o
                             </button>
                           )}
                         </span>
+                        {card.uz && (
+                          <span className="fc-face__uz" lang="uz">
+                            {card.uz}
+                          </span>
+                        )}
                         {card.m && <p className="fc-face__def">= {card.m}</p>}
+                        <Ielts text={card.ielts} />
                         {card.e && <p className="fc-face__ex">{card.e}</p>}
                         {card.also && <span className="fc-face__hint">Also in Unit {card.also.join(', ')}</span>}
                         <span className="fc-face__hint">{hint}</span>

@@ -4176,7 +4176,7 @@ a.rating__row:hover .rating__chev {
 }
 .fc-card {
   position: relative;
-  height: 340px;
+  height: 400px;
   perspective: 1200px;
   touch-action: pan-y;
   user-select: none;
@@ -4203,8 +4203,8 @@ a.rating__row:hover .rating__chev {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
+  justify-content: safe center;
+  gap: 10px;
   padding: 26px 24px;
   border-radius: var(--r-lg);
   text-align: center;
@@ -4251,10 +4251,45 @@ a.rating__row:hover .rating__chev {
 .fc-face__coll .is-hit {
   color: var(--success);
 }
-.fc-face__ru {
-  font-size: 18px;
-  font-weight: 600;
+.fc-face__uz {
+  font-size: 19px;
+  font-weight: 700;
   color: var(--ink);
+}
+.fc-face__ru {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+.fc-face__ru b {
+  margin-right: 4px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  background: rgba(29, 27, 26, 0.06);
+}
+.fc-face__ielts {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  text-align: left;
+  color: var(--ink);
+  background: rgba(176, 167, 240, 0.18);
+}
+.fc-face__ielts span {
+  margin-right: 6px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #fff;
+  background: #c41230;
+  vertical-align: 1px;
 }
 .fc-face__def {
   margin: 0;

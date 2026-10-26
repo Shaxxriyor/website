@@ -465,6 +465,26 @@ const lt = r.data.practice.find((p) => p.item === 'test-9');
 assert.equal(lt.skill, 'listening');
 assert.equal(lt.band, 7, '31/40 listening → band 7.0');
 
+// vocabulary flashcards: unit 1 free, the rest with any account; progress saved per unit
+r = await get('vocab/collocations/unit-01.json');
+assert.equal(r.status, 200, 'unit 1 is free');
+assert.ok((await r.json()).cards.length > 10);
+r = await get('vocab/essential-words-5/unit-02.json');
+assert.equal(r.status, 401, 'unit 2 needs an account');
+r = await get('vocab/essential-words-5/unit-02.json', selfSignedIn);
+assert.equal(r.status, 200, 'marathon-only accounts open vocabulary');
+assert.equal((await r.json()).cards.length, 20);
+r = await get('vocab/essential-words-5/../../package.json', selfSignedIn);
+assert.equal(r.status, 404);
+r = await asStudent('me', { method: 'POST', body: { action: 'vocab', book: 'essential-words-5', unit: 2, known: [0, 3, 3, 7], total: 20 } });
+assert.equal(r.status, 200);
+r = await asStudent('me', { method: 'POST', body: { action: 'vocab', book: 'essential-words-5', unit: 2, known: [25], total: 20 } });
+assert.equal(r.status, 422, 'card outside the unit');
+r = await asStudent('me', { method: 'POST', body: { action: 'vocab', book: 'nope', unit: 1, known: [], total: 20 } });
+assert.equal(r.status, 422);
+r = await asStudent('me');
+assert.deepEqual(r.data.vocab.map((v) => [v.book, v.unit, v.known]), [['essential-words-5', 2, [0, 3, 7]]]);
+
 for (const bad of ['../package.json', 'marathon/../../.env', '/etc/passwd', 'marathon/reading/day-01.js', 'src/App.jsx']) {
   r = await get(bad, studentCookie);
   assert.equal(r.status, 404, `blocked: ${bad}`);

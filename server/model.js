@@ -194,8 +194,9 @@ export async function getStudent(studentId) {
     return { ...withBand(r), tested, els: elsSet.has(r.day), complete: tested && elsSet.has(r.day) };
   });
   stats.marathon_days = marathonDays.filter((r) => r.complete).length;
-  const attempts = await attemptsFor(studentId);
+  const [attempts, vocab] = await Promise.all([attemptsFor(studentId), vocabFor(studentId)]);
   return {
+    vocab,
     student,
     stats,
     els: elsDays,
@@ -402,6 +403,7 @@ export async function studentSelf(studentId, { recent = 8 } = {}) {
     els: data.els,
     practice: data.practice,
     attempts: data.attempts,
+    vocab: data.vocab,
     recent: data.lessons.slice(0, recent).map(({ notes, ...l }) => l),
     activity: data.activity,
   };
@@ -778,4 +780,34 @@ export async function publicProfile(studentId) {
         }
       : null,
   };
+}
+
+// ---------- vocabulary flashcards ----------
+
+const VOCAB_BOOKS = { 'essential-words-5': 30, collocations: 60 };
+
+/** Save which cards of one unit the student knows (card positions in the unit). */
+export async function saveVocab(studentId, input) {
+  const book = oneOf(input, 'book', Object.keys(VOCAB_BOOKS));
+  const unit = optionalInt(input, 'unit', 1, VOCAB_BOOKS[book]);
+  if (unit === null) fail('unit', 'Choose a unit');
+  const total = optionalInt(input, 'total', 1, 200);
+  if (total === null) fail('total', 'Missing total');
+  const known = Array.isArray(input.known) ? [...new Set(input.known.map(Number))] : [];
+  if (known.some((n) => !Number.isInteger(n) || n < 0 || n >= total)) fail('known', 'Invalid cards');
+  await query(
+    `INSERT INTO vocab_progress (student_id, book, unit, known, total) VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (student_id, book, unit) DO UPDATE SET known = EXCLUDED.known, total = EXCLUDED.total, updated_at = now()`,
+    [studentId, book, unit, known.sort((a, b) => a - b), total],
+  );
+  await query('UPDATE students SET last_active_at = now() WHERE id = $1', [studentId]);
+  return { book, unit, known, total };
+}
+
+export async function vocabFor(studentId) {
+  return query(
+    `SELECT book, unit, known, total, updated_at::date::text AS date FROM vocab_progress
+     WHERE student_id = $1 ORDER BY book, unit`,
+    [studentId],
+  );
 }

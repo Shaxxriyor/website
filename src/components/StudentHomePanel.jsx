@@ -7,6 +7,7 @@ import { ActivityChart } from './ActivityChart.jsx';
 import { MarathonGrid } from './MarathonGrid.jsx';
 import { PracticeSummary } from './PracticeSummary.jsx';
 import { AttemptsList } from './AttemptsList.jsx';
+import { VocabSummary } from './VocabSummary.jsx';
 
 /**
  * Right panel on the home page. Signed out: create a free account, or sign in with
@@ -19,7 +20,7 @@ export function StudentHomePanel({ me, onSignedIn, onAdminSignedIn, onSignOut, o
   }
   if (!me) return <SignInPanel onSignedIn={onSignedIn} onAdminSignedIn={onAdminSignedIn} />;
 
-  const { student: s, stats, marathon, practice, recent, activity, attempts } = me;
+  const { student: s, stats, marathon, practice, recent, activity, attempts, vocab } = me;
   return (
     <aside className="panel glass" aria-label="Your progress">
       <div className="panel__top panel__top--admin">
@@ -54,6 +55,7 @@ export function StudentHomePanel({ me, onSignedIn, onAdminSignedIn, onSignOut, o
       <MarathonGrid skill="listening" label="Listening Marathon" tone="rose" results={marathon} compact />
       <PracticeSummary skill="reading" results={practice} compact />
       {practice.some((r) => r.skill === 'listening') && <PracticeSummary skill="listening" results={practice} compact />}
+      {vocab?.length > 0 && <VocabSummary vocab={vocab} compact />}
       <AttemptsList groups={attempts} limit={8} compact title="My attempts" />
 
       {recent.length > 0 && (

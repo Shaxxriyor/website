@@ -5,6 +5,7 @@ import { formatCode, formatDate, hours, levelName, relativeDay, timeAgo } from '
 import { MarathonGrid } from '../MarathonGrid.jsx';
 import { PracticeSummary } from '../PracticeSummary.jsx';
 import { AttemptsList } from '../AttemptsList.jsx';
+import { VocabSummary } from '../VocabSummary.jsx';
 import { PhotoViewer } from '../ElsView.jsx';
 import { els } from '../../data/els.js';
 import { ArrowLeft, CheckIcon, EditIcon, LessonIcon, MailIcon, PhoneIcon, PlusIcon, TrashIcon } from '../Icons.jsx';
@@ -50,7 +51,7 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
     );
   }
 
-  const { student: s, stats, marathon, practice, lessons, els: elsDone, attempts } = data;
+  const { student: s, stats, marathon, practice, lessons, els: elsDone, attempts, vocab } = data;
   const shown = showAll ? lessons : lessons.slice(0, RECENT);
 
   return (
@@ -140,6 +141,7 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
           <PracticeSummary skill="reading" results={practice} attempts={attempts} />
           <PracticeSummary skill="listening" results={practice} attempts={attempts} />
           <ElsSummary days={elsDone} />
+          <VocabSummary vocab={vocab} />
           <AttemptsList groups={attempts} title="Attempts — marathons & real exam passages" />
         </div>
       </section>

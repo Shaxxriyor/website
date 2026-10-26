@@ -5,12 +5,12 @@ import { FeaturedCourse } from './FeaturedCourse.jsx';
 import { MarathonView } from './MarathonView.jsx';
 import { PracticeLibrary } from './PracticeLibrary.jsx';
 import { ElsView } from './ElsView.jsx';
+import { VocabularyView } from './VocabularyView.jsx';
 import { PrizeBanner } from './PrizeBanner.jsx';
 import { ReadingMarathonIcon, ListeningMarathonIcon, LogoMark, Wordmark, SparkleIcon } from './Icons.jsx';
 import { categories, popularCourses, listeningMarathon, readingMarathon } from '../data/mock.js';
 
 const SOON = {
-  vocabulary: 'Vocabulary lists from the marathon passages are on the way.',
   mock: 'Full mock tests in CDI format are on the way.',
 };
 
@@ -50,6 +50,8 @@ export function HomeView({ onChanged, tab: routeTab, results = [], practice = []
         <ElsView me={me} admin={admin} unlocked={unlocked} />
       ) : tab === 'reading-practice' ? (
         <PracticeLibrary key="reading" skill="reading" results={practice} attempts={me?.attempts} signedIn={signedIn} unlocked={practiceOpen} />
+      ) : tab === 'vocabulary' ? (
+        <VocabularyView me={me} admin={admin} signedIn={unlocked} onChanged={onChanged} />
       ) : tab === 'listening-practice' ? (
         <PracticeLibrary key="listening" skill="listening" results={practice} attempts={me?.attempts} signedIn={signedIn} unlocked={practiceOpen} />
       ) : tab === 'listening-marathon' ? (

@@ -8,6 +8,7 @@ import { Avatar } from './Avatar.jsx';
 import { ActivityChart } from './ActivityChart.jsx';
 import { MarathonGrid } from './MarathonGrid.jsx';
 import { PracticeSummary } from './PracticeSummary.jsx';
+import { VocabSummary } from './VocabSummary.jsx';
 import { AttemptsList } from './AttemptsList.jsx';
 import { PhotoViewer } from './ElsView.jsx';
 import { EmptyState, ErrorNote, Skeleton, useLoad } from './admin/ui.jsx';
@@ -36,7 +37,7 @@ export function PublicProfile({ id, myId }) {
   if (error) return (<>{back}<ErrorNote error={error} onRetry={error.status === 404 ? undefined : reload} /></>);
   if (loading && !data) return (<>{back}<Skeleton rows={4} /></>);
 
-  const { student: s, summary: sum, badges, rank, of, marathon, practice, attempts, recent, activity } = data;
+  const { student: s, summary: sum, badges, rank, of, marathon, practice, attempts, recent, activity, vocab } = data;
   const isMe = s.id === myId;
 
   return (
@@ -88,6 +89,7 @@ export function PublicProfile({ id, myId }) {
           <MarathonGrid skill="reading" label="Reading Marathon" tone="lilac" results={marathon} />
           <MarathonGrid skill="listening" label="Listening Marathon" tone="rose" results={marathon} />
           <PracticeSummary skill="reading" results={practice} attempts={attempts} title="Real exam passages" />
+          {vocab?.length > 0 && <VocabSummary vocab={vocab} />}
           {practice.some((r) => r.skill === 'listening') && (
             <PracticeSummary skill="listening" results={practice} attempts={attempts} title="Listening tests" />
           )}

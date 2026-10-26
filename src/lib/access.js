@@ -14,6 +14,8 @@ const FREE = new Set([
   'els/day-01.pdf',
   ...FREE_PRACTICE_IDS.map((id) => `practice/reading/${id}.html`),
   'practice/listening/test-1.html',
+  'vocab/essential-words-5/unit-01.json',
+  'vocab/collocations/unit-01.json',
 ]);
 
 export const isFreePath = (path) => FREE.has(path);

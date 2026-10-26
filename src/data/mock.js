@@ -70,6 +70,17 @@ export const popularCourses = [
     tab: 'listening-practice',
   },
   {
+    id: 'vocabulary',
+    tone: 'mint',
+    category: 'Vocabulary',
+    skill: 'reading',
+    icon: VocabularyIcon,
+    badge: 'New',
+    title: 'Vocabulary: 4000 Essential Words & Collocations in Use',
+    meta: 'Flashcards · 600 words · 2,371 collocations',
+    tab: 'vocabulary',
+  },
+  {
     id: 'els',
     tone: 'lilac',
     category: 'ELS Reading',

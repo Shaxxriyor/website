@@ -106,6 +106,16 @@ const SCHEMA = [
   `ALTER TABLE students ADD COLUMN IF NOT EXISTS self_registered BOOLEAN NOT NULL DEFAULT false`,
   `ALTER TABLE students ADD COLUMN IF NOT EXISTS practice_access BOOLEAN NOT NULL DEFAULT true`,
   `CREATE UNIQUE INDEX IF NOT EXISTS students_login_email ON students (lower(email)) WHERE password_hash IS NOT NULL`,
+  // Vocabulary flashcards: which cards of each unit a student marked "I know it".
+  `CREATE TABLE IF NOT EXISTS vocab_progress (
+    student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    book TEXT NOT NULL,
+    unit INTEGER NOT NULL,
+    known INTEGER[] NOT NULL DEFAULT '{}',
+    total INTEGER NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (student_id, book, unit)
+  )`,
   // Every scored try is kept: 1st attempt, 2nd attempt, … (a record keeps the day's best).
   `CREATE TABLE IF NOT EXISTS attempts (
     id SERIAL PRIMARY KEY,

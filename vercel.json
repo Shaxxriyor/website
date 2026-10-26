@@ -6,7 +6,8 @@
   "rewrites": [
     { "source": "/marathon/:path*", "destination": "/api/content?path=marathon/:path*" },
     { "source": "/practice/:path*", "destination": "/api/content?path=practice/:path*" },
-    { "source": "/els/:path*", "destination": "/api/content?path=els/:path*" }
+    { "source": "/els/:path*", "destination": "/api/content?path=els/:path*" },
+    { "source": "/vocab/:path*", "destination": "/api/content?path=vocab/:path*" }
   ],
   "headers": [
     {

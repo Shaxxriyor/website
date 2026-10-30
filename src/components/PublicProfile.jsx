@@ -1,8 +1,6 @@
-import { useState } from 'react';
-import { api, photoUrl } from '../lib/api.js';
+import { api } from '../lib/api.js';
 import { CATEGORIES, categoryOf, formatDate, hours, levelName, practiceTitle, relativeDay } from '../lib/format.js';
 import { formatBand } from '../lib/band.js';
-import { els } from '../data/els.js';
 import { ArrowLeft } from './Icons.jsx';
 import { Avatar } from './Avatar.jsx';
 import { ActivityChart } from './ActivityChart.jsx';
@@ -10,14 +8,12 @@ import { MarathonGrid } from './MarathonGrid.jsx';
 import { PracticeSummary } from './PracticeSummary.jsx';
 import { VocabSummary } from './VocabSummary.jsx';
 import { AttemptsList } from './AttemptsList.jsx';
-import { PhotoViewer } from './ElsView.jsx';
 import { EmptyState, ErrorNote, Skeleton, useLoad } from './admin/ui.jsx';
 import { TrophyIcon } from './Icons.jsx';
 
-/** A classmate's page, opened from the Rating: what they did, their scores and translations. */
+/** A classmate's page, opened from the Rating: what they did and their scores. */
 export function PublicProfile({ id, myId }) {
   const { data, error, loading, reload } = useLoad(() => api.studentPage(id), [id]);
-  const [viewing, setViewing] = useState(null);
 
   const back = (
     <a className="back-link" href="#/rating">
@@ -72,11 +68,10 @@ export function PublicProfile({ id, myId }) {
       </section>
 
       {sum && (
-        <div className="stat-grid stat-grid--5">
+        <div className="stat-grid">
           <Stat tone="rose" label="Studied" value={hours(sum.minutes)} />
           <Stat tone="lilac" label="Marathon days" value={sum.marathon_days} />
           <Stat tone="peach" label="Practice tests" value={sum.practice_done} />
-          <Stat tone="mint" label="Translations" value={sum.els_days} />
           <Stat tone="sand" label="Average band" value={formatBand(sum.average_band)} />
         </div>
       )}
@@ -97,31 +92,6 @@ export function PublicProfile({ id, myId }) {
         </div>
       </section>
 
-      {data.els.length > 0 && (
-        <section aria-labelledby="pp-els">
-          <div className="section-head">
-            <h2 id="pp-els" className="label">ELS Reading translations</h2>
-          </div>
-          <div className="psum card-white rating__els">
-            {data.els.map((e) => (
-              <div key={e.day}>
-                <p className="rating__els-day">
-                  Day {e.day} · {els.days[e.day - 1]?.title}
-                </p>
-                <div className="els-photos">
-                  {e.photos.map((pid) => (
-                    <figure key={pid} className="els-photo">
-                      <button type="button" onClick={() => setViewing(pid)} aria-label="Open photo">
-                        <img src={photoUrl(pid)} alt={`${s.full_name}'s Day ${e.day} translation`} loading="lazy" />
-                      </button>
-                    </figure>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       <ActivityChart data={activity} series={CATEGORIES} rangeLabel="Last 7 months" title="Study activity" />
 
@@ -166,7 +136,6 @@ export function PublicProfile({ id, myId }) {
         )}
       </section>
 
-      {viewing && <PhotoViewer id={viewing} onClose={() => setViewing(null)} />}
     </>
   );
 }

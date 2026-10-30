@@ -4,7 +4,6 @@ import { CourseCard } from './CourseCard.jsx';
 import { FeaturedCourse } from './FeaturedCourse.jsx';
 import { MarathonView } from './MarathonView.jsx';
 import { PracticeLibrary } from './PracticeLibrary.jsx';
-import { ElsView } from './ElsView.jsx';
 import { VocabularyView } from './VocabularyView.jsx';
 import { PrizeBanner } from './PrizeBanner.jsx';
 import { ReadingMarathonIcon, ListeningMarathonIcon, LogoMark, Wordmark, SparkleIcon } from './Icons.jsx';
@@ -20,7 +19,7 @@ const SOON = {
 export function HomeView({ onChanged, tab: routeTab, results = [], practice = [], signedIn = false, checking = false, me = null, admin = null }) {
   const tab = categories.some((c) => c.id === routeTab) ? routeTab : 'all';
   const setTab = (id) => navigate(id === 'all' ? '/' : `/${id}`);
-  // Marathons and ELS are free with an account; visitors get Day 1 of each section.
+  // Registered students open the marathons; visitors see them locked.
   // While the session is still being checked nothing is shown as locked (the server enforces it anyway).
   const unlocked = signedIn || Boolean(admin) || checking;
   // Reading Practice: only for students the teacher has opened it for.
@@ -46,9 +45,7 @@ export function HomeView({ onChanged, tab: routeTab, results = [], practice = []
 
       <CategoryTabs items={categories} active={tab} onChange={setTab} />
 
-      {tab === 'els' ? (
-        <ElsView me={me} admin={admin} unlocked={unlocked} />
-      ) : tab === 'reading-practice' ? (
+      {tab === 'reading-practice' ? (
         <PracticeLibrary key="reading" skill="reading" results={practice} attempts={me?.attempts} signedIn={signedIn} unlocked={practiceOpen} />
       ) : tab === 'vocabulary' ? (
         <VocabularyView me={me} admin={admin} signedIn={unlocked} onChanged={onChanged} />
@@ -57,7 +54,7 @@ export function HomeView({ onChanged, tab: routeTab, results = [], practice = []
       ) : tab === 'listening-marathon' ? (
         <MarathonView marathon={listeningMarathon} icon={ListeningMarathonIcon} skill="listening" results={results} attempts={me?.attempts} signedIn={unlocked} />
       ) : tab === 'reading-marathon' ? (
-        <MarathonView marathon={readingMarathon} icon={ReadingMarathonIcon} skill="reading" results={results} attempts={me?.attempts} signedIn={unlocked} me={me} admin={admin} onChanged={onChanged} />
+        <MarathonView marathon={readingMarathon} icon={ReadingMarathonIcon} skill="reading" results={results} attempts={me?.attempts} signedIn={unlocked} />
       ) : SOON[tab] ? (
         <div className="empty card-white">
           <span className="empty__icon">

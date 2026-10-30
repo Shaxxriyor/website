@@ -246,7 +246,7 @@ function DeleteAllSheet({ count, onClose, onDone }) {
       }
     >
       <p className="sheet__message">
-        This removes every student and everything they did: marathon days, practice scores, attempts, ELS photos,
+        This removes every student and everything they did: marathon days, practice scores, attempts,
         profile photos and vocabulary progress. Their codes stop working. This can’t be undone.
       </p>
       <label className="field">

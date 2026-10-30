@@ -49,7 +49,7 @@ export function RatingView({ signedIn, version }) {
         <ol className="rating">
           {data.students.map((s, i) => {
             const isMe = s.id === data.me;
-            const idle = s.records === 0 && s.els_days === 0;
+            const idle = s.records === 0;
             return (
               <li key={s.id} className={`rating__item card-white ${isMe ? 'is-me' : ''} ${idle ? 'is-idle' : ''}`}>
                 <a className="rating__row" href={`#/u/${s.id}`} aria-label={`Open ${s.full_name}'s page`}>
@@ -77,10 +77,6 @@ export function RatingView({ signedIn, version }) {
                     <span className="rating__stat">
                       <b className="num">{s.practice_done}</b>
                       <small>{s.practice_done === 1 ? 'test' : 'tests'}</small>
-                    </span>
-                    <span className="rating__stat">
-                      <b className="num">{s.els_days}</b>
-                      <small>{s.els_days === 1 ? 'translation' : 'translations'}</small>
                     </span>
                     <span className="rating__stat">
                       <b className="num">{formatBand(s.average_band)}</b>

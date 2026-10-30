@@ -219,7 +219,7 @@ function SignInPanel({ onSignedIn, onAdminSignedIn }) {
 
         <ul className="student-signin__points">
           <li>
-            <CheckIcon size={14} /> Marathons, ELS Reading and Vocabulary
+            <CheckIcon size={14} /> Marathons, practice tests and Vocabulary
           </li>
           <li>
             <CheckIcon size={14} /> Scores and time saved automatically

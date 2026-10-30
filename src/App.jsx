@@ -74,7 +74,7 @@ export default function App() {
   // images for students and visitors (the teacher keeps the normal menu).
   useEffect(() => {
     if (admin) return;
-    const block = (e) => e.target.closest?.('img, .els-book, .photo-viewer') && e.preventDefault();
+    const block = (e) => e.target.closest?.('img') && e.preventDefault();
     document.addEventListener('contextmenu', block);
     return () => document.removeEventListener('contextmenu', block);
   }, [admin]);

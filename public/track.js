@@ -218,11 +218,7 @@
       extra.total = r.total;
       send(extra).then(function (ok) {
         if (!ok) return;
-        if (kind === 'marathon' && skill === 'reading') {
-          toast('Score saved · ' + key + ' — now do the Day ' + day + ' ELS exercise to complete the day');
-        } else {
-          toast('Score saved · ' + key);
-        }
+        toast('Score saved · ' + key);
       });
     }, 400);
   }

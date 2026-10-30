@@ -22,8 +22,6 @@ const api = {
   me: await import('../api/me.js'),
   track: await import('../api/track.js'),
   leaderboard: await import('../api/leaderboard.js'),
-  els: await import('../api/els.js'),
-  photo: await import('../api/photo.js'),
   avatar: await import('../api/avatar.js'),
   content: await import('../api/content.js'),
 };
@@ -123,12 +121,7 @@ assert.equal(r.status, 422);
 r = await call('students', { query: `?id=${malika}` });
 assert.equal(r.status, 200);
 assert.equal(r.data.stats.lesson_count, 4);
-assert.equal(r.data.stats.marathon_days, 1, 'reading day 7 needs its ELS translation too; listening day 3 counts');
-{
-  const d7 = r.data.marathon.find((m) => m.skill === 'reading' && m.day === 7);
-  assert.equal(d7.tested, true);
-  assert.equal(d7.complete, false, 'test only: not accepted');
-}
+assert.equal(r.data.stats.marathon_days, 2, 'reading day 7 and listening day 3');
 assert.equal(r.data.stats.exercise_count, 1);
 assert.equal(r.data.stats.total_minutes, 195);
 // (11/20 + 15/20 + 6/8) / 3 ≈ 68%
@@ -250,7 +243,7 @@ assert.deepEqual(
   [['p1-rubber', null], ['p2-coral-reefs', 11]],
 );
 assert.equal(r.data.stats.exercise_count, 2);
-assert.equal(r.data.stats.marathon_days, 0, 'reading day 4 tested but no ELS yet');
+assert.equal(r.data.stats.marathon_days, 1, 'reading day 4 counts once it is done');
 // bands: 11/14 → 31/40 → 7.0 (reading); 17/20 → 34/40 → 7.5; average 7.25 → 7.5 (IELTS rounding)
 assert.equal(r.data.practice.find((x) => x.item === 'p2-coral-reefs').band, 7);
 assert.equal(r.data.marathon.find((x) => x.day === 4).band, 7.5);
@@ -272,7 +265,7 @@ assert.equal(r.status, 200);
 const kRow = r.data.students.find((x) => x.full_name === 'Kamola Nazarova');
 assert.equal(r.data.me, kRow.id);
 assert.equal(kRow.practice_done, 2);
-assert.equal(kRow.marathon_reading, 0);
+assert.equal(kRow.marathon_reading, 1);
 assert.ok(kRow.badges.some((b) => b.id === 'first'));
 assert.ok(kRow.done.length >= 3);
 assert.equal(kRow.phone, undefined, 'no contact details in the rating');
@@ -284,42 +277,13 @@ r = await call('leaderboard', { query: '?period=week' });
 assert.equal(r.status, 200, 'teacher can see the rating');
 assert.equal(r.data.period, 'week');
 
-// ELS translations: upload, shared viewing, own-only delete
+// Reading Marathon day = the reading test (no ELS step any more): day 4 was tested earlier
 const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
-r = await asStudent('els', { method: 'POST', body: { action: 'upload', day: 3, image: PNG } });
-assert.equal(r.status, 201);
-const photoId = r.data.id;
-r = await asStudent('els', { method: 'POST', body: { action: 'upload', day: 21, image: PNG } });
-assert.equal(r.status, 422, 'only days 1–20');
-r = await asStudent('els', { method: 'POST', body: { action: 'upload', day: 3, image: 'data:text/html;base64,PGgxPg==' } });
-assert.equal(r.status, 422, 'images only');
-r = await asStudent('els', { query: '?day=3' });
-r = await api.els.GET(new Request('https://example.test/api/els?day=3', { headers: { cookie: studentCookie } }));
-const dayData = await r.json();
-assert.equal(dayData.students[0].full_name, 'Kamola Nazarova');
-assert.equal(dayData.students[0].photos[0].id, photoId);
-r = await api.photo.GET(new Request(`https://example.test/api/photo?id=${photoId}`, { headers: { cookie: studentCookie } }));
-assert.equal(r.status, 200);
-assert.equal(r.headers.get('content-type'), 'image/png');
-assert.equal((await r.arrayBuffer()).byteLength, 70, 'stored bytes come back unchanged');
-r = await api.photo.GET(new Request(`https://example.test/api/photo?id=${photoId}`));
-assert.equal(r.status, 401, 'photos need sign-in');
-r = await asStudent('leaderboard');
-assert.equal(r.data.students.find((x) => x.full_name === 'Kamola Nazarova').els_days, 1);
-assert.deepEqual(r.data.students.find((x) => x.full_name === 'Kamola Nazarova').els, [{ day: 3, photos: [photoId] }]);
-r = await call('els', { method: 'POST', body: { action: 'upload', day: 3, image: PNG } });
-assert.equal(r.status, 403, 'teacher does not upload as a student');
-r = await asStudent('els', { method: 'POST', body: { action: 'delete', id: photoId } });
-// ELS day 4 + reading test day 4 (scored earlier) = Reading Marathon day 4 complete
-r = await asStudent('els', { method: 'POST', body: { action: 'upload', day: 4, image: PNG } });
-assert.equal(r.status, 201);
 r = await asStudent('me');
 assert.equal(r.data.marathon.find((m) => m.skill === 'reading' && m.day === 4).complete, true);
-assert.equal(r.data.stats.marathon_days, 1);
-assert.ok(r.data.els.some((e) => e.day === 4));
+assert.equal(r.data.els, undefined, 'no ELS data any more');
 r = await asStudent('leaderboard');
 assert.equal(r.data.students.find((x) => x.full_name === 'Kamola Nazarova').marathon_reading, 1);
-assert.equal(r.status, 200, 'student deletes own photo');
 
 // profile photo: student sets it, classmates see it, teacher can remove it
 r = await asStudent('me', { method: 'POST', body: { action: 'avatar', image: PNG } });
@@ -361,19 +325,17 @@ assert.ok(r.data.attempts.some((g) => g.key === 'p2-coral-reefs' && g.tries.leng
 // course materials: day 1 free, the rest for signed-in students / teacher
 const get = (path, cookieHeader) =>
   api.content.GET(new Request(`https://example.test/api/content?path=${encodeURIComponent(path)}`, { headers: cookieHeader ? { cookie: cookieHeader } : {} }));
-r = await get('els/day-02-1.webp');
-assert.equal(r.status, 401, 'ELS day 2 locked for visitors');
 r = await get('els/day-01-1.webp');
-assert.equal(r.status, 200, 'ELS day 1 is free');
+assert.equal(r.status, 404, 'ELS Reading is gone');
 r = await get('practice/reading/p1-a-brief-history-of-ballet.html');
 assert.equal(r.status, 200, 'first Passage 1 practice is free');
 r = await get('practice/reading/p1-rubber.html');
 assert.equal(r.status, 401);
 assert.match(await r.text(), /For READING_CDI students/);
-r = await get('els/day-05.pdf', studentCookie);
+r = await get('vocab/collocations/unit-05.json', studentCookie);
 assert.equal(r.status, 200, 'signed-in student opens everything');
 assert.equal(r.headers.get('cache-control'), 'private, no-store');
-r = await get('els/day-07.pdf', cookie);
+r = await get('practice/listening/test-30.html', cookie);
 assert.equal(r.status, 200, 'teacher too');
 r = await get('marathon/reading/day-01.html');
 assert.equal(r.status, 401, 'marathons are for registered students only (no free day)');
@@ -400,8 +362,8 @@ assert.equal(r.status, 403, 'Reading Practice locked until the teacher opens it'
 assert.match(await r.text(), /Reading Practice is for course students/);
 r = await get('practice/reading/p1-a-brief-history-of-ballet.html', azizCookie);
 assert.equal(r.status, 200, 'free practice passage still open');
-r = await get('els/day-02-1.webp', azizCookie);
-assert.equal(r.status, 200, 'ELS open to every registered student');
+r = await get('marathon/listening/day-05.html', azizCookie);
+assert.equal(r.status, 200, 'marathons open to every registered student');
 r = await get('practice/reading/p1-rubber.html', studentCookie);
 assert.equal(r.status, 200, 'students with practice access open it');
 r = await call('students', { method: 'POST', body: { action: 'practice-access', id: aziz.id, value: true } });
@@ -424,7 +386,7 @@ assert.equal(r.status, 200, 'shared engine is public');
 assert.match(r.headers.get('cache-control'), /immutable/);
 r = await get('practice/listening/_shared/../../../package.json');
 assert.equal(r.status, 404);
-r = await get('els/evil.js', studentCookie);
+r = await get('vocab/evil.js', studentCookie);
 assert.equal(r.status, 404, 'scripts only from the shared engine folder');
 r = await asStudent('track', { method: 'POST', body: { kind: 'exercise', skill: 'listening', item: 'test-9', topic: 'Listening Test 9', seconds: 120, correct: 31, total: 40, sitting: 'listen0001' } });
 assert.equal(r.status, 200, 'listening test score saved');

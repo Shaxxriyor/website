@@ -6,7 +6,6 @@ import {
   ListeningMarathonIcon,
   VocabularyIcon,
   MockTestIcon,
-  BookIcon,
 } from '../components/Icons.jsx';
 import { LISTENING_QUESTIONS, READING_QUESTIONS } from '../lib/marathons.js';
 
@@ -19,7 +18,6 @@ export const categories = [
   { id: 'listening-practice', label: 'Listening Practice', icon: ListeningIcon },
   { id: 'reading-marathon', label: 'Reading Marathon', icon: ReadingMarathonIcon },
   { id: 'listening-marathon', label: 'Listening Marathon', icon: ListeningMarathonIcon },
-  { id: 'els', label: 'ELS Reading', icon: BookIcon },
   { id: 'vocabulary', label: 'Vocabulary', icon: VocabularyIcon },
   { id: 'mock', label: 'Mock Tests', icon: MockTestIcon },
 ];
@@ -34,7 +32,7 @@ export const popularCourses = [
     icon: ReadingMarathonIcon,
     badge: 'New',
     title: 'Reading Marathon: 20 Days, 20 Questions a Day',
-    meta: 'Each day: 20-question passage + ELS exercise & translation',
+    meta: '20 passages in CDI format · Uzbek translation · 20 questions each',
     tab: 'reading-marathon',
   },
   {
@@ -81,17 +79,6 @@ export const popularCourses = [
     meta: 'Flashcards · 600 words · 2,352 collocations · Uzbek translations',
     tab: 'vocabulary',
   },
-  {
-    id: 'els',
-    tone: 'lilac',
-    category: 'ELS Reading',
-    skill: 'reading',
-    icon: BookIcon,
-    badge: 'New',
-    title: 'ELS Reading: 20 Days of Reading & Translation',
-    meta: 'Read · do the exercises · upload your notebook translation',
-    tab: 'els',
-  },
 ];
 
 // Listening Marathon: 20 days, 4 parts each.
@@ -105,10 +92,10 @@ export const listeningMarathon = {
 };
 
 // Reading Marathon: 20 passages with 20 questions each, from Passage 1 (Days 1–7)
-// to Passage 3 (Days 15–20). Each day also has its ELS Reading exercise.
+// to Passage 3 (Days 15–20).
 export const readingMarathon = {
   title: 'Reading Marathon',
-  subtitle: 'Each day: a 20-question reading passage in CDI format + the ELS Reading exercise with your notebook translation',
+  subtitle: '20 days in CDI format · one passage a day with Uzbek translation · 20 questions',
   days: [
     [1, "A survivor's story", 1],
     [2, "Ahead of its Time", 1],

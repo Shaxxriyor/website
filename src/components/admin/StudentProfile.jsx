@@ -1,13 +1,11 @@
 import { useMemo, useState } from 'react';
-import { api, photoUrl } from '../../lib/api.js';
+import { api } from '../../lib/api.js';
 import { navigate } from '../../lib/router.js';
 import { formatCode, formatDate, hours, levelName, relativeDay, timeAgo } from '../../lib/format.js';
 import { MarathonGrid } from '../MarathonGrid.jsx';
 import { PracticeSummary } from '../PracticeSummary.jsx';
 import { AttemptsList } from '../AttemptsList.jsx';
 import { VocabSummary } from '../VocabSummary.jsx';
-import { PhotoViewer } from '../ElsView.jsx';
-import { els } from '../../data/els.js';
 import { ArrowLeft, CheckIcon, EditIcon, LessonIcon, MailIcon, PhoneIcon, PlusIcon, TrashIcon } from '../Icons.jsx';
 import { Avatar } from '../Avatar.jsx';
 import { ConfirmSheet, EmptyState, ErrorNote, Skeleton, StatusPill, useLoad } from './ui.jsx';
@@ -51,7 +49,7 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
     );
   }
 
-  const { student: s, stats, marathon, practice, lessons, els: elsDone, attempts, vocab } = data;
+  const { student: s, stats, marathon, practice, lessons, attempts, vocab } = data;
   const shown = showAll ? lessons : lessons.slice(0, RECENT);
 
   return (
@@ -140,7 +138,6 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
           <MarathonGrid skill="listening" label="Listening Marathon" tone="rose" results={marathon} />
           <PracticeSummary skill="reading" results={practice} attempts={attempts} />
           <PracticeSummary skill="listening" results={practice} attempts={attempts} />
-          <ElsSummary days={elsDone} />
           <VocabSummary vocab={vocab} />
           <AttemptsList groups={attempts} title="Attempts — marathons & real exam passages" />
         </div>
@@ -335,44 +332,5 @@ function AccessCard({ student, notify, onChanged }) {
         />
       )}
     </section>
-  );
-}
-
-/** ELS Reading: which days the student uploaded, with their translation photos. */
-function ElsSummary({ days = [] }) {
-  const [viewing, setViewing] = useState(null);
-  return (
-    <div className="psum card-white">
-      <div className="mgrid__head">
-        <span className="mgrid__label">ELS Reading translations</span>
-        <span className="mgrid__count num">
-          {days.length}
-          <small>/20</small>
-        </span>
-      </div>
-      {days.length === 0 ? (
-        <p className="muted-sm">No translations uploaded yet.</p>
-      ) : (
-        <div className="rating__els">
-          {days.map((e) => (
-            <div key={e.day}>
-              <p className="rating__els-day">
-                Day {e.day} · {els.days[e.day - 1]?.title}
-              </p>
-              <div className="els-photos">
-                {e.photos.map((id) => (
-                  <figure key={id} className="els-photo">
-                    <button type="button" onClick={() => setViewing(id)} aria-label="Open photo">
-                      <img src={photoUrl(id)} alt={`Day ${e.day} translation`} loading="lazy" />
-                    </button>
-                  </figure>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-      {viewing && <PhotoViewer id={viewing} onClose={() => setViewing(null)} />}
-    </div>
   );
 }

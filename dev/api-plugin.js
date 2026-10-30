@@ -15,7 +15,7 @@ export function devApi() {
       server.middlewares.use(async (req, res, next) => {
         const url = new URL(req.url, `http://${req.headers.host}`);
         // Course materials: same rewrite as vercel.json.
-        const content = url.pathname.match(/^\/((?:marathon|practice|els|vocab)\/.+)$/);
+        const content = url.pathname.match(/^\/((?:marathon|practice|vocab)\/.+)$/);
         if (content) {
           url.searchParams.set('path', decodeURIComponent(content[1]));
           url.pathname = '/api/content';

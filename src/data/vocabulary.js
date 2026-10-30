@@ -218,22 +218,22 @@ export const vocabularyBooks = [
       {
         "n": 10,
         "title": "Synonyms and confusable words 1",
-        "count": 39
+        "count": 38
       },
       {
         "n": 11,
         "title": "Synonyms and confusable words 2",
-        "count": 41
+        "count": 40
       },
       {
         "n": 12,
         "title": "Metaphor",
-        "count": 36
+        "count": 34
       },
       {
         "n": 13,
         "title": "Weather",
-        "count": 50
+        "count": 49
       },
       {
         "n": 14,
@@ -243,7 +243,7 @@ export const vocabularyBooks = [
       {
         "n": 15,
         "title": "Countryside",
-        "count": 41
+        "count": 40
       },
       {
         "n": 16,
@@ -258,12 +258,12 @@ export const vocabularyBooks = [
       {
         "n": 18,
         "title": "People: physical appearance",
-        "count": 32
+        "count": 31
       },
       {
         "n": 19,
         "title": "Families",
-        "count": 38
+        "count": 37
       },
       {
         "n": 20,
@@ -283,7 +283,7 @@ export const vocabularyBooks = [
       {
         "n": 23,
         "title": "Films and books",
-        "count": 60
+        "count": 58
       },
       {
         "n": 24,
@@ -298,7 +298,7 @@ export const vocabularyBooks = [
       {
         "n": 26,
         "title": "Health and illness",
-        "count": 60
+        "count": 59
       },
       {
         "n": 27,
@@ -313,7 +313,7 @@ export const vocabularyBooks = [
       {
         "n": 29,
         "title": "Presentations",
-        "count": 33
+        "count": 32
       },
       {
         "n": 30,
@@ -348,7 +348,7 @@ export const vocabularyBooks = [
       {
         "n": 36,
         "title": "News",
-        "count": 35
+        "count": 34
       },
       {
         "n": 37,
@@ -358,12 +358,12 @@ export const vocabularyBooks = [
       {
         "n": 38,
         "title": "War and peace",
-        "count": 36
+        "count": 35
       },
       {
         "n": 39,
         "title": "Global problem",
-        "count": 44
+        "count": 43
       },
       {
         "n": 40,
@@ -373,7 +373,7 @@ export const vocabularyBooks = [
       {
         "n": 41,
         "title": "Sound",
-        "count": 46
+        "count": 45
       },
       {
         "n": 42,
@@ -388,12 +388,12 @@ export const vocabularyBooks = [
       {
         "n": 44,
         "title": "Texture",
-        "count": 64
+        "count": 63
       },
       {
         "n": 45,
         "title": "Taste and smell",
-        "count": 29
+        "count": 28
       },
       {
         "n": 46,
@@ -468,7 +468,7 @@ export const vocabularyBooks = [
       {
         "n": 60,
         "title": "Praising and criticising",
-        "count": 49
+        "count": 48
       }
     ]
   }

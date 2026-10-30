@@ -77,7 +77,7 @@ export const popularCourses = [
     icon: VocabularyIcon,
     badge: 'New',
     title: 'Vocabulary: 4000 Essential Words & Collocations in Use',
-    meta: 'Flashcards · 600 words · 2,371 collocations',
+    meta: 'Flashcards · 600 words · 2,352 collocations · Uzbek translations',
     tab: 'vocabulary',
   },
   {

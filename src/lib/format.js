@@ -13,7 +13,7 @@ export const levelName = (id) => LEVELS.find((l) => l.id === id)?.name ?? id;
 import { readingMarathon } from '../data/mock.js';
 
 export const MARATHON_DAYS = 20;
-export const MARATHON_TOTAL = { reading: 13, listening: 20 };
+export { marathonTotal } from './marathons.js';
 
 // Practice categories in fixed order: colour follows the category everywhere
 // (chart, chips, rows). Keys match the API's `${kind}_${skill}`.
@@ -30,7 +30,7 @@ const readingTitles = Object.fromEntries(readingMarathon.days.map((d) => [d.day,
 /** Passage / section title for a marathon day, when we know it. */
 export function marathonTitle(skill, day) {
   if (skill === 'reading') return readingTitles[day] ?? null;
-  return 'Sections 2 & 3';
+  return 'Parts 1–4';
 }
 
 /** "Day 7 · The internal body clock" for marathon records, the exercise name otherwise. */

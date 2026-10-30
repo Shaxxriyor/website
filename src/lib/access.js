@@ -1,6 +1,6 @@
 import { readingPractice } from '../data/readingPractice.js';
 
-// What visitors (not signed in) may open: Day 1 of each section and the first
+// What visitors (not signed in) may open: Day 1 of ELS Reading, unit 1 of each vocabulary book, the first
 // passage of each Passage group. Students registered by the teacher: every marathon and ELS day;
 // Reading Practice only once the teacher opens it for the student. Shared by the server (api/content) and the UI.
 export const FREE_PRACTICE_IDS = [1, 2, 3].map((n) => readingPractice.find((p) => p.passage === n)?.id).filter(Boolean);

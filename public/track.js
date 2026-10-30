@@ -128,8 +128,9 @@
       var pt = (document.title || '').replace(/^\s*Passage\s*\d+\s*[:\-–—]\s*/i, '').trim();
       return 'Passage ' + passageNo + ' · ' + pt;
     }
-    var t = (document.title || '').split('—').slice(1).join('—').split('|')[0].trim();
-    return skill === 'reading' ? t : 'Sections 2 & 3';
+    // Reading Marathon: "Passage 1: Coral Reefs" → "Coral Reefs"; Listening Marathon: no title.
+    if (skill === 'reading') return (document.title || '').replace(/^\s*Passage\s*\d+\s*[:\-–—]\s*/i, '').split('|')[0].trim();
+    return 'Day ' + day;
   }
 
   function send(extra, keepalive) {
@@ -193,7 +194,8 @@
       var lmm = rs && rs.textContent.match(/(\d+)\s*\/\s*(\d+)/);
       if (lmm) return { correct: parseInt(lmm[1], 10), total: parseInt(lmm[2], 10) };
     } else {
-      var sc = document.querySelector('#result .sc');
+      // Listening Marathon results: "21 / 26".
+      var sc = document.querySelector('#r-score') || document.querySelector('#result .sc');
       var mm = sc && sc.textContent.match(/(\d+)\s*\/\s*(\d+)/);
       if (mm) return { correct: parseInt(mm[1], 10), total: parseInt(mm[2], 10) };
     }
@@ -213,13 +215,13 @@
       if (key === lastScore) return;
       lastScore = key;
       var extra = { correct: r.correct, sitting: sitting };
-      if (kind === 'exercise') extra.total = r.total;
+      extra.total = r.total;
       send(extra).then(function (ok) {
         if (!ok) return;
         if (kind === 'marathon' && skill === 'reading') {
-          toast('Score saved · ' + r.correct + '/13 — now do the Day ' + day + ' ELS exercise to complete the day');
+          toast('Score saved · ' + key + ' — now do the Day ' + day + ' ELS exercise to complete the day');
         } else {
-          toast('Score saved · ' + (kind === 'marathon' ? r.correct + '/20' : key));
+          toast('Score saved · ' + key);
         }
       });
     }, 400);
@@ -267,8 +269,8 @@
       if (!data || !data.student) return;
       who = data.student;
       toast('✓ Progress saving for ' + who.full_name.split(' ')[0]);
-      // Listening tests ask for the candidate's name first: fill it in.
-      var nameField = document.getElementById('entry-name');
+      // The tests and marathon days ask for the candidate's name first: fill it in.
+      var nameField = document.getElementById('entry-name') || document.getElementById('e-name') || document.getElementById('start-name');
       if (nameField && !nameField.value) {
         nameField.value = who.full_name;
         nameField.dispatchEvent(new Event('input', { bubbles: true }));

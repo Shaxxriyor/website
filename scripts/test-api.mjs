@@ -104,8 +104,8 @@ assert.equal(r.status, 422, 'scores are per student');
 r = await post({ student_ids: [malika], kind: 'marathon', skill: 'reading', duration_minutes: 60 });
 assert.equal(r.status, 422, 'marathon needs a day');
 assert.ok(r.data.fields.day);
-r = await post({ student_ids: [malika], kind: 'marathon', skill: 'reading', day: 7, duration_minutes: 60, correct: 14 });
-assert.equal(r.status, 422, 'reading marathon is out of 13');
+r = await post({ student_ids: [malika], kind: 'marathon', skill: 'reading', day: 7, duration_minutes: 60, correct: 21 });
+assert.equal(r.status, 422, 'reading marathon is out of 20');
 r = await post({ student_ids: [malika], kind: 'marathon', skill: 'reading', day: 7, duration_minutes: 60, correct: 11 });
 assert.equal(r.status, 201, 'better retry of the same day');
 r = await post({ student_ids: [malika], kind: 'marathon', skill: 'listening', day: 3, duration_minutes: 45, correct: 15, total: 20 });
@@ -131,11 +131,11 @@ assert.equal(r.data.stats.marathon_days, 1, 'reading day 7 needs its ELS transla
 }
 assert.equal(r.data.stats.exercise_count, 1);
 assert.equal(r.data.stats.total_minutes, 195);
-// (11/13 + 15/20 + 6/8) / 3 ≈ 78%
-assert.equal(r.data.stats.average_score, 78);
+// (11/20 + 15/20 + 6/8) / 3 ≈ 68%
+assert.equal(r.data.stats.average_score, 68);
 const day7 = r.data.marathon.find((m) => m.skill === 'reading' && m.day === 7);
 assert.equal(day7.correct, 11, 'grid shows the best attempt');
-assert.equal(day7.total, 13);
+assert.equal(day7.total, 20);
 assert.equal(r.data.activity.length, 7);
 assert.equal(r.data.activity.at(-1).marathon_reading, 2);
 assert.equal(r.data.activity.at(-1).marathon_listening, 0.75);
@@ -219,11 +219,13 @@ r = await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 
 assert.equal(r.status, 200);
 r = await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'reading', day: 4, seconds: 45, date: today } });
 assert.equal(r.data.active_seconds, 120);
-r = await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'reading', day: 4, seconds: 10, correct: 11, total: 40 } });
-assert.equal(r.data.correct, 11);
-assert.equal(r.data.total, 13, 'reading marathon totals are fixed at 13');
-r = await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'reading', day: 4, seconds: 10, correct: 14 } });
-assert.equal(r.status, 422, 'score cannot exceed 13');
+r = await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'reading', day: 4, seconds: 10, correct: 17, total: 40 } });
+assert.equal(r.data.correct, 17);
+assert.equal(r.data.total, 20, 'reading marathon days have 20 questions');
+r = await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'reading', day: 4, seconds: 10, correct: 21 } });
+assert.equal(r.status, 422, 'score cannot exceed 20');
+r = await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'listening', day: 2, seconds: 10, correct: 27 } });
+assert.equal(r.status, 422, 'listening days 1–12 have 26 questions');
 r = await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'listening', day: 2, seconds: 5000 } });
 assert.equal(r.status, 422, 'one heartbeat cannot claim more than 15 minutes');
 
@@ -249,7 +251,7 @@ assert.deepEqual(
 );
 assert.equal(r.data.stats.exercise_count, 2);
 assert.equal(r.data.stats.marathon_days, 0, 'reading day 4 tested but no ELS yet');
-// bands: 11/14 → 31/40 → 7.0 (reading); 11/13 → 34/40 → 7.5; average 7.25 → 7.5 (IELTS rounding)
+// bands: 11/14 → 31/40 → 7.0 (reading); 17/20 → 34/40 → 7.5; average 7.25 → 7.5 (IELTS rounding)
 assert.equal(r.data.practice.find((x) => x.item === 'p2-coral-reefs').band, 7);
 assert.equal(r.data.marathon.find((x) => x.day === 4).band, 7.5);
 assert.equal(r.data.stats.average_band, 7.5);
@@ -340,13 +342,13 @@ assert.equal(r.data.student.avatar_v, null, 'teacher removed it');
 const t1 = await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'reading', day: 9, seconds: 70, correct: 10 } });
 assert.equal(t1.status, 200);
 await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'reading', day: 9, seconds: 5, correct: 10 } }); // same score resent: ignored
-await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'reading', day: 9, seconds: 60, correct: 13 } });
+await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'reading', day: 9, seconds: 60, correct: 20 } });
 await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'reading', day: 9, seconds: 60, correct: 12 } });
 r = await asStudent('me');
 const d9 = r.data.attempts.find((g) => g.key === 'reading-9');
-assert.deepEqual(d9.tries.map((x) => x.correct), [10, 13, 12], 'attempts in order');
+assert.deepEqual(d9.tries.map((x) => x.correct), [10, 20, 12], 'attempts in order');
 assert.equal(d9.tries[1].band, 9);
-assert.equal(r.data.marathon.find((m) => m.skill === 'reading' && m.day === 9).correct, 13, 'grid keeps the best');
+assert.equal(r.data.marathon.find((m) => m.skill === 'reading' && m.day === 9).correct, 20, 'grid keeps the best');
 // sittings: same score twice in two page visits = two attempts; re-sent within one visit = one
 for (const sitting of ['visitaaaa1', 'visitaaaa1', 'visitbbbb2']) {
   await asStudent('track', { method: 'POST', body: { kind: 'marathon', skill: 'listening', day: 5, seconds: 60, correct: 15, sitting } });
@@ -373,8 +375,12 @@ assert.equal(r.status, 200, 'signed-in student opens everything');
 assert.equal(r.headers.get('cache-control'), 'private, no-store');
 r = await get('els/day-07.pdf', cookie);
 assert.equal(r.status, 200, 'teacher too');
-r = await get('marathon/reading/day-01.html', studentCookie);
-assert.equal(r.status, 404, 'the old marathons are gone');
+r = await get('marathon/reading/day-01.html');
+assert.equal(r.status, 401, 'marathons are for registered students only (no free day)');
+r = await get('marathon/listening/day-01.html');
+assert.equal(r.status, 401);
+r = await get('marathon/reading/day-20.html', studentCookie);
+assert.equal(r.status, 200, 'registered students open every marathon day');
 
 // sign-up is closed: the teacher registers students and gives them a code
 r = await asStudent('me', { method: 'POST', body: { action: 'signup', full_name: 'Aziz Karimov', email: 'aziz@example.com', password: 'longenough1' }, ip: '7.7.7.7' });
@@ -488,6 +494,12 @@ assert.equal(bandFor('listening', 15, 20), 7); // 30/40
 assert.equal(bandFor('reading', null, 13), null);
 assert.equal(averageBand([6, 6.5]), 6.5);
 assert.equal(averageBand([]), null);
+
+// listening days 13–20 have 32 questions (the page sends its own total)
+r = await call('lessons', { method: 'POST', body: { action: 'create', lesson_date: today, student_ids: [kamola], kind: 'marathon', skill: 'listening', day: 14, duration_minutes: 40, correct: 30 } });
+assert.equal(r.status, 201);
+r = await call('lessons', { query: `?student_id=${kamola}&kind=marathon&skill=listening` });
+assert.equal(r.data.lessons.find((l) => l.day === 14).total, 32, 'teacher records use the day total too');
 
 // delete all students: needs the typed confirmation, removes everyone and their records
 r = await call('students', { method: 'POST', body: { action: 'delete-all', confirm: 'yes' } });

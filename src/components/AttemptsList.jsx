@@ -14,7 +14,7 @@ const ordinal = (n) => ORD[n - 1] ?? `${n}th`;
 
 export function attemptTitle(g) {
   if (g.kind === 'marathon') {
-    const name = g.skill === 'reading' ? readingDay.get(g.day) : 'Sections 2 & 3';
+    const name = g.skill === 'reading' ? readingDay.get(g.day) : null;
     return `${g.skill === 'reading' ? 'Reading' : 'Listening'} Marathon · Day ${g.day}${name ? ` · ${name}` : ''}`;
   }
   return (g.item && practiceTitle.get(g.item)) || g.topic || 'Practice';

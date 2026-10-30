@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ReadingDaySheet } from './ReadingDaySheet.jsx';
 import { ArrowRight, CheckIcon, LockIcon } from './Icons.jsx';
-import { askToSignIn, isFreeDay } from '../lib/access.js';
+import { askToSignIn } from '../lib/access.js';
 
 const tones = ['rose', 'peach', 'lilac', 'mint'];
 
@@ -74,7 +74,8 @@ export function MarathonView({ marathon, icon: Icon, skill, results = [], attemp
           {days.map((d, i) => {
             const done = started.has(d.day);
             const result = saved.get(d.day);
-            const locked = !signedIn && !isFreeDay(d.day);
+            // Marathons are for the students the teacher registers (no free preview day).
+            const locked = !signedIn;
             const Link = locked || twoPart ? 'button' : 'a';
             const tested = result?.correct != null;
             const els = elsDone.has(d.day);
@@ -95,8 +96,6 @@ export function MarathonView({ marathon, icon: Icon, skill, results = [], attemp
                       <span className="pill pill--glass day-card__status">
                         <LockIcon size={12} /> Students
                       </span>
-                    ) : !signedIn && isFreeDay(d.day) ? (
-                      <span className="pill pill--glass day-card__status">Free</span>
                     ) : null}
                     {complete ? (
                       <span className="pill pill--glass day-card__status">

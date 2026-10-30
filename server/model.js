@@ -1,6 +1,7 @@
 import { randomInt } from 'node:crypto';
 import { ApiError } from './http.js';
 import { averageBand, bandFor } from '../src/lib/band.js';
+import { marathonTotal } from '../src/lib/marathons.js';
 import { query } from './db.js';
 
 export const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
@@ -10,7 +11,6 @@ export const KINDS = ['marathon', 'exercise'];
 // Activity-chart categories: one per kind × skill.
 export const CATEGORIES = KINDS.flatMap((k) => SKILLS.map((s) => `${k}_${s}`));
 const MARATHON_DAYS = 20;
-const MARATHON_TOTAL = { reading: 13, listening: 20 };
 
 // ---------- validation ----------
 
@@ -94,7 +94,7 @@ export function lessonInput(input) {
 
   const correct = optionalInt(input, 'correct', 0, 200);
   let total = optionalInt(input, 'total', 1, 200);
-  if (correct !== null && total === null) total = kind === 'marathon' ? MARATHON_TOTAL[skill] : null;
+  if (correct !== null && total === null) total = kind === 'marathon' ? marathonTotal(skill, day) : null;
   if (correct !== null && total === null) fail('total', 'Out of how many?');
   if (correct !== null && correct > total) fail('correct', 'More than the total');
   if (correct === null) total = null;
@@ -405,8 +405,10 @@ export async function track(studentId, input) {
   if (kind === 'marathon') {
     day = optionalInt(input, 'day', 1, MARATHON_DAYS);
     if (day === null) fail('day', 'Choose a day');
-    correct = optionalInt(input, 'correct', 0, MARATHON_TOTAL[skill]);
-    total = correct === null ? null : MARATHON_TOTAL[skill];
+    // The page's own total (the listening days have 26 or 32 questions).
+    const max = marathonTotal(skill, day) ?? 60;
+    correct = optionalInt(input, 'correct', 0, max);
+    total = correct === null ? null : max;
   } else {
     // A Reading Practice passage or Listening Practice test, identified by its page id.
     item = String(input.item ?? '');

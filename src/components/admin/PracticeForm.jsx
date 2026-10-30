@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { api } from '../../lib/api.js';
-import { MARATHON_DAYS, MARATHON_TOTAL, marathonTitle, todayISO } from '../../lib/format.js';
+import { MARATHON_DAYS, marathonTitle, marathonTotal, todayISO } from '../../lib/format.js';
 import { CheckIcon, SearchIcon } from '../Icons.jsx';
 import { Avatar } from '../Avatar.jsx';
 import { Field, Segmented, Sheet, Skeleton, useLoad } from './ui.jsx';
@@ -33,7 +33,7 @@ export function PracticeForm({ presetStudentId, onClose, onSaved }) {
 
   const isMarathon = form.kind === 'marathon';
   const many = selected.size > 1;
-  const fixedTotal = isMarathon ? MARATHON_TOTAL[form.skill] : null;
+  const fixedTotal = isMarathon ? marathonTotal(form.skill, Number(form.day) || 1) : null;
 
   const set = (key) => (e) => {
     const value = e?.target ? e.target.value : e;

@@ -473,17 +473,17 @@ function streak(dates) {
 
 function badges(s) {
   const out = [];
-  if (s.records >= 1) out.push({ id: 'first', label: 'First step', emoji: '🌱' });
-  if (s.marathon_reading >= 10 || s.marathon_listening >= 10) out.push({ id: 'half', label: 'Halfway marathoner', emoji: '🏃' });
-  if (s.marathon_reading >= 20 || s.marathon_listening >= 20) out.push({ id: 'finisher', label: 'Marathon finisher', emoji: '🏁' });
-  if (s.practice_done >= 10) out.push({ id: 'p10', label: '10 passages', emoji: '📚' });
-  if (s.practice_done >= 50) out.push({ id: 'p50', label: '50 passages', emoji: '🏆' });
-  if (s.minutes >= 300) out.push({ id: 'h5', label: '5-hour club', emoji: '⏱️' });
-  if (s.minutes >= 1200) out.push({ id: 'h20', label: '20-hour club', emoji: '🔥' });
-  if (s.best_streak >= 3) out.push({ id: 's3', label: '3-day streak', emoji: '✨' });
-  if (s.best_streak >= 7) out.push({ id: 's7', label: '7-day streak', emoji: '⚡' });
-  if (s.average_band >= 7) out.push({ id: 'b7', label: 'Band 7+', emoji: '⭐' });
-  if (s.top_band >= 9) out.push({ id: 'b9', label: 'Perfect 9', emoji: '💯' });
+  if (s.records >= 1) out.push({ id: 'first', label: 'First step' });
+  if (s.marathon_reading >= 10 || s.marathon_listening >= 10) out.push({ id: 'half', label: 'Halfway marathoner' });
+  if (s.marathon_reading >= 20 || s.marathon_listening >= 20) out.push({ id: 'finisher', label: 'Marathon finisher' });
+  if (s.practice_done >= 10) out.push({ id: 'p10', label: '10 passages' });
+  if (s.practice_done >= 50) out.push({ id: 'p50', label: '50 passages' });
+  if (s.minutes >= 300) out.push({ id: 'h5', label: '5-hour club' });
+  if (s.minutes >= 1200) out.push({ id: 'h20', label: '20-hour club' });
+  if (s.best_streak >= 3) out.push({ id: 's3', label: '3-day streak' });
+  if (s.best_streak >= 7) out.push({ id: 's7', label: '7-day streak' });
+  if (s.average_band >= 7) out.push({ id: 'b7', label: 'Band 7+' });
+  if (s.top_band >= 9) out.push({ id: 'b9', label: 'Perfect 9' });
   return out;
 }
 

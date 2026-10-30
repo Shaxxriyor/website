@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { readingPractice } from '../data/readingPractice.js';
 import { listeningPractice } from '../data/listeningPractice.js';
-import { BookIcon, CheckIcon, ListeningIcon, LockIcon, SearchIcon } from './Icons.jsx';
+import { BookIcon, ListeningIcon, LockIcon, SearchIcon, Tick } from './Icons.jsx';
 import { askToSignIn, isFreePractice } from '../lib/access.js';
 import { PracticeSummary } from './PracticeSummary.jsx';
 
@@ -93,7 +93,7 @@ export function PracticeLibrary({ skill = 'reading', results = [], attempts = []
       {gated && (
         <div className="practice-gate" key={gate} role="status">
           <p>
-            🔒 <b>{lib.title} is for course students.</b>{' '}
+            <LockIcon size={16} /> <b>{lib.title} is for course students.</b>{' '}
             {skill === 'reading' ? 'The first passage of each part is free.' : 'Test 1 is free.'} Ask your teacher to open
             all {all.length} {lib.unit} for your account.
           </p>
@@ -166,7 +166,7 @@ export function PracticeLibrary({ skill = 'reading', results = [], attempts = []
                     <span className="pill pill--glass plib__score">Free</span>
                   ) : r ? (
                     <span className="pill pill--glass plib__score">
-                      <CheckIcon size={12} /> {r.correct != null ? `${r.correct}/${r.total} · Band ${Number(r.band).toFixed(1)}` : 'Done'}
+                      <Tick size={12} /> {r.correct != null ? `${r.correct}/${r.total} · Band ${Number(r.band).toFixed(1)}` : 'Done'}
                     </span>
                   ) : (
                     <span className="plib__go" aria-hidden="true">

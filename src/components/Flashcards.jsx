@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { api } from '../lib/api.js';
 import { askToSignIn } from '../lib/access.js';
-import { XIcon } from './Icons.jsx';
+import { SpeakerIcon, XIcon } from './Icons.jsx';
 
 const shuffled = (list) => {
   const a = [...list];
@@ -304,7 +304,7 @@ export function Flashcards({ book, unit, saved = [], canSave = false, onSaved, o
                           <span className="fc-face__word">{card.w}</span>
                           {canSpeak && (
                             <button type="button" className="fc-say" onClick={() => speak(card.w)} aria-label="Listen">
-                              🔊
+                              <SpeakerIcon size={16} />
                             </button>
                           )}
                         </>
@@ -325,7 +325,7 @@ export function Flashcards({ book, unit, saved = [], canSave = false, onSaved, o
                           {card.w} <em>{card.pos}</em>
                           {canSpeak && (
                             <button type="button" className="fc-say" onClick={() => speak(card.w)} aria-label="Listen">
-                              🔊
+                              <SpeakerIcon size={16} />
                             </button>
                           )}
                         </span>
@@ -351,7 +351,7 @@ export function Flashcards({ book, unit, saved = [], canSave = false, onSaved, o
                           ))}
                           {canSpeak && (
                             <button type="button" className="fc-say" onClick={() => speak(card.c)} aria-label="Listen">
-                              🔊
+                              <SpeakerIcon size={16} />
                             </button>
                           )}
                         </span>

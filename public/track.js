@@ -266,7 +266,7 @@
     .then(function (data) {
       if (!data || !data.student) return;
       who = data.student;
-      toast('✓ Progress saving for ' + who.full_name.split(' ')[0]);
+      toast('Progress saving for ' + who.full_name.split(' ')[0]);
       // The tests and marathon days ask for the candidate's name first: fill it in.
       var nameField = document.getElementById('entry-name') || document.getElementById('e-name') || document.getElementById('start-name');
       if (nameField && !nameField.value) {

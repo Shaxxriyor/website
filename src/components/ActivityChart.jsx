@@ -7,11 +7,11 @@ const fmtH = (h) => (h > 0 && h < 1 ? `${Math.round(h * 60)} min` : `${h.toFixed
 function trendBadge(totals, i) {
   const prev = totals[i - 1];
   if (!totals[i]) return null;
-  if (!prev) return '✨ First month';
+  if (!prev) return 'First month';
   const change = Math.round(((totals[i] - prev) / prev) * 100);
-  if (change >= 10) return `👍 +${change}% vs last month`;
+  if (change >= 10) return `+${change}% vs last month`;
   if (change <= -10) return `${change}% vs last month`;
-  return '👌 Steady';
+  return 'Same as last month';
 }
 
 /**

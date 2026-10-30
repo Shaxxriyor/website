@@ -34,11 +34,14 @@ export function HomeView({ onChanged, tab: routeTab, results = [], practice = []
         <span className="brand__tag">IELTS Reading & Listening</span>
       </a>
 
-      <h1 className="hero-title">
-        Prepare with
-        <br />
-        the best
-      </h1>
+      <div className="hero">
+        <h1 className="hero-title">
+          Prepare with
+          <br />
+          the best
+        </h1>
+        <p className="hero-sub">IELTS Reading and Listening in CDI format: daily marathons, real exam tests and vocabulary, with every score saved for your teacher</p>
+      </div>
 
       <CategoryTabs items={categories} active={tab} onChange={setTab} />
 

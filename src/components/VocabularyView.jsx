@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { vocabularyBooks } from '../data/vocabulary.js';
 import { askToSignIn } from '../lib/access.js';
-import { CheckIcon, LockIcon, VocabularyIcon } from './Icons.jsx';
+import { LockIcon, Tick, VocabularyIcon } from './Icons.jsx';
 import { Flashcards } from './Flashcards.jsx';
 
 const tones = ['mint', 'peach', 'lilac', 'rose'];
@@ -107,7 +107,7 @@ export function VocabularyView({ me = null, admin = null, signedIn = false, onCh
                     <span className="pill pill--glass day-card__status">Free</span>
                   ) : done ? (
                     <span className="pill pill--glass day-card__status">
-                      <CheckIcon size={12} /> All known
+                      <Tick size={12} /> All known
                     </span>
                   ) : null}
                 </span>

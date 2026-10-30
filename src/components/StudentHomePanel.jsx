@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, squareImage } from '../lib/api.js';
 import { CATEGORIES, categoryOf, hours, levelName, relativeDay, result } from '../lib/format.js';
-import { CameraIcon, CheckIcon, LogoMark, LogoutIcon } from './Icons.jsx';
+import { CameraIcon, CheckIcon, LockIcon, LogoMark, LogoutIcon } from './Icons.jsx';
 import { Avatar } from './Avatar.jsx';
 import { ActivityChart } from './ActivityChart.jsx';
 import { MarathonGrid } from './MarathonGrid.jsx';
@@ -157,7 +157,7 @@ function SignInPanel({ onSignedIn, onAdminSignedIn }) {
         <h2 className="profile__name">{m.title}</h2>
         {wanted && (
           <p key={pulse} className="signin-locked">
-            🔒 <b>{wanted.what}</b>{' '}
+            <LockIcon size={14} /> <b>{wanted.what}</b>{' '}
             {wanted.kind === 'practice'
               ? '— Reading & Listening Practice are for course students. Sign in, then ask your teacher to open them for your account.'
               : '— this is for READING_CDI students. Sign in with the code from your teacher.'}

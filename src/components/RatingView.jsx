@@ -11,7 +11,6 @@ const PERIODS = [
   { value: 'month', label: 'This month' },
   { value: 'all', label: 'All time' },
 ];
-const MEDALS = ['🥇', '🥈', '🥉'];
 /** Shared rating: every active student's study time, progress and badges. */
 export function RatingView({ signedIn, version }) {
   const [period, setPeriod] = useState('month');
@@ -47,7 +46,7 @@ export function RatingView({ signedIn, version }) {
             return (
               <li key={s.id} className={`rating__item card-white ${isMe ? 'is-me' : ''} ${idle ? 'is-idle' : ''}`}>
                 <a className="rating__row" href={`#/u/${s.id}`} aria-label={`Open ${s.full_name}'s page`}>
-                  <span className="rating__rank num">{!idle && i < 3 ? MEDALS[i] : i + 1}</span>
+                  <span className={`rating__rank num ${!idle && i < 3 ? 'is-top' : ''}`}>{i + 1}</span>
                   <Avatar name={s.full_name} size={38} studentId={s.id} v={s.avatar_v} />
                   <span className="rating__who">
                     <strong>
@@ -85,7 +84,7 @@ export function RatingView({ signedIn, version }) {
                   <div className="rating__badges">
                     {s.badges.map((b) => (
                       <span key={b.id} className="rating__badge" title={b.label}>
-                        {b.emoji} {b.label}
+                        {b.label}
                       </span>
                     ))}
                   </div>

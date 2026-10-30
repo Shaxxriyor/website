@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ArrowRight, CheckIcon, LockIcon } from './Icons.jsx';
+import { ArrowRight, LockIcon, Tick } from './Icons.jsx';
 import { askToSignIn } from '../lib/access.js';
 
 const tones = ['rose', 'peach', 'lilac', 'mint'];
@@ -85,7 +85,7 @@ export function MarathonView({ marathon, icon: Icon, skill, results = [], attemp
                       </span>
                     ) : done ? (
                       <span className="pill pill--glass day-card__status">
-                        <CheckIcon size={12} />{' '}
+                        <Tick size={12} />{' '}
                         {result?.correct != null
                           ? `${result.correct}/${result.total} · ${Number(result.band).toFixed(1)}`
                           : result

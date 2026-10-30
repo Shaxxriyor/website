@@ -47,7 +47,7 @@ export function PublicProfile({ id, myId }) {
             {isMe && <span className="rating__you">You</span>}
           </div>
           <div className="profile-hero__meta">
-            <span className="pill pill--glass">🏆 #{rank} of {of} · all time</span>
+            <span className="pill pill--glass">Rank {rank} of {of} · all time</span>
             {s.group_name && <span className="pill pill--glass">{s.group_name}</span>}
             {s.level && (
               <span className="pill pill--glass">
@@ -59,7 +59,7 @@ export function PublicProfile({ id, myId }) {
             <div className="rating__badges rating__badges--hero">
               {badges.map((b) => (
                 <span key={b.id} className="rating__badge">
-                  {b.emoji} {b.label}
+                  {b.label}
                 </span>
               ))}
             </div>

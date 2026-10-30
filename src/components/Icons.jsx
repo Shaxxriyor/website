@@ -164,6 +164,21 @@ export const DownloadIcon = make(
 
 export const CheckIcon = make(<path d="m5 12.5 4.5 4.5L19 7.5" />);
 
+/** The signature: the red tick box from the READING_CDI logo, for a finished day, a known card or a saved score. */
+export const Tick = ({ size = 14, label }) => (
+  <svg className="tick" width={size} height={size} viewBox="0 0 16 16" role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : true}>
+    <rect width="16" height="16" rx="3" fill="var(--accent)" />
+    <path d="m4.4 8.3 2.3 2.3 4.9-5.2" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+export const SpeakerIcon = make(
+  <>
+    <path d="M4.5 9.5h3l4-3.5v12l-4-3.5h-3Z" />
+    <path d="M15.5 9.2a4 4 0 0 1 0 5.6M18 7a7 7 0 0 1 0 10" />
+  </>
+);
+
 export const VocabularyIcon = make(
   <>
     <path d="M4 6.5 12 3l8 3.5-8 3.5Z" />

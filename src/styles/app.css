@@ -4165,7 +4165,7 @@ a.rating__row:hover .rating__chev {
 }
 .fc-face__uz {
   font-size: 19px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ink);
 }
 .fc-face__ru {
@@ -4197,7 +4197,7 @@ a.rating__row:hover .rating__chev {
   padding: 2px 6px;
   border-radius: 6px;
   font-size: 10.5px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.05em;
   color: #fff;
   background: #c41230;
@@ -4247,7 +4247,7 @@ a.rating__row:hover .rating__chev {
   padding: 6px 12px;
   border-radius: var(--r-pill);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   color: #fff;
   pointer-events: none;
 }
@@ -4342,38 +4342,38 @@ a.rating__row:hover .rating__chev {
 }
 
 /* ==========================================================================
-   Full screen + iOS-style motion
-   The site fills the whole window (no framed card), with soft spring motion:
-   pages and tabs slide in, lists cascade, buttons press down, toasts drop in
-   like the Dynamic Island, and the background blobs drift slowly.
-   Animations use fill-mode "backwards" so nothing keeps a transform after it
-   plays (a lingering transform would trap the fixed tab bar and sheets).
+   unslop pass (skill by Damir Sokolovsky, @heydamir, CC BY 4.0)
+   Direction — the computer-delivered test room and the answer sheet:
+   paper surfaces, graphite text, one accent (the red tick of the logo),
+   numbers set in mono, and the red tick box as the one signature detail.
    ========================================================================== */
-:root {
-  --ios: cubic-bezier(0.32, 0.72, 0, 1);
-  --ios-spring: cubic-bezier(0.2, 0.9, 0.25, 1.15);
-}
 
-/* ---------- Full screen ---------- */
+/* ---------- Full screen, plain paper ---------- */
 .stage {
   padding: 0;
+  background: var(--bg-mint);
+}
+.backdrop {
+  display: none;
 }
 .shell {
   max-width: none;
   height: 100vh;
   height: 100dvh;
   min-height: 600px;
-  padding: 18px 22px 18px 18px;
+  padding: 16px 24px 16px 16px;
   border-radius: 0;
-  background: rgba(251, 248, 244, 0.74);
+  background: var(--bg-mint);
   box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
   animation: none;
 }
 @media (min-width: 1600px) {
   .shell {
-    grid-template-columns: 84px minmax(0, 1fr) 360px;
+    grid-template-columns: 88px minmax(0, 1fr) 360px;
     gap: 40px;
-    padding: 22px 28px 22px 22px;
+    padding: 24px 32px 24px 24px;
   }
 }
 @media (max-width: 1080px) {
@@ -4382,269 +4382,518 @@ a.rating__row:hover .rating__chev {
     min-height: 100dvh;
   }
 }
-@media (max-width: 720px) {
-  .shell {
-    background: rgba(251, 248, 244, 0.8);
-  }
+/* The column fade looked like a blur on paper; content now simply ends. */
+.main,
+.panel {
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 
-/* ---------- Live background ---------- */
-.orb--1 {
-  animation: orb-a 26s ease-in-out infinite alternate;
+/* ---------- Colour: no glass, no glow, surfaces from one ramp ---------- */
+.shell *,
+.sheet-backdrop,
+.sheet,
+.fc-backdrop,
+.toast {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
-.orb--2 {
-  animation: orb-b 32s ease-in-out infinite alternate;
+.glass,
+.card-white,
+.plib__item,
+.btn--glass,
+.pill--glass,
+.search,
+.course-card__go,
+.chip-cat__icon,
+.tab__icon,
+.featured,
+.vbook,
+.vunit,
+.day-card,
+.course-card,
+.stat {
+  background: var(--panel);
+  box-shadow: var(--highlight);
 }
-.orb--3 {
-  animation: orb-c 29s ease-in-out infinite alternate;
+.panel.glass,
+.sidebar.glass {
+  background: var(--panel);
+  box-shadow: var(--highlight);
 }
-@keyframes orb-a {
-  to {
-    transform: translate(28vw, -18vh) scale(1.25);
-  }
+.course-card::after {
+  display: none;
 }
-@keyframes orb-b {
-  to {
-    transform: translate(-22vw, 30vh) scale(1.15);
-  }
+.day-card:hover,
+.course-card:hover,
+.vunit:hover,
+.vbook:hover,
+.plib__item:hover,
+.featured:hover,
+.btn:hover,
+.icon-btn:hover {
+  transform: none;
+  box-shadow: inset 0 0 0 1px rgba(31, 27, 22, 0.16);
 }
-@keyframes orb-c {
-  to {
-    transform: translate(-18vw, -26vh) scale(1.3);
-  }
+.course-card:hover,
+.day-card:hover,
+.vunit:hover,
+.plib__item:hover {
+  background: #fdfcfa;
 }
-
-/* Headline: a slow sheen moves across the letters. */
-.hero-title {
-  background: linear-gradient(100deg, var(--ink) 0%, var(--ink) 40%, #6b5fd3 50%, var(--ink) 60%, var(--ink) 100%);
-  background-size: 300% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: rise 0.8s 0.05s var(--ease) backwards, sheen 9s 1.2s ease-in-out infinite;
+.btn--dark,
+.tab.is-active,
+.marathon__icon,
+.sidebar__nav .nav-item.is-active .icon-btn,
+.fc-btn--know {
+  color: #fff;
+  background: var(--ink);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
-@keyframes sheen {
-  0% {
-    background-position: 100% 0;
-  }
-  45%,
-  100% {
-    background-position: 0% 0;
-  }
+.btn--dark:hover {
+  background: #2c2620;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
-
-/* "New" badges pulse gently now and then. */
-.course-card__pills .pill {
-  animation: twinkle 3.6s ease-in-out infinite;
+.tab.is-active .tab__icon {
+  background: #fff;
+  box-shadow: none;
 }
-.course-card:nth-child(even) .course-card__pills .pill {
-  animation-delay: 1.8s;
+.pill--dark {
+  background: var(--ink);
 }
-@keyframes twinkle {
-  0%,
-  70%,
-  100% {
-    transform: none;
-  }
-  80% {
-    transform: scale(1.08);
-  }
+.level {
+  background: var(--panel-solid);
 }
-
-/* Progress bars fill in, then a light shine passes over them. */
 .meter span,
-.skill-bars__track span {
-  position: relative;
-  overflow: hidden;
-  transform-origin: left;
-  animation: fill 1s 0.15s var(--ios) backwards;
+.vbook__progress .meter span,
+.vunit__foot .meter span {
+  background: var(--ink);
 }
-.meter span::after,
-.skill-bars__track span::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
-  transform: translateX(-100%);
-  animation: shine 3.6s 1.2s ease-in-out infinite;
+.meter {
+  background: var(--panel-solid);
 }
-@keyframes shine {
-  60%,
-  100% {
-    transform: translateX(100%);
-  }
+.input {
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(31, 27, 22, 0.12);
+}
+.input:focus {
+  box-shadow: inset 0 0 0 1px var(--ink), 0 0 0 3px rgba(31, 27, 22, 0.08);
+}
+.sheet,
+.fc {
+  background: var(--bg-mint);
+  box-shadow: 0 8px 24px rgba(31, 27, 22, 0.08), var(--highlight);
+}
+.sheet-backdrop,
+.fc-backdrop {
+  background: rgba(31, 27, 22, 0.32);
+}
+.toast {
+  background: var(--ink);
+  box-shadow: 0 8px 24px rgba(31, 27, 22, 0.16);
+}
+.fc-face,
+.fc-face--back {
+  background: #fff;
+  box-shadow: var(--highlight), 0 1px 2px rgba(31, 27, 22, 0.05);
+}
+.fc-btn--learn {
+  color: var(--ink);
+  background: var(--panel-solid);
+}
+.fc-face__ielts {
+  background: var(--panel-solid);
+}
+.fc-face__ielts span {
+  background: var(--accent);
+}
+.fc-face__coll .is-hit {
+  color: var(--accent-ink);
+}
+.practice-gate,
+.signin-locked {
+  background: var(--panel-solid);
+}
+.practice-gate svg,
+.signin-locked svg {
+  vertical-align: -2px;
 }
 
-/* ---------- Page and tab transitions ---------- */
-.main {
-  animation: page-in 0.55s var(--ios) backwards;
+/* Answer sheets: finished days filled in graphite, the strong ones in the accent. */
+.mgrid__day {
+  border-radius: 6px;
+  background: var(--panel-solid);
 }
-.tab-pane {
+.mgrid__day.is-done {
+  color: #fff;
+  background: var(--ink);
+  box-shadow: none;
+}
+.mgrid__day.is-strong {
+  background: var(--accent);
+}
+
+/* ---------- Type ---------- */
+.hero {
   display: flex;
   flex-direction: column;
-  gap: 28px;
-  min-width: 0;
-  animation: page-in 0.5s var(--ios) backwards;
+  gap: 16px;
 }
-.tab-pane > * {
-  flex-shrink: 0;
+.hero-title {
+  font-weight: 400;
+  color: var(--ink);
 }
-@keyframes page-in {
-  from {
-    opacity: 0;
-    transform: translateY(14px) scale(0.985);
-  }
+.hero-sub {
+  max-width: 36rem;
+  font-size: 18px;
+  line-height: 28px;
+  color: var(--ink-2);
+}
+.wordmark {
+  letter-spacing: 0.08em;
+}
+.fc-face__label {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.num,
+.stat__value,
+.day-card__num,
+.vunit__num,
+.marathon__count,
+.fc__done-num,
+.rating__rank,
+.mgrid__count,
+.psum__value,
+.course-card__figure .num,
+.featured__cell .num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+.day-card__num,
+.vunit__num {
+  font-size: 32px;
+  font-weight: 400;
+}
+.stat__value {
+  font-size: 32px;
+  font-weight: 500;
+}
+.rating__rank {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.rating__rank.is-top {
+  color: var(--accent-ink);
+}
+.course-card__title {
+  padding-top: 4px;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.course-card__figure {
+  margin-top: auto;
+  padding-top: 24px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.course-card__figure .num {
+  margin-right: 4px;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--ink);
+}
+.featured__title {
+  font-size: 17px;
+  letter-spacing: 0;
+}
+.fc-face__word,
+.fc-face__gap,
+.fc-face__coll {
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.fc-face__ex {
+  font-style: normal;
+}
+.pill,
+.day-card__status {
+  font-weight: 500;
 }
 
-/* Lists cascade in, one item after another. */
-.course-grid > *,
-.day-grid > li,
-.plib > li,
-.vunits > li,
-.vbooks > *,
-.rating > li,
-.student-table > a {
-  animation: item-in 0.5s var(--ios) backwards;
-}
-@keyframes item-in {
-  from {
-    opacity: 0;
-    transform: translateY(16px) scale(0.97);
-  }
-}
-.course-grid > :nth-child(2), .day-grid > li:nth-child(2), .plib > li:nth-child(2), .vunits > li:nth-child(2), .vbooks > :nth-child(2), .rating > li:nth-child(2), .student-table > a:nth-child(2) { animation-delay: 0.04s; }
-.course-grid > :nth-child(3), .day-grid > li:nth-child(3), .plib > li:nth-child(3), .vunits > li:nth-child(3), .rating > li:nth-child(3), .student-table > a:nth-child(3) { animation-delay: 0.08s; }
-.course-grid > :nth-child(4), .day-grid > li:nth-child(4), .plib > li:nth-child(4), .vunits > li:nth-child(4), .rating > li:nth-child(4), .student-table > a:nth-child(4) { animation-delay: 0.12s; }
-.course-grid > :nth-child(5), .day-grid > li:nth-child(5), .plib > li:nth-child(5), .vunits > li:nth-child(5), .rating > li:nth-child(5), .student-table > a:nth-child(5) { animation-delay: 0.16s; }
-.course-grid > :nth-child(6), .day-grid > li:nth-child(6), .plib > li:nth-child(6), .vunits > li:nth-child(6), .rating > li:nth-child(6), .student-table > a:nth-child(6) { animation-delay: 0.2s; }
-.day-grid > li:nth-child(7), .plib > li:nth-child(7), .vunits > li:nth-child(7), .rating > li:nth-child(7), .student-table > a:nth-child(7) { animation-delay: 0.24s; }
-.day-grid > li:nth-child(8), .plib > li:nth-child(8), .vunits > li:nth-child(8), .rating > li:nth-child(8), .student-table > a:nth-child(8) { animation-delay: 0.28s; }
-.day-grid > li:nth-child(n + 9), .plib > li:nth-child(n + 9), .vunits > li:nth-child(n + 9), .rating > li:nth-child(n + 9), .student-table > a:nth-child(n + 9) { animation-delay: 0.32s; }
-
-/* ---------- Touch: everything presses down with a spring ---------- */
+/* ---------- Details: radius by size ---------- */
 .btn,
-.icon-btn,
-.tab,
 .chip,
-.nav-item,
+.search,
+.input,
+.fc-btn,
+.toast,
+.course-card__go {
+  border-radius: var(--r-ctl);
+}
+.tab {
+  height: 44px;
+  padding: 4px 16px 4px 4px;
+  border-radius: 12px;
+}
+.tab__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+}
+.pill,
+.tag,
+.day-card__status {
+  border-radius: 6px;
+}
+.chip-cat__icon,
+.marathon__icon {
+  border-radius: var(--r-ctl);
+}
+.marathon__icon {
+  width: 44px;
+  height: 44px;
+}
 .course-card,
-.day-card__link,
-.plib__item,
+.day-card,
 .vunit,
 .vbook,
-.rating__row,
-.fc-btn,
-.featured {
-  -webkit-tap-highlight-color: transparent;
+.plib__item,
+.featured,
+.card-white,
+.stat {
+  border-radius: var(--r-lg);
 }
+.panel.glass,
+.sidebar.glass {
+  border-radius: var(--r-xl);
+}
+.sidebar__nav .nav-item .icon-btn,
+.nav-item .nav-btn {
+  border-radius: 12px;
+}
+@media (max-width: 1080px) {
+  .sidebar,
+  .sidebar.glass {
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(31, 27, 22, 0.08), var(--highlight);
+  }
+}
+@media (max-width: 720px) {
+  .shell {
+    background: var(--bg-mint);
+  }
+  .fc,
+  .sheet {
+    border-radius: 16px 16px 0 0;
+  }
+}
+
+/* The signature: the logo's red tick box. */
+.tick {
+  flex: none;
+  display: inline-block;
+  vertical-align: -2px;
+}
+
+/* ---------- Featured: the marathon as an answer sheet ---------- */
+.featured {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 24px;
+  padding: 16px 20px 16px 16px;
+}
+.featured__sheet {
+  display: grid;
+  grid-template-columns: repeat(5, 24px);
+  gap: 4px;
+  padding: 12px;
+  border-radius: var(--r-md);
+  background: var(--panel-solid);
+}
+.featured__cell {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--muted);
+  background: #fff;
+}
+.featured__cell.is-next {
+  color: var(--accent-ink);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+.featured__cell.is-done {
+  background: transparent;
+}
+.featured__content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+@media (max-width: 720px) {
+  .featured {
+    grid-template-columns: 1fr;
+  }
+  .featured__sheet {
+    justify-self: start;
+  }
+  .featured__cta {
+    justify-content: center;
+  }
+}
+
+/* ---------- Motion: one curve, one entrance, a small press ---------- */
+.btn,
+.chip,
 .tab,
-.nav-item .icon-btn,
+.icon-btn,
+.course-card,
 .day-card,
 .plib__item,
 .vunit,
 .vbook,
+.featured,
 .rating__row,
-.featured {
-  transition: transform 0.45s var(--ios-spring), box-shadow 0.35s var(--ease), background-color 0.25s var(--ease);
+.fc-btn {
+  transition: background-color 0.15s var(--ease), box-shadow 0.15s var(--ease), color 0.15s var(--ease), transform 0.15s var(--ease);
 }
 .btn:active:not(:disabled),
+.chip:active:not(:disabled),
 .tab:active,
 .course-card:active,
 .day-card:active,
 .plib__item:active,
 .vunit:active,
 .vbook:active,
-.rating__row:active,
 .featured:active,
-.nav-item:active .icon-btn {
-  transform: scale(0.965);
-  transition-duration: 0.12s;
+.fc-btn:active,
+.icon-btn:active {
+  transform: scale(0.98);
 }
-.plib__item:hover,
-.rating__row:hover {
-  transform: translateY(-2px);
+.main {
+  animation: enter 0.4s var(--ease) backwards;
 }
-
-/* The active tab and nav button swell in like iOS selections. */
-.tab.is-active .tab__icon,
-.nav-item.is-active .nav-btn {
-  animation: pop-in 0.5s var(--ios-spring) backwards;
+.tab-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-width: 0;
+  animation: enter 0.3s var(--ease) backwards;
 }
-@keyframes pop-in {
+.tab-pane > * {
+  flex-shrink: 0;
+}
+/* Cards and list items no longer fly in one by one. */
+.course-card,
+.day-card,
+.vunit,
+.rating__item,
+.hero-title,
+.tab.is-active .tab__icon {
+  animation: none;
+}
+@keyframes enter {
   from {
-    transform: scale(0.7);
+    opacity: 0;
+    transform: translateY(8px);
   }
 }
-
-/* ---------- Toast: drops in from the top like the Dynamic Island ---------- */
 .toast {
-  top: max(14px, env(safe-area-inset-top));
+  top: max(16px, env(safe-area-inset-top));
   bottom: auto;
-  padding: 11px 20px;
-  animation: island 2.6s var(--ios) both;
+  animation: toast-in 2.6s var(--ease) both;
 }
-@media (max-width: 720px) {
-  .toast {
-    top: max(10px, env(safe-area-inset-top));
-    bottom: auto;
-    max-width: calc(100vw - 32px);
-    text-align: center;
-  }
-}
-@keyframes island {
+@keyframes toast-in {
   0% {
     opacity: 0;
-    transform: translateY(-24px) scale(0.6, 0.5);
-    filter: blur(6px);
+    transform: translateY(-8px);
   }
-  12% {
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-  86% {
+  8%,
+  88% {
     opacity: 1;
     transform: none;
   }
   100% {
     opacity: 0;
-    transform: translateY(-14px) scale(0.9);
   }
-}
-
-/* ---------- Sheets: iOS curve; phones get a bottom sheet with a grabber ---------- */
-.sheet {
-  animation: sheet-in 0.5s var(--ios) both;
 }
 @media (max-width: 720px) {
-  .sheet {
-    position: relative;
-    animation: sheet-up 0.5s var(--ios) both;
+  .toast {
+    max-width: calc(100vw - 32px);
+    text-align: center;
   }
-  .sheet::before {
-    content: '';
-    position: absolute;
-    top: 7px;
-    left: 50%;
-    width: 40px;
-    height: 5px;
-    margin-left: -20px;
-    border-radius: 3px;
-    background: rgba(29, 27, 26, 0.18);
+  .sheet {
+    animation: sheet-up 0.4s var(--ease) both;
+  }
+  .fc {
+    animation: sheet-up 0.4s var(--ease) backwards;
   }
 }
 @keyframes sheet-up {
   from {
-    transform: translateY(100%);
+    transform: translateY(24px);
+    opacity: 0;
   }
 }
 
-/* Flashcard decks open like an iOS card stack. */
-.fc {
-  animation: page-in 0.5s var(--ios) backwards;
+/* Avatars without a photo: initials on the raised paper surface. */
+.avatar {
+  color: var(--ink-2);
+  font-weight: 500;
+  background: var(--panel-solid);
+  box-shadow: var(--highlight);
+}
+.rating__you {
+  font-weight: 500;
+  color: #fff;
+  background: var(--ink);
 }
 @media (max-width: 720px) {
-  .fc {
-    animation: sheet-up 0.5s var(--ios) backwards;
+  .hero-sub {
+    font-size: 16px;
+    line-height: 24px;
+  }
+}
+.profile-hero {
+  background: var(--panel);
+  box-shadow: var(--highlight);
+}
+.profile-hero::after {
+  display: none;
+}
+.btn--danger {
+  background: var(--danger);
+  box-shadow: none;
+}
+/* Narrow phones: mono figures are a little wider, so the answer sheets and result tables tighten up. */
+@media (max-width: 400px) {
+  .mgrid,
+  .psum {
+    min-width: 0;
+  }
+  .mgrid__days {
+    gap: 4px;
+  }
+  .mgrid__day {
+    min-width: 0;
+    font-size: 10px;
+  }
+  .psum__table {
+    font-size: 12px;
+  }
+  .psum__table th,
+  .psum__table td {
+    padding: 6px 4px;
+    overflow-wrap: anywhere;
   }
 }

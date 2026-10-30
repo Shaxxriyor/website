@@ -12,6 +12,15 @@ import { LISTENING_QUESTIONS, READING_QUESTIONS } from '../lib/marathons.js';
 // Static files in /public are served next to index.html, wherever it lives.
 const asset = (path) => `${import.meta.env.BASE_URL}${path}`;
 
+// Each section's colour, shared by its tab and its home card.
+export const sectionTones = {
+  'reading-marathon': 'mint',
+  'listening-marathon': 'peach',
+  'reading-practice': 'rose',
+  'listening-practice': 'lilac',
+  vocabulary: 'sky',
+};
+
 export const categories = [
   { id: 'all', label: 'All' },
   { id: 'reading-practice', label: 'Reading Practice', icon: ReadingIcon },
@@ -62,7 +71,7 @@ export const popularCourses = [
   },
   {
     id: 'listening-practice',
-    tone: 'peach',
+    tone: 'lilac',
     category: 'Listening Practice',
     skill: 'listening',
     icon: ListeningIcon,
@@ -74,7 +83,7 @@ export const popularCourses = [
   },
   {
     id: 'vocabulary',
-    tone: 'mint',
+    tone: 'sky',
     category: 'Vocabulary',
     skill: 'reading',
     icon: VocabularyIcon,

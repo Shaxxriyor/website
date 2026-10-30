@@ -4,7 +4,7 @@ import { askToSignIn } from '../lib/access.js';
 import { LockIcon, Tick, VocabularyIcon } from './Icons.jsx';
 import { Flashcards } from './Flashcards.jsx';
 
-const tones = ['mint', 'peach', 'lilac', 'rose'];
+const tones = ['mint', 'peach', 'lilac', 'rose', 'sky'];
 const remembered = () => {
   try {
     return localStorage.getItem('rcdi_vocab_book');

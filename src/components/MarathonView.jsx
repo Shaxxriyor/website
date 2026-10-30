@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { ArrowRight, LockIcon, Tick } from './Icons.jsx';
 import { askToSignIn } from '../lib/access.js';
 
-const tones = ['rose', 'peach', 'lilac', 'mint'];
+const tones = ['rose', 'peach', 'lilac', 'mint', 'sky'];
 
 // Days whose practice page saves notes under `storagePrefix` on this origin
 // count as started once a key with that prefix exists.

@@ -1,7 +1,5 @@
-/* READING_CDI design tokens (unslop pass, direction: the computer-delivered test
-   room and the answer sheet — white paper, graphite text, the red tick of the logo).
-   Variable names are kept from the first version so every rule picks up the new
-   values; the old pastel "tones" are now quiet paper surfaces. */
+/* READING_CDI design tokens: paper surfaces and graphite text, a soft colour for
+   each section (mint, peach, rose, lilac), and the red tick of the logo as the accent. */
 :root {
   /* Canvas: one warm-grey ramp */
   --bg-mint: #f6f4f0; /* page */
@@ -18,22 +16,25 @@
   --muted: #776e62;
   --line: rgba(31, 27, 22, 0.08);
 
-  /* Card tones: all paper now; colour lives in the moments, not the chrome */
-  --rose: #ffffff;
-  --rose-deep: #e4ddd3;
-  --peach: #ffffff;
-  --peach-deep: #e4ddd3;
-  --lilac: #ffffff;
-  --lilac-deep: #e4ddd3;
-  --mint: #ffffff;
-  --mint-deep: #e4ddd3;
+  /* Section colours: each section has its own soft colour (flat, no gradients).
+     --x is the card fill, --x-deep the filled cells, bars and chart series. */
+  --rose: #fbe0dc;
+  --rose-deep: #ef9d95;
+  --peach: #fdebd2;
+  --peach-deep: #f4bd73;
+  --lilac: #e6e2fb;
+  --lilac-deep: #a99ff0;
+  --mint: #daf3e7;
+  --mint-deep: #73cfa6;
+  --sky: #ddecfb;
+  --sky-deep: #8ebfec;
 
-  /* Chart series: the Reading Marathon leads in the brand red, the rest are graphite steps */
-  --chart-reading: #d6282f;
-  --chart-listening: #5e554a;
-  --chart-vocabulary: #b3a898;
-  --chart-mock: #ddd5c9;
-  --chart-other: #e9e3da;
+  /* Chart series: one colour per kind of practice */
+  --chart-reading: #a99ff0;
+  --chart-listening: #ef9d95;
+  --chart-vocabulary: #f4bd73;
+  --chart-mock: #73cfa6;
+  --chart-other: #e4ddd3;
 
   --sand: #efebe4;
   --sand-deep: #ddd5c9;
@@ -66,5 +67,4 @@
   --spring: cubic-bezier(0.22, 1, 0.36, 1);
 
   --font: 'DM Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 }

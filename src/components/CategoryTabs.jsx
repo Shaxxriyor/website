@@ -1,4 +1,5 @@
 import { GridIcon } from './Icons.jsx';
+import { sectionTones } from '../data/mock.js';
 
 export function CategoryTabs({ items, active, onChange }) {
   return (
@@ -9,7 +10,7 @@ export function CategoryTabs({ items, active, onChange }) {
             key={id}
             role="tab"
             aria-selected={active === id}
-            className={`tab ${active === id ? 'is-active' : ''}`}
+            className={`tab ${sectionTones[id] ? `tone-${sectionTones[id]}` : ''} ${active === id ? 'is-active' : ''}`}
             onClick={() => onChange(id)}
           >
             <span className="tab__icon">

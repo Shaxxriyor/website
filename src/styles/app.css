@@ -413,6 +413,10 @@ a {
   --tone: var(--mint);
   --tone-deep: var(--mint-deep);
 }
+.tone-sky {
+  --tone: var(--sky);
+  --tone-deep: var(--sky-deep);
+}
 
 /* ---------- Course cards ---------- */
 .course-grid {
@@ -4569,7 +4573,7 @@ a.rating__row:hover .rating__chev {
 .psum__value,
 .course-card__figure .num,
 .featured__cell .num {
-  font-family: var(--mono);
+  font-family: var(--font);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
 }
@@ -4896,4 +4900,78 @@ a.rating__row:hover .rating__chev {
     padding: 6px 4px;
     overflow-wrap: anywhere;
   }
+}
+
+/* ---------- Colour: each section in its own soft colour ----------
+   Cards, units and day tiles take their section's tone (flat, no gradients);
+   filled answer-sheet cells, bars and charts use the deeper shade of the same
+   colour, and the logo red stays for the one thing that matters. */
+.course-card,
+.day-card,
+.vunit,
+.vbook,
+.stat,
+.profile-hero {
+  background: var(--tone, var(--panel));
+}
+.course-card:hover,
+.day-card:hover,
+.vunit:hover,
+.vbook:hover {
+  background: color-mix(in srgb, var(--tone, #ffffff) 82%, var(--tone-deep, #e4ddd3));
+}
+.vbook.is-active {
+  box-shadow: inset 0 0 0 2px var(--tone-deep, var(--ink));
+}
+.course-card .chip-cat__icon,
+.course-card .course-card__go,
+.day-card .day-card__status,
+.vunit .day-card__status {
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: none;
+}
+.meter span,
+.vbook__progress .meter span,
+.vunit__foot .meter span {
+  background: var(--tone-deep, var(--lilac-deep));
+}
+.vunit__foot .meter,
+.vbook__progress .meter {
+  background: rgba(255, 255, 255, 0.7);
+}
+.mgrid__day.is-done {
+  color: var(--ink);
+  background: var(--tone-deep, var(--lilac-deep));
+}
+.mgrid__day.is-strong {
+  color: #fff;
+  background: var(--accent);
+}
+.featured__sheet {
+  background: var(--lilac);
+}
+.featured__cell.is-done {
+  background: transparent;
+}
+.level {
+  background: var(--lilac);
+}
+.fc-face__ielts {
+  background: var(--lilac);
+}
+.tab {
+  background: var(--panel);
+}
+.marathon__icon {
+  color: var(--ink);
+  background: var(--lilac);
+  box-shadow: none;
+}
+
+/* Category tabs carry their section's colour on the icon. */
+.tab .tab__icon {
+  background: var(--tone, var(--panel-solid));
+}
+.tab.is-active .tab__icon {
+  background: var(--tone, #ffffff);
 }

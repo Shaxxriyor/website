@@ -1,6 +1,6 @@
 import { ApiError, json, readBody, route, searchParams } from '../server/http.js';
 import { requireAdmin } from '../server/auth.js';
-import { createStudent, deleteStudent, getStudent, id, listStudents, regenerateCode, setAvatar, setPracticeAccess, updateStudent } from '../server/model.js';
+import { createStudent, deleteAllStudents, deleteStudent, getStudent, id, listStudents, regenerateCode, setAvatar, setPracticeAccess, updateStudent } from '../server/model.js';
 
 export const GET = route(async (request) => {
   requireAdmin(request);
@@ -22,6 +22,10 @@ export const POST = route(async (request) => {
     case 'delete':
       await deleteStudent(id(body.id));
       return json({ ok: true });
+    case 'delete-all':
+      // Typed confirmation, so a stray request can't empty the list.
+      if (body.confirm !== 'DELETE ALL') throw new ApiError('Type DELETE ALL to confirm.', 422, { confirm: 'Type DELETE ALL' });
+      return json({ deleted: await deleteAllStudents() });
     case 'remove-avatar':
       await setAvatar(id(body.id), null);
       return json({ ok: true });

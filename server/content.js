@@ -63,8 +63,8 @@ font-weight:600;background:linear-gradient(180deg,#34302d,#141211)}</style></hea
       ? `<h1>Reading Practice is for course students</h1>
 <p>The marathons are free for everyone. Ask your teacher to open Reading Practice for your account.</p>
 <a href="https://t.me/READING_CDI">Write on Telegram</a>`
-      : `<h1>Create a free account</h1>
-<p>The Reading and Listening Marathons are free. Sign up with your email on READING_CDI to open every day.</p>
-<a href="/#/${back}">Sign up on READING_CDI</a>`
+      : `<h1>For READING_CDI students</h1>
+<p>Sign in on READING_CDI with the code from your teacher to open this.</p>
+<a href="/#/${back}">Sign in on READING_CDI</a>`
   }</div></body></html>`;
 }

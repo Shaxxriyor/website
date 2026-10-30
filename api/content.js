@@ -10,7 +10,7 @@ export const GET = route(async (request) => {
   const engine = isEngine(path);
   const free = engine || isFree(path);
   if (!free && !currentAdmin(request)) {
-    // Marathons and ELS: any signed-in student (sign-up is free).
+    // Marathons, ELS and Vocabulary: any signed-in student (registered by the teacher).
     // Reading Practice: only students the teacher has opened it for.
     const student = await currentStudent(request);
     const reason = !student ? 'signin' : path.startsWith('practice/') && !student.practice_access ? 'practice' : null;

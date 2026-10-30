@@ -101,7 +101,7 @@ export function VocabularyView({ me = null, admin = null, signedIn = false, onCh
                   <span className="day-card__label">Unit</span>
                   {locked ? (
                     <span className="pill pill--glass day-card__status">
-                      <LockIcon size={12} /> Free · sign up
+                      <LockIcon size={12} /> Students
                     </span>
                   ) : !unlocked ? (
                     <span className="pill pill--glass day-card__status">Free</span>

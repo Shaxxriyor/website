@@ -359,86 +359,50 @@ assert.ok(r.data.attempts.some((g) => g.key === 'p2-coral-reefs' && g.tries.leng
 // course materials: day 1 free, the rest for signed-in students / teacher
 const get = (path, cookieHeader) =>
   api.content.GET(new Request(`https://example.test/api/content?path=${encodeURIComponent(path)}`, { headers: cookieHeader ? { cookie: cookieHeader } : {} }));
-r = await get('marathon/reading/day-01.html');
-assert.equal(r.status, 200, 'day 1 is free');
-assert.match(r.headers.get('content-type'), /text\/html/);
-r = await get('marathon/reading/day-05.html');
-assert.equal(r.status, 401, 'day 5 locked for visitors');
-assert.match(await r.text(), /Create a free account/);
 r = await get('els/day-02-1.webp');
-assert.equal(r.status, 401);
+assert.equal(r.status, 401, 'ELS day 2 locked for visitors');
 r = await get('els/day-01-1.webp');
-assert.equal(r.status, 200);
+assert.equal(r.status, 200, 'ELS day 1 is free');
 r = await get('practice/reading/p1-a-brief-history-of-ballet.html');
 assert.equal(r.status, 200, 'first Passage 1 practice is free');
 r = await get('practice/reading/p1-rubber.html');
 assert.equal(r.status, 401);
-r = await get('marathon/reading/day-05.html', studentCookie);
+assert.match(await r.text(), /For READING_CDI students/);
+r = await get('els/day-05.pdf', studentCookie);
 assert.equal(r.status, 200, 'signed-in student opens everything');
 assert.equal(r.headers.get('cache-control'), 'private, no-store');
-r = await get('marathon/listening/day-07.pdf', cookie);
+r = await get('els/day-07.pdf', cookie);
 assert.equal(r.status, 200, 'teacher too');
-// self sign-up: free marathons, Reading Practice only after the teacher opens it
-let selfCookie = '';
-async function asSelf(body, ip = '7.7.7.7') {
-  const res = await api.me.POST(
-    new Request('https://example.test/api/me', {
-      method: 'POST',
-      headers: { 'x-forwarded-for': ip, 'content-type': 'application/json', 'x-requested-with': 'fetch', ...(selfCookie ? { cookie: selfCookie } : {}) },
-      body: JSON.stringify(body),
-    }),
-  );
-  const set = res.headers.get('set-cookie');
-  if (set) selfCookie = set.split(';')[0];
-  return { status: res.status, data: await res.json() };
+r = await get('marathon/reading/day-01.html', studentCookie);
+assert.equal(r.status, 404, 'the old marathons are gone');
+
+// sign-up is closed: the teacher registers students and gives them a code
+r = await asStudent('me', { method: 'POST', body: { action: 'signup', full_name: 'Aziz Karimov', email: 'aziz@example.com', password: 'longenough1' }, ip: '7.7.7.7' });
+assert.equal(r.status, 400, 'no self sign-up');
+r = await asStudent('me', { method: 'POST', body: { action: 'email-login', email: 'aziz@example.com', password: 'longenough1' }, ip: '7.7.7.7' });
+assert.equal(r.status, 400, 'no email sign-in');
+// practice access is per student, set by the teacher
+r = await call('students', { method: 'POST', body: { action: 'create', ...base, email: '', full_name: 'Aziz Karimov', practice_access: false } });
+const aziz = r.data;
+let azizCookie = '';
+{
+  const res = await api.me.POST(new Request('https://example.test/api/me', { method: 'POST', headers: { 'x-forwarded-for': '7.7.7.8', 'content-type': 'application/json', 'x-requested-with': 'fetch' }, body: JSON.stringify({ action: 'login', code: aziz.access_code }) }));
+  azizCookie = res.headers.get('set-cookie').split(';')[0];
 }
-r = await asSelf({ action: 'signup', full_name: 'Aziz Karimov', email: 'aziz@example.com', password: 'short' });
-assert.equal(r.status, 422);
-assert.ok(r.data.fields.password, 'password needs 8+ characters');
-r = await asSelf({ action: 'signup', full_name: 'Aziz Karimov', email: 'not-an-email', password: 'longenough1' });
-assert.equal(r.data.fields.email, 'Enter a valid email');
-r = await asSelf({ action: 'signup', full_name: 'Aziz Karimov', email: 'Aziz@Example.com', password: 'longenough1' });
-assert.equal(r.status, 201, 'sign-up creates the account');
-assert.match(selfCookie, /^rcdi_student=/, 'and signs it in');
-const selfSignedIn = selfCookie;
-r = await get('marathon/reading/day-05.html', selfCookie);
-assert.equal(r.status, 200, 'marathons are free with an account');
-r = await get('els/day-02-1.webp', selfCookie);
-assert.equal(r.status, 200, 'ELS too');
-r = await get('practice/reading/p1-rubber.html', selfCookie);
-assert.equal(r.status, 403, 'Reading Practice locked for marathon-only accounts');
+r = await get('practice/reading/p1-rubber.html', azizCookie);
+assert.equal(r.status, 403, 'Reading Practice locked until the teacher opens it');
 assert.match(await r.text(), /Reading Practice is for course students/);
-r = await get('practice/reading/p1-a-brief-history-of-ballet.html', selfCookie);
+r = await get('practice/reading/p1-a-brief-history-of-ballet.html', azizCookie);
 assert.equal(r.status, 200, 'free practice passage still open');
+r = await get('els/day-02-1.webp', azizCookie);
+assert.equal(r.status, 200, 'ELS open to every registered student');
 r = await get('practice/reading/p1-rubber.html', studentCookie);
-assert.equal(r.status, 200, 'teacher-added students keep Reading Practice');
-selfCookie = '';
-r = await asSelf({ action: 'signup', full_name: 'Someone Else', email: 'aziz@example.com', password: 'longenough2' });
-assert.equal(r.status, 409, 'one account per email');
-r = await asSelf({ action: 'email-login', email: 'aziz@example.com', password: 'wrong-password' }, '8.8.8.8');
-assert.equal(r.status, 401);
-r = await asSelf({ action: 'email-login', email: ' AZIZ@example.com ', password: 'longenough1' }, '8.8.8.8');
-assert.equal(r.status, 200, 'email sign-in (case-insensitive)');
-r = await call('students');
-const aziz = r.data.students.find((x) => x.email === 'aziz@example.com');
-assert.equal(aziz.practice_access, false);
-assert.equal(aziz.self_registered, true);
-assert.equal(aziz.has_password, true);
-assert.equal(aziz.password_hash, undefined, 'password hash never leaves the server');
-assert.equal(aziz.level, '');
+assert.equal(r.status, 200, 'students with practice access open it');
 r = await call('students', { method: 'POST', body: { action: 'practice-access', id: aziz.id, value: true } });
 assert.equal(r.status, 200);
-r = await get('practice/reading/p1-rubber.html', selfCookie);
+r = await get('practice/reading/p1-rubber.html', azizCookie);
 assert.equal(r.status, 200, 'teacher opened Reading Practice');
-r = await asSelf({ action: 'logout' });
-r = await call('students', { method: 'POST', body: { action: 'update', id: aziz.id, ...base, email: 'aziz@example.com', full_name: 'Aziz Karimov', level: '', practice_access: false } });
-assert.equal(r.status, 200, 'teacher can edit a self-registered student (no level yet)');
-r = await get('practice/reading/p1-rubber.html', selfSignedIn);
-assert.equal(r.status, 403, 'and close Reading Practice again');
-for (let i = 0; i < 10; i++) await asSelf({ action: 'signup', full_name: `Spam ${i}`, email: `spam${i}@example.com`, password: 'longenough1' }, '9.9.9.9');
-selfCookie = '';
-r = await asSelf({ action: 'signup', full_name: 'Spam X', email: 'spamx@example.com', password: 'longenough1' }, '9.9.9.9');
-assert.equal(r.status, 429, 'sign-ups are rate-limited per network');
+const selfSignedIn = azizCookie;
 
 // Listening Practice: test 1 free, the engine is public, the rest need practice access
 r = await get('practice/listening/test-1.html');
@@ -454,7 +418,7 @@ assert.equal(r.status, 200, 'shared engine is public');
 assert.match(r.headers.get('cache-control'), /immutable/);
 r = await get('practice/listening/_shared/../../../package.json');
 assert.equal(r.status, 404);
-r = await get('marathon/reading/evil.js', studentCookie);
+r = await get('els/evil.js', studentCookie);
 assert.equal(r.status, 404, 'scripts only from the shared engine folder');
 r = await asStudent('track', { method: 'POST', body: { kind: 'exercise', skill: 'listening', item: 'test-9', topic: 'Listening Test 9', seconds: 120, correct: 31, total: 40, sitting: 'listen0001' } });
 assert.equal(r.status, 200, 'listening test score saved');
@@ -472,7 +436,7 @@ assert.ok((await r.json()).cards.length > 10);
 r = await get('vocab/essential-words-5/unit-02.json');
 assert.equal(r.status, 401, 'unit 2 needs an account');
 r = await get('vocab/essential-words-5/unit-02.json', selfSignedIn);
-assert.equal(r.status, 200, 'marathon-only accounts open vocabulary');
+assert.equal(r.status, 200, 'registered students open vocabulary');
 assert.equal((await r.json()).cards.length, 20);
 r = await get('vocab/essential-words-5/../../package.json', selfSignedIn);
 assert.equal(r.status, 404);
@@ -524,5 +488,16 @@ assert.equal(bandFor('listening', 15, 20), 7); // 30/40
 assert.equal(bandFor('reading', null, 13), null);
 assert.equal(averageBand([6, 6.5]), 6.5);
 assert.equal(averageBand([]), null);
+
+// delete all students: needs the typed confirmation, removes everyone and their records
+r = await call('students', { method: 'POST', body: { action: 'delete-all', confirm: 'yes' } });
+assert.equal(r.status, 422, 'needs DELETE ALL');
+r = await call('students', { method: 'POST', body: { action: 'delete-all', confirm: 'DELETE ALL' } });
+assert.equal(r.status, 200);
+assert.ok(r.data.deleted >= 2);
+r = await call('students');
+assert.equal(r.data.students.length, 0, 'no students left');
+r = await asStudent('me');
+assert.equal(r.data.student, null, 'their devices are signed out');
 
 console.log('All API checks passed.');

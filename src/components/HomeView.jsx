@@ -82,12 +82,14 @@ export function HomeView({ onChanged, tab: routeTab, results = [], practice = []
             </div>
           </section>
 
-          <section aria-labelledby="featured-title">
-            <div className="section-head">
-              <h2 id="featured-title" className="label">Featured</h2>
-            </div>
-            <FeaturedCourse results={results} />
-          </section>
+          {readingMarathon.days.length > 0 && (
+            <section aria-labelledby="featured-title">
+              <div className="section-head">
+                <h2 id="featured-title" className="label">Featured</h2>
+              </div>
+              <FeaturedCourse results={results} />
+            </section>
+          )}
         </>
       )}
     </>

@@ -90,9 +90,9 @@ export default function App() {
   const studentPanel = (
     <StudentHomePanel
       me={me}
-      onSignedIn={async (isNew) => {
+      onSignedIn={async () => {
         await loadMe();
-        notify(isNew ? 'Welcome! Your free account is ready — every marathon day is open' : 'Signed in — your progress will be saved');
+        notify('Signed in — your progress will be saved');
       }}
       onAdminSignedIn={async () => {
         const s = await api.session().catch(() => ({ admin: null }));

@@ -65,16 +65,6 @@ export function studentInput(input) {
   };
 }
 
-/** Self sign-up: name, email and a password (8+ characters). */
-export function signupInput(input) {
-  const email = text(input, 'email', { max: 160, required: true }).toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fail('email', 'Enter a valid email');
-  const password = String(input.password ?? '');
-  if (password.length < 8) fail('password', 'At least 8 characters');
-  if (password.length > 200) fail('password', 'At most 200 characters');
-  return { full_name: text(input, 'full_name', { max: 120, required: true }), email, password };
-}
-
 function optionalInt(input, field, min, max) {
   const v = input[field];
   if (v === '' || v === null || v === undefined) return null;
@@ -305,25 +295,6 @@ export async function createStudent(input) {
   });
 }
 
-/** A student who signed up on the site: marathons only until the teacher opens Reading Practice. */
-export async function registerStudent({ full_name, email, password_hash }) {
-  return withFreshCode(async (code) => {
-    try {
-      const [row] = await query(
-        `INSERT INTO students (full_name, email, level, registered_at, status, password_hash, self_registered, practice_access, access_code)
-         VALUES ($1, $2, '', CURRENT_DATE, 'active', $3, true, false, $4) RETURNING id`,
-        [full_name, email, password_hash, code],
-      );
-      return row;
-    } catch (err) {
-      if (/duplicate key|unique/i.test(String(err.message)) && /email/.test(String(err.message))) {
-        throw new ApiError('This email already has an account — sign in instead.', 409, { email: 'Already registered' });
-      }
-      throw err;
-    }
-  });
-}
-
 export async function setPracticeAccess(studentId, value) {
   const rows = await query('UPDATE students SET practice_access = $1, updated_at = now() WHERE id = $2 RETURNING id', [
     Boolean(value),
@@ -355,6 +326,12 @@ export async function updateStudent(studentId, input) {
     throw err;
   });
   if (!rows.length) throw new ApiError('Student not found.', 404);
+}
+
+/** Remove every student with all their records (practice, attempts, photos, vocabulary). */
+export async function deleteAllStudents() {
+  const rows = await query('DELETE FROM students RETURNING id');
+  return rows.length;
 }
 
 export async function deleteStudent(studentId) {

@@ -29,7 +29,7 @@ export function PublicProfile({ id, myId }) {
       <>
         {back}
         <EmptyState icon={TrophyIcon} title="Sign in to see students’ pages">
-          Create a free account (or sign in) on the home page.
+          Sign in with the code from your teacher on the home page.
         </EmptyState>
       </>
     );

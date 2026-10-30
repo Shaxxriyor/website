@@ -41,6 +41,7 @@ export const api = {
   student: (id) => request('students', { params: { id } }),
   createStudent: (data) => request('students', { body: { action: 'create', ...data } }),
   updateStudent: (id, data) => request('students', { body: { action: 'update', id, ...data } }),
+  deleteAllStudents: (confirm) => request('students', { body: { action: 'delete-all', confirm } }),
   deleteStudent: (id) => request('students', { body: { action: 'delete', id } }),
 
   lessons: (params) => request('lessons', { params }),
@@ -58,8 +59,6 @@ export const api = {
   elsUpload: (day, image) => request('els', { body: { action: 'upload', day, image } }),
   elsDelete: (id) => request('els', { body: { action: 'delete', id } }),
   me: () => request('me'),
-  signup: (data) => request('me', { body: { action: 'signup', ...data } }),
-  emailLogin: (email, password) => request('me', { body: { action: 'email-login', email, password } }),
   setPracticeAccess: (id, value) => request('students', { body: { action: 'practice-access', id, value } }),
   studentLogin: (code) => request('me', { body: { action: 'login', code } }),
   studentLogout: () => request('me', { body: { action: 'logout' } }),

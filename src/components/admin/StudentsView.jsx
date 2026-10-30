@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import { api } from '../../lib/api.js';
 import { formatDate, hours, levelName, timeAgo } from '../../lib/format.js';
-import { ChevronRight, PlusIcon, SearchIcon, UsersIcon } from '../Icons.jsx';
+import { ChevronRight, PlusIcon, SearchIcon, TrashIcon, UsersIcon } from '../Icons.jsx';
 import { Avatar } from '../Avatar.jsx';
-import { EmptyState, ErrorNote, Skeleton, StatusPill, useLoad } from './ui.jsx';
+import { EmptyState, ErrorNote, Sheet, Skeleton, StatusPill, useLoad } from './ui.jsx';
 import { StudentForm } from './StudentForm.jsx';
 import { CodeSheet } from './CodeSheet.jsx';
 import { navigate } from '../../lib/router.js';
@@ -24,6 +24,7 @@ export function StudentsView({ version, onChanged, notify }) {
   const [registering, setRegistering] = useState(false);
   const [highlight, setHighlight] = useState(null);
   const [newStudent, setNewStudent] = useState(null);
+  const [clearing, setClearing] = useState(false);
 
   const students = data?.students ?? [];
   const groups = useMemo(() => [...new Set(students.map((s) => s.group_name).filter(Boolean))].sort(), [students]);
@@ -164,6 +165,23 @@ export function StudentsView({ version, onChanged, notify }) {
         </div>
       )}
 
+      {students.length > 0 && (
+        <button className="danger-link" onClick={() => setClearing(true)}>
+          <TrashIcon size={15} /> Delete all students
+        </button>
+      )}
+      {clearing && (
+        <DeleteAllSheet
+          count={students.length}
+          onClose={() => setClearing(false)}
+          onDone={(n) => {
+            setClearing(false);
+            notify(`${n} ${n === 1 ? 'student' : 'students'} deleted`);
+            onChanged();
+          }}
+        />
+      )}
+
       {registering && (
         <StudentForm
           groups={groups}
@@ -188,5 +206,53 @@ export function StudentsView({ version, onChanged, notify }) {
         />
       )}
     </>
+  );
+}
+
+/** Remove every student at once; asks for "DELETE ALL" to be typed first. */
+function DeleteAllSheet({ count, onClose, onDone }) {
+  const [text, setText] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const ok = text.trim() === 'DELETE ALL';
+  async function confirm() {
+    if (!ok) return;
+    setBusy(true);
+    setError('');
+    try {
+      const { deleted } = await api.deleteAllStudents('DELETE ALL');
+      onDone(deleted);
+    } catch (err) {
+      setError(err.message);
+      setBusy(false);
+    }
+  }
+  return (
+    <Sheet
+      title={`Delete all ${count} students?`}
+      size="sm"
+      onClose={onClose}
+      onSubmit={confirm}
+      footer={
+        <>
+          {error && <span className="sheet__error">{error}</span>}
+          <button type="button" className="btn btn--glass" onClick={onClose}>
+            Cancel
+          </button>
+          <button type="submit" className="btn btn--danger" disabled={!ok || busy}>
+            {busy ? 'Deleting…' : 'Delete all students'}
+          </button>
+        </>
+      }
+    >
+      <p className="sheet__message">
+        This removes every student and everything they did: marathon days, practice scores, attempts, ELS photos,
+        profile photos and vocabulary progress. Their codes stop working. This can’t be undone.
+      </p>
+      <label className="field">
+        <span className="field__label">Type DELETE ALL to confirm</span>
+        <input className="input" value={text} onChange={(e) => setText(e.target.value)} autoComplete="off" placeholder="DELETE ALL" />
+      </label>
+    </Sheet>
   );
 }

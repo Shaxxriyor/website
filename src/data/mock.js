@@ -32,8 +32,8 @@ export const popularCourses = [
     skill: 'reading',
     icon: ReadingMarathonIcon,
     badge: 'New',
-    title: 'Reading Marathon: One Real Passage a Day',
-    meta: 'Each day: reading test + ELS exercise & translation',
+    title: 'Reading Marathon: New Season Coming Soon',
+    meta: 'A new marathon is starting soon',
     tab: 'reading-marathon',
   },
   {
@@ -43,8 +43,8 @@ export const popularCourses = [
     skill: 'listening',
     icon: ListeningMarathonIcon,
     badge: 'New',
-    title: 'Listening Marathon: 20 Days of Sections 2 & 3',
-    meta: '20 days · 20 questions each · audio included',
+    title: 'Listening Marathon: New Season Coming Soon',
+    meta: 'A new marathon is starting soon',
     tab: 'listening-marathon',
   },
   {
@@ -93,51 +93,15 @@ export const popularCourses = [
   },
 ];
 
+// The marathons are being replaced: new days are added here when the new files arrive.
 export const listeningMarathon = {
   title: 'Listening Marathon',
-  subtitle: 'Sections 2 & 3 from recent exams — one day at a time',
-  days: Array.from({ length: 20 }, (_, i) => {
-    const n = String(i + 1).padStart(2, '0');
-    return {
-      day: i + 1,
-      title: 'Sections 2 & 3',
-      questions: 20,
-      href: asset(`marathon/listening/day-${n}.html`),
-      pdf: asset(`marathon/listening/day-${n}.pdf`),
-      storagePrefix: `lm_day${i + 1}_`,
-    };
-  }),
+  subtitle: 'A new Listening Marathon is starting soon',
+  days: [],
 };
 
-// Reading pages are self-contained CDI exam simulators; they keep no saved
-// progress, so these days have no `storagePrefix`.
 export const readingMarathon = {
   title: 'Reading Marathon',
-  subtitle: 'Each day: the reading test in CDI format + the ELS Reading exercise with your notebook translation',
-  days: [
-    [1, 'The History of Pencil'],
-    [2, 'The Origin of Paper'],
-    [3, 'The Tuatara of New Zealand'],
-    [4, 'Keeping the water away'],
-    [5, 'The fashion industry'],
-    [6, 'The Tasmanian tiger'],
-    [7, 'The internal body clock'],
-    [8, 'Why do singers lose their voices?'],
-    [9, 'The fascinating world of attine ants'],
-    [10, 'The women scientists of Bologna'],
-    [11, 'Thinking for themselves'],
-    [12, 'Science and Filmmaking'],
-    [14, 'Are we born able to imitate?'],
-    [15, 'Is artificial intelligence a threat?'],
-    [16, 'Mind Music'],
-    [17, 'Solving the problem of waste disposal'],
-    [18, 'A unique golden textile'],
-    [19, 'Flower Power'],
-    [20, 'Mercator the Map Maker'],
-  ].map(([day, title]) => ({
-    day,
-    title,
-    questions: 13,
-    href: asset(`marathon/reading/day-${String(day).padStart(2, '0')}.html`),
-  })),
+  subtitle: 'A new Reading Marathon is starting soon',
+  days: [],
 };

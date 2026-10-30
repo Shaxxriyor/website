@@ -180,7 +180,7 @@ export function PracticeLibrary({ skill = 'reading', results = [], attempts = []
         </ul>
       )}
       {!signedIn && (
-        <p className="muted-sm plib__hint">Sign up free to save your scores. All {lib.unit} open for course students.</p>
+        <p className="muted-sm plib__hint">Sign in with your code to save your scores. All {lib.unit} open for course students.</p>
       )}
     </section>
   );

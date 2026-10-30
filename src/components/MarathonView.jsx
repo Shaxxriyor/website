@@ -93,7 +93,7 @@ export function MarathonView({ marathon, icon: Icon, skill, results = [], attemp
                     <span className="day-card__label">Day</span>
                     {locked ? (
                       <span className="pill pill--glass day-card__status">
-                        <LockIcon size={12} /> Free · sign up
+                        <LockIcon size={12} /> Students
                       </span>
                     ) : !signedIn && isFreeDay(d.day) ? (
                       <span className="pill pill--glass day-card__status">Free</span>

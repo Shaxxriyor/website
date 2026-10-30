@@ -37,7 +37,7 @@ export function RatingView({ signedIn, version }) {
 
       {error?.status === 401 ? (
         <EmptyState icon={TrophyIcon} title="Sign in to see the rating">
-          Create a free account (or sign in) on the home page.
+          Sign in with the code from your teacher on the home page.
         </EmptyState>
       ) : error ? (
         <ErrorNote error={error} onRetry={reload} />

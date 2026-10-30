@@ -77,7 +77,7 @@ export function Flashcards({ book, unit, saved = [], canSave = false, onSaved, o
     api
       .vocabUnit(book.id, unit.n)
       .then(async (r) => {
-        if (r.status === 401) throw Object.assign(new Error('Create a free account to open this unit.'), { status: 401 });
+        if (r.status === 401) throw Object.assign(new Error('Sign in with the code from your teacher to open this unit.'), { status: 401 });
         if (!r.ok) throw new Error('This unit could not be loaded. Check your connection.');
         return r.json();
       })

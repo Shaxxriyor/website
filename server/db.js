@@ -100,7 +100,7 @@ const SCHEMA = [
     ip TEXT NOT NULL,
     attempted_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`,
-  // Self sign-up (email + password) for the free marathons. Reading Practice is opened
+  // Self sign-up columns (sign-up has since been closed: the teacher registers students). Reading Practice is opened
   // per student by the teacher; students added by the teacher before this keep it.
   `ALTER TABLE students ADD COLUMN IF NOT EXISTS password_hash TEXT`,
   `ALTER TABLE students ADD COLUMN IF NOT EXISTS self_registered BOOLEAN NOT NULL DEFAULT false`,

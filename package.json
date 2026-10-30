@@ -10,7 +10,8 @@
     "test:api": "node scripts/test-api.mjs",
     "add-tracker": "node scripts/add-tracker.mjs",
     "import-practice": "node scripts/import-practice.mjs",
-    "import-listening": "node scripts/import-listening.mjs"
+    "import-listening": "node scripts/import-listening.mjs",
+    "remove-timers": "node scripts/remove-timers.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",

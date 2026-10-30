@@ -323,7 +323,7 @@ function onAudioEnd(){
   if(audioDone) return; audioDone = true;
   $("#h-pill").classList.add("off"); $("#h-status").textContent = "Check your answers";
   $("#h-time").textContent = "· " + fmt(checkLeft);
-  checkTimer = setInterval(() => { checkLeft--; $("#h-time").textContent = "· " + fmt(checkLeft); if(checkLeft <= 0){ clearInterval(checkTimer); finish(); } }, 1000);
+  checkTimer = setInterval(() => { checkLeft--; $("#h-time").textContent = "· " + fmt(checkLeft); /* READING_CDI: no time limit */ }, 1000);
 }
 
 /* ---------- build pages ---------- */

@@ -1255,7 +1255,7 @@ function fmt(s){if(s<0)s=0;return Math.floor(s/60).toString().padStart(2,'0')+':
    type. The bug it replaces: a SILENT 40-minute countdown that called finishExam()
    with no element to display it and no warning of any kind. It now warns. */
 let _expireCb=null,_tuTimer=null;
-function startTimer(section,onExpire){pauseTimer();function tick(){state.timers[section]--;updateTimerDisplay(section);if(state.timers[section]%5===0)saveState();if(state.timers[section]<=0){pauseTimer();timeUp(onExpire);}}updateTimerDisplay(section);timerInterval=setInterval(tick,1000);}
+function startTimer(section,onExpire){pauseTimer();function tick(){state.timers[section]--;updateTimerDisplay(section);if(state.timers[section]%5===0)saveState();/* READING_CDI: no time limit */}updateTimerDisplay(section);timerInterval=setInterval(tick,1000);}
 function updateTimerDisplay(section){
   const el=document.getElementById('timer-'+section),box=document.getElementById('hdr-clock');
   const t=Math.max(0,state.timers[section]);

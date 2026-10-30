@@ -3650,94 +3650,6 @@ img {
   }
 }
 
-/* ---------- Monthly prize ---------- */
-.prize {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 18px;
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  background: linear-gradient(120deg, #fff4d6 0%, var(--peach) 55%, #f6c48a 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), var(--shadow-md);
-  animation: rise 0.6s var(--ease) both;
-}
-.prize::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.45) 50%, transparent 65%);
-  transform: translateX(-100%);
-  animation: prize-shine 4.5s 1s var(--ease) infinite;
-  pointer-events: none;
-}
-@keyframes prize-shine {
-  0%, 60% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-.prize__trophy {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  font-size: 28px;
-  background: rgba(255, 255, 255, 0.7);
-  box-shadow: inset 0 1px 0 #fff, var(--shadow-sm);
-}
-.prize__text {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.prize__kicker {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #8a5a17;
-}
-.prize__title {
-  font-size: 19px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-.prize__meta {
-  font-size: 12.5px;
-  color: var(--ink-2);
-}
-.prize__cta {
-  flex: none;
-  position: relative;
-  z-index: 1;
-}
-.prize--compact .prize__title {
-  font-size: 16px;
-}
-.rating__prize {
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 10.5px;
-  font-weight: 600;
-  background: rgba(249, 217, 173, 0.85);
-}
-@media (max-width: 720px) {
-  .prize {
-    flex-wrap: wrap;
-  }
-  .prize__cta {
-    width: 100%;
-    justify-content: center;
-  }
-  .prize__title {
-    font-size: 16px;
-  }
-}
-
 /* ---------- Attempts ---------- */
 .attempts {
   grid-column: 1 / -1;
@@ -4426,5 +4338,313 @@ a.rating__row:hover .rating__chev {
     flex: 1;
     height: auto;
     min-height: 300px;
+  }
+}
+
+/* ==========================================================================
+   Full screen + iOS-style motion
+   The site fills the whole window (no framed card), with soft spring motion:
+   pages and tabs slide in, lists cascade, buttons press down, toasts drop in
+   like the Dynamic Island, and the background blobs drift slowly.
+   Animations use fill-mode "backwards" so nothing keeps a transform after it
+   plays (a lingering transform would trap the fixed tab bar and sheets).
+   ========================================================================== */
+:root {
+  --ios: cubic-bezier(0.32, 0.72, 0, 1);
+  --ios-spring: cubic-bezier(0.2, 0.9, 0.25, 1.15);
+}
+
+/* ---------- Full screen ---------- */
+.stage {
+  padding: 0;
+}
+.shell {
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 600px;
+  padding: 18px 22px 18px 18px;
+  border-radius: 0;
+  background: rgba(251, 248, 244, 0.74);
+  box-shadow: none;
+  animation: none;
+}
+@media (min-width: 1600px) {
+  .shell {
+    grid-template-columns: 84px minmax(0, 1fr) 360px;
+    gap: 40px;
+    padding: 22px 28px 22px 22px;
+  }
+}
+@media (max-width: 1080px) {
+  .shell {
+    height: auto;
+    min-height: 100dvh;
+  }
+}
+@media (max-width: 720px) {
+  .shell {
+    background: rgba(251, 248, 244, 0.8);
+  }
+}
+
+/* ---------- Live background ---------- */
+.orb--1 {
+  animation: orb-a 26s ease-in-out infinite alternate;
+}
+.orb--2 {
+  animation: orb-b 32s ease-in-out infinite alternate;
+}
+.orb--3 {
+  animation: orb-c 29s ease-in-out infinite alternate;
+}
+@keyframes orb-a {
+  to {
+    transform: translate(28vw, -18vh) scale(1.25);
+  }
+}
+@keyframes orb-b {
+  to {
+    transform: translate(-22vw, 30vh) scale(1.15);
+  }
+}
+@keyframes orb-c {
+  to {
+    transform: translate(-18vw, -26vh) scale(1.3);
+  }
+}
+
+/* Headline: a slow sheen moves across the letters. */
+.hero-title {
+  background: linear-gradient(100deg, var(--ink) 0%, var(--ink) 40%, #6b5fd3 50%, var(--ink) 60%, var(--ink) 100%);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: rise 0.8s 0.05s var(--ease) backwards, sheen 9s 1.2s ease-in-out infinite;
+}
+@keyframes sheen {
+  0% {
+    background-position: 100% 0;
+  }
+  45%,
+  100% {
+    background-position: 0% 0;
+  }
+}
+
+/* "New" badges pulse gently now and then. */
+.course-card__pills .pill {
+  animation: twinkle 3.6s ease-in-out infinite;
+}
+.course-card:nth-child(even) .course-card__pills .pill {
+  animation-delay: 1.8s;
+}
+@keyframes twinkle {
+  0%,
+  70%,
+  100% {
+    transform: none;
+  }
+  80% {
+    transform: scale(1.08);
+  }
+}
+
+/* Progress bars fill in, then a light shine passes over them. */
+.meter span,
+.skill-bars__track span {
+  position: relative;
+  overflow: hidden;
+  transform-origin: left;
+  animation: fill 1s 0.15s var(--ios) backwards;
+}
+.meter span::after,
+.skill-bars__track span::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transform: translateX(-100%);
+  animation: shine 3.6s 1.2s ease-in-out infinite;
+}
+@keyframes shine {
+  60%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ---------- Page and tab transitions ---------- */
+.main {
+  animation: page-in 0.55s var(--ios) backwards;
+}
+.tab-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-width: 0;
+  animation: page-in 0.5s var(--ios) backwards;
+}
+.tab-pane > * {
+  flex-shrink: 0;
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+}
+
+/* Lists cascade in, one item after another. */
+.course-grid > *,
+.day-grid > li,
+.plib > li,
+.vunits > li,
+.vbooks > *,
+.rating > li,
+.student-table > a {
+  animation: item-in 0.5s var(--ios) backwards;
+}
+@keyframes item-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+}
+.course-grid > :nth-child(2), .day-grid > li:nth-child(2), .plib > li:nth-child(2), .vunits > li:nth-child(2), .vbooks > :nth-child(2), .rating > li:nth-child(2), .student-table > a:nth-child(2) { animation-delay: 0.04s; }
+.course-grid > :nth-child(3), .day-grid > li:nth-child(3), .plib > li:nth-child(3), .vunits > li:nth-child(3), .rating > li:nth-child(3), .student-table > a:nth-child(3) { animation-delay: 0.08s; }
+.course-grid > :nth-child(4), .day-grid > li:nth-child(4), .plib > li:nth-child(4), .vunits > li:nth-child(4), .rating > li:nth-child(4), .student-table > a:nth-child(4) { animation-delay: 0.12s; }
+.course-grid > :nth-child(5), .day-grid > li:nth-child(5), .plib > li:nth-child(5), .vunits > li:nth-child(5), .rating > li:nth-child(5), .student-table > a:nth-child(5) { animation-delay: 0.16s; }
+.course-grid > :nth-child(6), .day-grid > li:nth-child(6), .plib > li:nth-child(6), .vunits > li:nth-child(6), .rating > li:nth-child(6), .student-table > a:nth-child(6) { animation-delay: 0.2s; }
+.day-grid > li:nth-child(7), .plib > li:nth-child(7), .vunits > li:nth-child(7), .rating > li:nth-child(7), .student-table > a:nth-child(7) { animation-delay: 0.24s; }
+.day-grid > li:nth-child(8), .plib > li:nth-child(8), .vunits > li:nth-child(8), .rating > li:nth-child(8), .student-table > a:nth-child(8) { animation-delay: 0.28s; }
+.day-grid > li:nth-child(n + 9), .plib > li:nth-child(n + 9), .vunits > li:nth-child(n + 9), .rating > li:nth-child(n + 9), .student-table > a:nth-child(n + 9) { animation-delay: 0.32s; }
+
+/* ---------- Touch: everything presses down with a spring ---------- */
+.btn,
+.icon-btn,
+.tab,
+.chip,
+.nav-item,
+.course-card,
+.day-card__link,
+.plib__item,
+.vunit,
+.vbook,
+.rating__row,
+.fc-btn,
+.featured {
+  -webkit-tap-highlight-color: transparent;
+}
+.tab,
+.nav-item .icon-btn,
+.day-card,
+.plib__item,
+.vunit,
+.vbook,
+.rating__row,
+.featured {
+  transition: transform 0.45s var(--ios-spring), box-shadow 0.35s var(--ease), background-color 0.25s var(--ease);
+}
+.btn:active:not(:disabled),
+.tab:active,
+.course-card:active,
+.day-card:active,
+.plib__item:active,
+.vunit:active,
+.vbook:active,
+.rating__row:active,
+.featured:active,
+.nav-item:active .icon-btn {
+  transform: scale(0.965);
+  transition-duration: 0.12s;
+}
+.plib__item:hover,
+.rating__row:hover {
+  transform: translateY(-2px);
+}
+
+/* The active tab and nav button swell in like iOS selections. */
+.tab.is-active .tab__icon,
+.nav-item.is-active .nav-btn {
+  animation: pop-in 0.5s var(--ios-spring) backwards;
+}
+@keyframes pop-in {
+  from {
+    transform: scale(0.7);
+  }
+}
+
+/* ---------- Toast: drops in from the top like the Dynamic Island ---------- */
+.toast {
+  top: max(14px, env(safe-area-inset-top));
+  bottom: auto;
+  padding: 11px 20px;
+  animation: island 2.6s var(--ios) both;
+}
+@media (max-width: 720px) {
+  .toast {
+    top: max(10px, env(safe-area-inset-top));
+    bottom: auto;
+    max-width: calc(100vw - 32px);
+    text-align: center;
+  }
+}
+@keyframes island {
+  0% {
+    opacity: 0;
+    transform: translateY(-24px) scale(0.6, 0.5);
+    filter: blur(6px);
+  }
+  12% {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+  86% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.9);
+  }
+}
+
+/* ---------- Sheets: iOS curve; phones get a bottom sheet with a grabber ---------- */
+.sheet {
+  animation: sheet-in 0.5s var(--ios) both;
+}
+@media (max-width: 720px) {
+  .sheet {
+    position: relative;
+    animation: sheet-up 0.5s var(--ios) both;
+  }
+  .sheet::before {
+    content: '';
+    position: absolute;
+    top: 7px;
+    left: 50%;
+    width: 40px;
+    height: 5px;
+    margin-left: -20px;
+    border-radius: 3px;
+    background: rgba(29, 27, 26, 0.18);
+  }
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+/* Flashcard decks open like an iOS card stack. */
+.fc {
+  animation: page-in 0.5s var(--ios) backwards;
+}
+@media (max-width: 720px) {
+  .fc {
+    animation: sheet-up 0.5s var(--ios) backwards;
   }
 }

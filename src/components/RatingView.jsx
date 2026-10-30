@@ -4,7 +4,6 @@ import { hours, levelName } from '../lib/format.js';
 import { formatBand } from '../lib/band.js';
 import { ChevronRight, TrophyIcon } from './Icons.jsx';
 import { Avatar } from './Avatar.jsx';
-import { PrizeBanner } from './PrizeBanner.jsx';
 import { EmptyState, ErrorNote, Segmented, Skeleton, useLoad } from './admin/ui.jsx';
 
 const PERIODS = [
@@ -30,11 +29,6 @@ export function RatingView({ signedIn, version }) {
         </div>
       </header>
 
-      <PrizeBanner
-        compact
-        leader={period === 'month' && data?.students?.[0]?.minutes > 0 ? data.students[0].full_name : null}
-      />
-
       {error?.status === 401 ? (
         <EmptyState icon={TrophyIcon} title="Sign in to see the rating">
           Sign in with the code from your teacher on the home page.
@@ -59,7 +53,6 @@ export function RatingView({ signedIn, version }) {
                     <strong>
                       {s.full_name}
                       {isMe && <span className="rating__you">You</span>}
-                      {period === 'month' && i === 0 && !idle && <span className="rating__prize">🏆 Prize leader</span>}
                     </strong>
                     <span className="muted-sm">
                       {[s.group_name, s.level && `${s.level} ${levelName(s.level)}`].filter(Boolean).join(' · ') || 'Marathon participant'}

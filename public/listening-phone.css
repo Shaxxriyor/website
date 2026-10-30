@@ -18,9 +18,6 @@
   #hdr-left .test-taker-block {
     min-width: 0;
   }
-  #hdr-left .test-taker-block:not(#hdr-clock) {
-    display: none;
-  }
   #hdr .ttid-label,
   #hdr .ttid-sub {
     white-space: nowrap;

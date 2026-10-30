@@ -5,7 +5,6 @@ import { FeaturedCourse } from './FeaturedCourse.jsx';
 import { MarathonView } from './MarathonView.jsx';
 import { PracticeLibrary } from './PracticeLibrary.jsx';
 import { VocabularyView } from './VocabularyView.jsx';
-import { PrizeBanner } from './PrizeBanner.jsx';
 import { ReadingMarathonIcon, ListeningMarathonIcon, LogoMark, Wordmark, SparkleIcon } from './Icons.jsx';
 import { categories, popularCourses, listeningMarathon, readingMarathon } from '../data/mock.js';
 
@@ -41,54 +40,55 @@ export function HomeView({ onChanged, tab: routeTab, results = [], practice = []
         the best
       </h1>
 
-      {tab === 'all' && <PrizeBanner />}
-
       <CategoryTabs items={categories} active={tab} onChange={setTab} />
 
-      {tab === 'reading-practice' ? (
-        <PracticeLibrary key="reading" skill="reading" results={practice} attempts={me?.attempts} signedIn={signedIn} unlocked={practiceOpen} />
-      ) : tab === 'vocabulary' ? (
-        <VocabularyView me={me} admin={admin} signedIn={unlocked} onChanged={onChanged} />
-      ) : tab === 'listening-practice' ? (
-        <PracticeLibrary key="listening" skill="listening" results={practice} attempts={me?.attempts} signedIn={signedIn} unlocked={practiceOpen} />
-      ) : tab === 'listening-marathon' ? (
-        <MarathonView marathon={listeningMarathon} icon={ListeningMarathonIcon} skill="listening" results={results} attempts={me?.attempts} signedIn={unlocked} />
-      ) : tab === 'reading-marathon' ? (
-        <MarathonView marathon={readingMarathon} icon={ReadingMarathonIcon} skill="reading" results={results} attempts={me?.attempts} signedIn={unlocked} />
-      ) : SOON[tab] ? (
-        <div className="empty card-white">
-          <span className="empty__icon">
-            <SparkleIcon size={20} />
-          </span>
-          <h3 className="empty__title">Coming soon</h3>
-          <p className="muted-sm">{SOON[tab]}</p>
-          <button type="button" className="btn btn--dark" onClick={() => setTab('reading-marathon')}>
-            Try the Reading Marathon
-          </button>
-        </div>
-      ) : (
-        <>
-          <section aria-labelledby="popular-title">
-            <div className="section-head">
-              <h2 id="popular-title" className="label">Most popular</h2>
-            </div>
-            <div className="course-grid">
-              {popularCourses.map((c) => (
-                <CourseCard key={c.id} course={c} onOpen={setTab} />
-              ))}
-            </div>
-          </section>
-
-          {readingMarathon.days.length > 0 && (
-            <section aria-labelledby="featured-title">
+      {/* Keyed by tab, so switching tabs plays the slide-in animation. */}
+      <div className="tab-pane" key={tab}>
+        {tab === 'reading-practice' ? (
+          <PracticeLibrary key="reading" skill="reading" results={practice} attempts={me?.attempts} signedIn={signedIn} unlocked={practiceOpen} />
+        ) : tab === 'vocabulary' ? (
+          <VocabularyView me={me} admin={admin} signedIn={unlocked} onChanged={onChanged} />
+        ) : tab === 'listening-practice' ? (
+          <PracticeLibrary key="listening" skill="listening" results={practice} attempts={me?.attempts} signedIn={signedIn} unlocked={practiceOpen} />
+        ) : tab === 'listening-marathon' ? (
+          <MarathonView marathon={listeningMarathon} icon={ListeningMarathonIcon} skill="listening" results={results} attempts={me?.attempts} signedIn={unlocked} />
+        ) : tab === 'reading-marathon' ? (
+          <MarathonView marathon={readingMarathon} icon={ReadingMarathonIcon} skill="reading" results={results} attempts={me?.attempts} signedIn={unlocked} />
+        ) : SOON[tab] ? (
+          <div className="empty card-white">
+            <span className="empty__icon">
+              <SparkleIcon size={20} />
+            </span>
+            <h3 className="empty__title">Coming soon</h3>
+            <p className="muted-sm">{SOON[tab]}</p>
+            <button type="button" className="btn btn--dark" onClick={() => setTab('reading-marathon')}>
+              Try the Reading Marathon
+            </button>
+          </div>
+        ) : (
+          <>
+            <section aria-labelledby="popular-title">
               <div className="section-head">
-                <h2 id="featured-title" className="label">Featured</h2>
+                <h2 id="popular-title" className="label">Most popular</h2>
               </div>
-              <FeaturedCourse results={results} />
+              <div className="course-grid">
+                {popularCourses.map((c) => (
+                  <CourseCard key={c.id} course={c} onOpen={setTab} />
+                ))}
+              </div>
             </section>
-          )}
-        </>
-      )}
+
+            {readingMarathon.days.length > 0 && (
+              <section aria-labelledby="featured-title">
+                <div className="section-head">
+                  <h2 id="featured-title" className="label">Featured</h2>
+                </div>
+                <FeaturedCourse results={results} />
+              </section>
+            )}
+          </>
+        )}
+      </div>
     </>
   );
 }

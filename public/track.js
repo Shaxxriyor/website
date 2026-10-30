@@ -94,12 +94,14 @@
     'button[onclick*="print("]{display:none!important}' +
     'img{-webkit-user-drag:none;user-drag:none;-webkit-touch-callout:none}' +
     // No logo watermark behind the text (the marathon pages draw one on the page background).
-    'body,#stage-article{background-image:none!important}';
+    'body,#stage-article{background-image:none!important}' +
+    // No time limit on any test (scripts/remove-timers.mjs stops the countdowns): hide the clocks.
+    '#timer-reading,#hdr-clock,#h-time{display:none!important}';
   if (lm) {
     // Listening tests: header clear of the back button, plus the phone layout and helpers.
     guard.textContent += '#hdr-left{padding-left:46px}';
     var phone = document.createElement('script');
-    phone.src = base + 'listening-phone.js?v=5';
+    phone.src = base + 'listening-phone.js?v=6';
     (document.head || document.documentElement).appendChild(phone);
   }
   (document.head || document.documentElement).appendChild(guard);

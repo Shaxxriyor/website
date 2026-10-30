@@ -8,7 +8,7 @@
   'use strict';
   var css = document.createElement('link');
   css.rel = 'stylesheet';
-  css.href = new URL('listening-phone.css?v=5', document.currentScript ? document.currentScript.src : location.href).href;
+  css.href = new URL('listening-phone.css?v=6', document.currentScript ? document.currentScript.src : location.href).href;
   (document.head || document.documentElement).appendChild(css);
 
   var body = function () { return document.body; };

@@ -4581,14 +4581,14 @@ body.dark-mode .syn-note,body.dark-mode .sy-uz,body.dark-mode .sy-n{color:#a9a9a
   <div class="rcx-card">
     <span class="rcx-wordmark">READING_CDI</span>
     <h1>Passage 2: Bristlecone Pines</h1>
-    <p class="rcx-lead">Academic Reading &middot; Passage 2 &middot; Questions 14&ndash;26 &middot; 20 minutes</p>
+    <p class="rcx-lead">Academic Reading &middot; Passage 2 &middot; Questions 14&ndash;26 &middot; no time limit</p>
     <div class="rcx-field" id="start-field">
       <label for="start-name">Candidate full name</label>
       <input id="start-name" autocomplete="off" spellcheck="false" placeholder="Type your full name"
              onkeydown="if(event.key==='Enter'){event.preventDefault();ExamApp.validateStart();}">
       <div id="start-hint-text" class="rcx-err"></div>
     </div>
-    <div class="rcx-note"><b>How this test runs.</b> You have <b>20 minutes</b> for Questions 14&ndash;26.
+    <div class="rcx-note"><b>How this test runs.</b> There is <b>no time limit</b> for Questions 14&ndash;26.
       Select text in the passage to highlight it or add a note. The tick at the bottom right submits the
       test and shows your answers with a full explanation for every question.</div>
     <button class="rcx-btn" type="button" onclick="ExamApp.validateStart()">Start &rarr;</button>
@@ -6722,12 +6722,9 @@ function startTimer(section, onExpire) {
       state.timePerQuestion[q] = (state.timePerQuestion[q] || 0) + delta;
     }
     updateTimerDisplay(section);
-    if (section === 'reading') { checkPace(state.timers[section]); checkPassagePace(); }
+    /* READING_CDI: no pace warnings */
     if (state.timers[section] % 5 === 0) saveState();
-    if (state.timers[section] <= 0) {
-      pauseTimer();
-      if (onExpire) onExpire();
-    }
+    /* READING_CDI: no time limit */
   }
   updateTimerDisplay(section);
   timerInterval = setInterval(tick, 1000);

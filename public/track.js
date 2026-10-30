@@ -68,9 +68,6 @@
   }
   // Reading pages (marathon + practice passages): text can be selected and copied.
   var allowCopy = skill === 'reading';
-  // Reading Marathon pages: no watermark over the passage.
-  // No watermark on the Reading Marathon or the full Listening Practice tests.
-  var showWatermark = !(kind === 'marathon' && skill === 'reading') && !lm;
   ['copy', 'cut'].forEach(function (ev) {
     document.addEventListener(ev, function (e) {
       if (!allowCopy && !inField(e.target)) e.preventDefault();
@@ -95,7 +92,9 @@
     '@media print{html,body{display:none!important}}' +
     // Printing is blocked, so hide the pages' own print buttons.
     'button[onclick*="print("]{display:none!important}' +
-    'img{-webkit-user-drag:none;user-drag:none;-webkit-touch-callout:none}';
+    'img{-webkit-user-drag:none;user-drag:none;-webkit-touch-callout:none}' +
+    // No logo watermark behind the text (the marathon pages draw one on the page background).
+    'body,#stage-article{background-image:none!important}';
   if (lm) {
     // Listening tests: header clear of the back button, plus the phone layout and helpers.
     guard.textContent += '#hdr-left{padding-left:46px}';
@@ -104,26 +103,6 @@
     (document.head || document.documentElement).appendChild(phone);
   }
   (document.head || document.documentElement).appendChild(guard);
-
-  // Faint watermark with the student's name, so screenshots can be traced.
-  function watermark(text) {
-    if (!showWatermark) return;
-    var old = document.getElementById('rcdi-wm');
-    if (old) old.remove();
-    var svg =
-      '<svg xmlns="http://www.w3.org/2000/svg" width="340" height="190"><text x="20" y="110" ' +
-      'transform="rotate(-24 170 95)" font-family="system-ui,sans-serif" font-size="15" ' +
-      'fill="rgba(29,27,26,0.075)">' + text.replace(/[<>&"]/g, '') + '</text></svg>';
-    var wm = document.createElement('div');
-    wm.id = 'rcdi-wm';
-    wm.setAttribute('aria-hidden', 'true');
-    wm.style.cssText =
-      'position:fixed;inset:0;z-index:2147482000;pointer-events:none;' +
-      'background-image:url("data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg) + '")';
-    document.body.appendChild(wm);
-  }
-  if (document.body) watermark('READING_CDI · t.me/READING_CDI');
-  else document.addEventListener('DOMContentLoaded', function () { watermark('READING_CDI · t.me/READING_CDI'); });
 
   var IDLE_MS = 2 * 60 * 1000; // no input for 2 minutes = not studying (unless audio plays)
   var FIRST_SAVE = 60; // a day counts once the student has spent a minute on it
@@ -287,7 +266,6 @@
     .then(function (data) {
       if (!data || !data.student) return;
       who = data.student;
-      watermark(who.full_name + ' · READING_CDI');
       toast('✓ Progress saving for ' + who.full_name.split(' ')[0]);
       // Listening tests ask for the candidate's name first: fill it in.
       var nameField = document.getElementById('entry-name');

@@ -95,8 +95,9 @@
     'img{-webkit-user-drag:none;user-drag:none;-webkit-touch-callout:none}' +
     // No logo watermark behind the text (the marathon pages draw one on the page background).
     'body,#stage-article{background-image:none!important}' +
-    // No time limit on any test (scripts/remove-timers.mjs stops the countdowns): hide the clocks.
-    '#timer-reading,#hdr-clock,#h-time{display:none!important}';
+    // Reading Practice keeps its timer; the marathon and listening tests have no time limit
+    // (scripts/remove-timers.mjs stops those countdowns), so their clocks are hidden.
+    (pm ? '' : '#timer-reading,') + '#hdr-clock,#h-time{display:none!important}';
   if (lm) {
     // Listening tests: header clear of the back button, plus the phone layout and helpers.
     guard.textContent += '#hdr-left{padding-left:46px}';

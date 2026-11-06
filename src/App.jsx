@@ -10,7 +10,8 @@ import { PracticeView } from './components/admin/PracticeView.jsx';
 import { MockResultsView } from './components/admin/MockResultsView.jsx';
 import { LoginView } from './components/admin/LoginView.jsx';
 import { OverviewPanel, SignedOutPanel, StudentPanel } from './components/admin/AdminPanel.jsx';
-import { Skeleton } from './components/admin/ui.jsx';
+import { Sheet, Skeleton } from './components/admin/ui.jsx';
+import { sectionLabel, SECTIONS } from './lib/access.js';
 import { api, setUnauthorizedHandler } from './lib/api.js';
 import { navigate, useRoute } from './lib/router.js';
 
@@ -28,6 +29,13 @@ export default function App() {
   const [toast, setToast] = useState(null);
   // Signed-in student on the public pages: undefined = checking, null = none.
   const [me, setMe] = useState(undefined);
+  // A student tapped a section the teacher hasn't opened for them yet.
+  const [accessAsk, setAccessAsk] = useState(null);
+  useEffect(() => {
+    const onAsk = (e) => setAccessAsk(e.detail || {});
+    window.addEventListener('rcdi:need-access', onAsk);
+    return () => window.removeEventListener('rcdi:need-access', onAsk);
+  }, []);
 
   const refresh = useCallback(() => setVersion((v) => v + 1), []);
   const notify = useCallback((message) => setToast({ message, key: Date.now() }), []);
@@ -91,9 +99,9 @@ export default function App() {
   const studentPanel = (
     <StudentHomePanel
       me={me}
-      onSignedIn={async () => {
+      onSignedIn={async (isNew) => {
         await loadMe();
-        notify('Signed in — your progress will be saved');
+        notify(isNew ? 'Account created — try one item of every section' : 'Signed in — your progress will be saved');
       }}
       onAdminSignedIn={async () => {
         const s = await api.session().catch(() => ({ admin: null }));
@@ -150,6 +158,31 @@ export default function App() {
         </main>
         {panel}
       </div>
+
+      {accessAsk && (
+        <Sheet
+          title={`${sectionLabel(accessAsk.section)} is not open for you yet`}
+          size="sm"
+          onClose={() => setAccessAsk(null)}
+          footer={
+            <>
+              <button type="button" className="btn btn--glass" onClick={() => setAccessAsk(null)}>
+                Close
+              </button>
+              <a className="btn btn--dark" href="https://t.me/READING_CDI" target="_blank" rel="noopener">
+                Write to your teacher
+              </a>
+            </>
+          }
+        >
+          <p className="sheet__message">
+            <b>{accessAsk.what}</b> opens when your teacher approves {sectionLabel(accessAsk.section)} for your account.
+            {SECTIONS.find((x) => x.key === accessAsk.section)?.trial
+              ? ` Until then you can try ${SECTIONS.find((x) => x.key === accessAsk.section).trial} for free.`
+              : ''}
+          </p>
+        </Sheet>
+      )}
 
       {toast && (
         <div className="toast" role="status" key={toast.key}>

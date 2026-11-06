@@ -1,21 +1,61 @@
 import { readingPractice } from '../data/readingPractice.js';
 
-// What visitors (not signed in) may open: unit 1 of each vocabulary book and the first
-// passage of each Passage group (and Listening Test 1). Students registered by the teacher: every marathon day;
-// Reading Practice only once the teacher opens it for the student. Shared by the server (api/content) and the UI.
-export const FREE_PRACTICE_IDS = [1, 2, 3].map((n) => readingPractice.find((p) => p.passage === n)?.id).filter(Boolean);
+// Who may open what. Shared by the server (api/content) and the UI.
+//
+// Every section is opened per student by the teacher (students.access). A student
+// who signed up on the site starts with none of them and may try one item of each
+// section (Day 1, one test, Unit 1) until the teacher opens it. Mock tests have no
+// trial. Visitors without an account open nothing: they are asked to sign up.
 
-const FREE = new Set([
-  ...FREE_PRACTICE_IDS.map((id) => `practice/reading/${id}.html`),
-  'practice/listening/test-1.html',
+export const SECTIONS = [
+  { key: 'reading-marathon', label: 'Reading Marathon', trial: 'Day 1' },
+  { key: 'listening-marathon', label: 'Listening Marathon', trial: 'Day 1' },
+  { key: 'reading-practice', label: 'Reading Practice', trial: 'one passage' },
+  { key: 'listening-practice', label: 'Listening Practice', trial: 'Test 1' },
+  { key: 'vocabulary', label: 'Vocabulary', trial: 'Unit 1' },
+  { key: 'mock', label: 'Mock Tests', trial: null },
+];
+export const SECTION_KEYS = SECTIONS.map((s) => s.key);
+export const sectionLabel = (key) => SECTIONS.find((s) => s.key === key)?.label ?? key;
+
+/** Only known section keys, each once, in the usual order. */
+export const cleanAccess = (list) => SECTION_KEYS.filter((k) => Array.isArray(list) && list.includes(k));
+
+/** The section a content path belongs to (null for anything else). */
+export function sectionOf(path) {
+  if (path.startsWith('marathon/reading/')) return 'reading-marathon';
+  if (path.startsWith('marathon/listening/')) return 'listening-marathon';
+  if (path.startsWith('practice/reading/')) return 'reading-practice';
+  if (path.startsWith('practice/listening/')) return 'listening-practice';
+  if (path.startsWith('vocab/')) return 'vocabulary';
+  if (path.startsWith('mock/')) return 'mock';
+  return null;
+}
+
+// The one item of each section a signed-up student may try before it is opened.
+export const TRIAL_PRACTICE_ID = readingPractice.find((p) => p.passage === 1)?.id;
+export const TRIAL_LISTENING_ID = 'test-1';
+export const TRIAL_DAY = 1;
+export const TRIAL_UNIT = 1;
+
+const TRIAL = new Set([
+  'marathon/reading/day-01.html',
+  'marathon/listening/day-01.html',
+  `practice/reading/${TRIAL_PRACTICE_ID}.html`,
+  `practice/listening/${TRIAL_LISTENING_ID}.html`,
   'vocab/essential-words-5/unit-01.json',
   'vocab/collocations/unit-01.json',
 ]);
 
-export const isFreePath = (path) => FREE.has(path);
-export const isFreePractice = (id) => FREE_PRACTICE_IDS.includes(id) || id === 'test-1';
+export const isTrialPath = (path) => TRIAL.has(path);
+export const isTrialPractice = (id) => id === TRIAL_PRACTICE_ID || id === TRIAL_LISTENING_ID;
 
-/** Ask the sign-in panel to show itself (used when a visitor taps a locked item). */
+/** A visitor tapped a locked item: the side panel asks them to create an account. */
 export function askToSignIn(what, kind = 'marathon') {
   window.dispatchEvent(new CustomEvent('rcdi:need-signin', { detail: { what, kind } }));
+}
+
+/** A signed-in student tapped a section the teacher hasn't opened for them yet. */
+export function askForAccess(what, section) {
+  window.dispatchEvent(new CustomEvent('rcdi:need-access', { detail: { what, section } }));
 }

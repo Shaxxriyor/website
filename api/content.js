@@ -1,6 +1,7 @@
 import { json, route, searchParams } from '../server/http.js';
 import { currentAdmin, currentStudent } from '../server/auth.js';
-import { cleanPath, isEngine, isFree, lockedPage, readContent } from '../server/content.js';
+import { cleanPath, isEngine, lockedPage, readContent } from '../server/content.js';
+import { isTrialPath, sectionOf } from '../src/lib/access.js';
 
 // Serves /marathon/*, /practice/*, /vocab/* and /mock/* (rewritten here by vercel.json).
 export const GET = route(async (request) => {
@@ -8,16 +9,16 @@ export const GET = route(async (request) => {
   if (!path) return json({ error: 'Not found.' }, 404);
 
   const engine = isEngine(path);
-  const free = engine || isFree(path);
-  if (!free && !currentAdmin(request)) {
-    // Marathons and Vocabulary: any signed-in student (registered by the teacher).
-    // Reading Practice: only students the teacher has opened it for.
+  const open = engine || Boolean(currentAdmin(request));
+  if (!open) {
+    // Visitors: nothing (they are asked to create an account). Students: the sections the
+    // teacher opened for them, plus the one trial item of every other section.
     const student = await currentStudent(request);
-    const reason = !student ? 'signin' : path.startsWith('practice/') && !student.practice_access ? 'practice' : null;
+    const reason = !student ? 'signin' : student.access.includes(sectionOf(path)) || isTrialPath(path) ? null : 'access';
     if (reason) {
       return path.endsWith('.html')
         ? new Response(lockedPage(path, reason), { status: reason === 'signin' ? 401 : 403, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } })
-        : json({ error: reason === 'signin' ? 'Sign in to open this.' : 'Ask your teacher to open Reading Practice for you.' }, reason === 'signin' ? 401 : 403);
+        : json({ error: reason === 'signin' ? 'Create an account or sign in to open this.' : 'Your teacher has not opened this for your account yet.' }, reason === 'signin' ? 401 : 403);
     }
   }
 
@@ -32,7 +33,7 @@ export const GET = route(async (request) => {
       'content-type': file.type,
       // Never stored by shared caches; signed-in copies stay in this browser only.
       // Engine files are named by their content hash, so they never change.
-      'cache-control': engine ? 'public, max-age=31536000, immutable' : free ? 'public, max-age=3600' : 'private, no-store',
+      'cache-control': engine ? 'public, max-age=31536000, immutable' : 'private, no-store',
       'x-content-type-options': 'nosniff',
       'x-robots-tag': 'noindex, noarchive',
       'referrer-policy': 'same-origin',

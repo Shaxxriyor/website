@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { api } from '../../lib/api.js';
 import { LEVELS, todayISO } from '../../lib/format.js';
 import { Field, Segmented, Sheet } from './ui.jsx';
+import { AccessPicker } from './AccessPicker.jsx';
+import { SECTION_KEYS } from '../../lib/access.js';
 
 const EMPTY = {
   full_name: '',
@@ -12,7 +14,7 @@ const EMPTY = {
   registered_at: todayISO(),
   status: 'active',
   notes: '',
-  practice_access: true,
+  access: SECTION_KEYS,
 };
 
 /** Register a new student, or edit one when `student` is given. */
@@ -147,16 +149,8 @@ export function StudentForm({ student, groups = [], onClose, onSaved }) {
             ]}
           />
         </Field>
-        <Field label="Reading & Listening Practice" wide>
-          <Segmented
-            label="Reading & Listening Practice"
-            value={form.practice_access ? 'yes' : 'no'}
-            onChange={(v) => setForm((f) => ({ ...f, practice_access: v === 'yes' }))}
-            options={[
-              { value: 'yes', label: 'Open (course student)' },
-              { value: 'no', label: 'Marathon only' },
-            ]}
-          />
+        <Field label="Open for this student" wide>
+          <AccessPicker value={form.access ?? []} onChange={(access) => setForm((f) => ({ ...f, access }))} />
         </Field>
         <Field label="Notes (optional)" error={errors.notes} wide htmlFor="sf-notes">
           <textarea

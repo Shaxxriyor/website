@@ -17,11 +17,9 @@ const SOON = {};
 export function HomeView({ onChanged, tab: routeTab, results = [], practice = [], signedIn = false, checking = false, me = null, admin = null }) {
   const tab = categories.some((c) => c.id === routeTab) ? routeTab : 'all';
   const setTab = (id) => navigate(id === 'all' ? '/' : `/${id}`);
-  // Registered students open the marathons; visitors see them locked.
+  // Each section is opened per student by the teacher; until then a student may try one item.
   // While the session is still being checked nothing is shown as locked (the server enforces it anyway).
-  const unlocked = signedIn || Boolean(admin) || checking;
-  // Reading Practice: only for students the teacher has opened it for.
-  const practiceOpen = Boolean(admin) || checking || Boolean(me?.student?.practice_access);
+  const has = (section) => Boolean(admin) || checking || Boolean(me?.student?.access?.includes(section));
 
   return (
     <>
@@ -47,17 +45,17 @@ export function HomeView({ onChanged, tab: routeTab, results = [], practice = []
       {/* Keyed by tab, so switching tabs plays the slide-in animation. */}
       <div className="tab-pane" key={tab}>
         {tab === 'reading-practice' ? (
-          <PracticeLibrary key="reading" skill="reading" results={practice} attempts={me?.attempts} signedIn={signedIn} unlocked={practiceOpen} />
+          <PracticeLibrary key="reading" skill="reading" results={practice} attempts={me?.attempts} signedIn={signedIn} unlocked={has('reading-practice')} />
         ) : tab === 'vocabulary' ? (
-          <VocabularyView me={me} admin={admin} signedIn={unlocked} onChanged={onChanged} />
+          <VocabularyView me={me} admin={admin} signedIn={signedIn} unlocked={has('vocabulary')} onChanged={onChanged} />
         ) : tab === 'listening-practice' ? (
-          <PracticeLibrary key="listening" skill="listening" results={practice} attempts={me?.attempts} signedIn={signedIn} unlocked={practiceOpen} />
+          <PracticeLibrary key="listening" skill="listening" results={practice} attempts={me?.attempts} signedIn={signedIn} unlocked={has('listening-practice')} />
         ) : tab === 'listening-marathon' ? (
-          <MarathonView marathon={listeningMarathon} icon={ListeningMarathonIcon} skill="listening" results={results} attempts={me?.attempts} signedIn={unlocked} />
+          <MarathonView marathon={listeningMarathon} icon={ListeningMarathonIcon} skill="listening" results={results} attempts={me?.attempts} signedIn={signedIn} unlocked={has('listening-marathon')} />
         ) : tab === 'reading-marathon' ? (
-          <MarathonView marathon={readingMarathon} icon={ReadingMarathonIcon} skill="reading" results={results} attempts={me?.attempts} signedIn={unlocked} />
+          <MarathonView marathon={readingMarathon} icon={ReadingMarathonIcon} skill="reading" results={results} attempts={me?.attempts} signedIn={signedIn} unlocked={has('reading-marathon')} />
         ) : tab === 'mock' ? (
-          <MockView signedIn={unlocked} isStudent={Boolean(me)} teacher={Boolean(admin)} />
+          <MockView unlocked={has('mock')} isStudent={Boolean(me)} teacher={Boolean(admin)} />
         ) : SOON[tab] ? (
           <div className="empty card-white">
             <span className="empty__icon">

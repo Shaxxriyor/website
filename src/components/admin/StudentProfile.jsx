@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import { api } from '../../lib/api.js';
+import { sectionLabel } from '../../lib/access.js';
+import { AccessPicker } from './AccessPicker.jsx';
 import { navigate } from '../../lib/router.js';
 import { formatCode, formatDate, hours, levelName, relativeDay, timeAgo } from '../../lib/format.js';
 import { MarathonGrid } from '../MarathonGrid.jsx';
@@ -119,7 +121,7 @@ export function StudentProfile({ id, version, onChanged, notify, onLoaded }) {
         />
       </div>
 
-      <PracticeAccess student={s} notify={notify} onChanged={onChanged} />
+      <SectionAccess student={s} notify={notify} onChanged={onChanged} />
       <AccessCard student={s} notify={notify} onChanged={onChanged} />
 
       {s.notes && <p className="profile-notes card-white">{s.notes}</p>}
@@ -238,15 +240,17 @@ function Stat({ tone, label, value, small }) {
 }
 
 
-/** Reading & Listening Practice are opened per student; marathons are free for every account. */
-function PracticeAccess({ student, notify, onChanged }) {
+/** Which sections are opened for the student. Students who signed up start with none (one trial item each). */
+function SectionAccess({ student, notify, onChanged }) {
   const [busy, setBusy] = useState(false);
-  const on = student.practice_access;
-  async function toggle() {
+  const access = student.access ?? [];
+  const waiting = student.self_registered && access.length === 0;
+  async function save(next) {
     setBusy(true);
     try {
-      await api.setPracticeAccess(student.id, !on);
-      notify(on ? 'Practice closed' : 'Reading & Listening Practice opened');
+      await api.setAccess(student.id, next);
+      const opened = next.filter((k) => !access.includes(k));
+      notify(opened.length ? `Opened: ${opened.map(sectionLabel).join(', ')}` : next.length ? 'Access updated' : 'Everything closed');
       onChanged();
     } catch (err) {
       notify(err.message);
@@ -254,20 +258,16 @@ function PracticeAccess({ student, notify, onChanged }) {
     setBusy(false);
   }
   return (
-    <section className={`access card-white practice-access ${on ? 'is-on' : ''}`} aria-label="Practice access">
+    <section className={`access card-white section-access ${waiting ? 'is-waiting' : ''}`} aria-label="Access">
       <div className="access__text">
-        <span className="label">Reading &amp; Listening Practice access</span>
+        <span className="label">{waiting ? 'Waiting for your approval' : 'Open for this student'}</span>
         <p className="muted-sm">
-          {on
-            ? `${student.full_name} can open all Reading Practice passages and Listening Practice tests.`
-            : 'Marathon only. Reading & Listening Practice are locked (the first passage of each part and Listening Test 1 stay free).'}
+          {waiting
+            ? `${student.full_name} signed up on the site. Everything is closed: they can only try Day 1 of each marathon, one Reading and one Listening test and Unit 1 of Vocabulary. Open the sections they paid for.`
+            : 'Tap a section to open or close it. A closed section still lets them try one item (mocks have no trial).'}
         </p>
       </div>
-      <div className="access__actions">
-        <button className={`btn btn--sm ${on ? 'btn--glass' : 'btn--dark'}`} disabled={busy} onClick={toggle} aria-pressed={on}>
-          {busy ? 'Saving…' : on ? 'Close practice' : 'Give practice access'}
-        </button>
-      </div>
+      <AccessPicker value={access} onChange={save} disabled={busy} />
     </section>
   );
 }

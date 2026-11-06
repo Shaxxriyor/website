@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { join, normalize, extname } from 'node:path';
-import { isFreePath } from '../src/lib/access.js';
+import { sectionLabel, sectionOf } from '../src/lib/access.js';
 
 // Course materials live in /content (not /public) and are served only through
 // api/content: free samples for everyone, everything else for signed-in
@@ -19,7 +19,6 @@ const TYPES = {
   '.json': 'application/json; charset=utf-8',
 };
 
-export const isFree = isFreePath;
 /** The Listening Practice exam engine, shared by every test page (no test content in it). */
 export const isEngine = (path) => /^practice\/listening\/_shared\/[a-f0-9]{12}\.(js|css)$/.test(path);
 
@@ -41,32 +40,23 @@ export async function readContent(path) {
 
 /** Friendly page shown instead of a locked lesson. */
 export function lockedPage(path, reason = 'signin') {
-  const back = path.startsWith('mock/')
-    ? 'mock'
-    : path.startsWith('practice/listening/')
-    ? 'listening-practice'
-    : path.startsWith('practice/')
-      ? 'reading-practice'
-    : path.startsWith('vocab/')
-      ? 'vocabulary'
-      : path.includes('/listening/')
-        ? 'listening-marathon'
-        : 'reading-marathon';
+  const section = sectionOf(path);
+  const back = section || 'all';
+  const what = sectionLabel(section);
+  const body =
+    reason === 'access'
+      ? `<h1>${what} is not open for you yet</h1>
+<p>Your teacher opens each section for your account. Until then you can try one ${section === 'mock' ? 'section' : 'item'} of every section. Write to your teacher to open ${what}.</p>
+<a href="/#/${back}">Back to READING_CDI</a>`
+      : `<h1>Create a free account</h1>
+<p>Sign up on READING_CDI to try one day or test of every section. Your teacher then opens the full course for you.</p>
+<a href="/#/${back}">Sign up on READING_CDI</a>`;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Locked · READING_CDI</title><meta name="robots" content="noindex">
-<style>body{margin:0;min-height:100vh;display:grid;place-items:center;font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;
-color:#1d1b1a;background:radial-gradient(120% 90% at 10% 0%,#d2f5e7,#bfeedd 45%,#a9e4cf)}
-.c{max-width:380px;margin:24px;padding:32px 28px;border-radius:28px;text-align:center;background:rgba(255,255,255,.86);
-box-shadow:0 30px 80px -20px rgba(24,74,58,.28)}.i{font-size:40px}h1{margin:8px 0 6px;font-size:22px;font-weight:600}
-p{margin:0 0 20px;color:#4a4542}a{display:inline-block;padding:12px 22px;border-radius:999px;color:#fff;text-decoration:none;
-font-weight:600;background:linear-gradient(180deg,#34302d,#141211)}</style></head>
-<body><div class="c"><div class="i">🔒</div>${
-    reason === 'practice'
-      ? `<h1>Reading Practice is for course students</h1>
-<p>The marathons are free for everyone. Ask your teacher to open Reading Practice for your account.</p>
-<a href="https://t.me/READING_CDI">Write on Telegram</a>`
-      : `<h1>For READING_CDI students</h1>
-<p>Sign in on READING_CDI with the code from your teacher to open this.</p>
-<a href="/#/${back}">Sign in on READING_CDI</a>`
-  }</div></body></html>`;
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;font:15px/1.5 "DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+color:#1f1b16;background:#f6f4f0}.c{max-width:400px;margin:24px;padding:32px 28px;border-radius:20px;text-align:center;background:#fff;
+box-shadow:0 8px 24px rgba(31,27,22,.08)}.i{width:44px;height:44px;margin:0 auto 6px;border-radius:12px;background:#fbe0dc;display:grid;place-items:center}
+h1{margin:8px 0 6px;font-size:21px;font-weight:600}p{margin:0 0 20px;color:#5e554a}a{display:inline-block;padding:12px 22px;border-radius:10px;
+color:#fff;text-decoration:none;font-weight:600;background:#1f1b16}</style></head>
+<body><div class="c"><div class="i"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b61f25" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>${body}</div></body></html>`;
 }

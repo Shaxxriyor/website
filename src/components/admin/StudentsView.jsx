@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { api } from '../../lib/api.js';
+import { SECTIONS, sectionLabel } from '../../lib/access.js';
 import { formatDate, hours, levelName, timeAgo } from '../../lib/format.js';
 import { ChevronRight, PlusIcon, SearchIcon, TrashIcon, UsersIcon } from '../Icons.jsx';
 import { Avatar } from '../Avatar.jsx';
@@ -12,9 +13,18 @@ const STATUS_TABS = [
   { id: 'all', label: 'All' },
   { id: 'active', label: 'Active' },
   { id: 'inactive', label: 'Inactive' },
-  { id: 'marathon', label: 'Marathon only' },
-  { id: 'practice', label: 'Practice access' },
 ];
+
+const SHORT = {
+  'reading-marathon': 'R. Marathon',
+  'listening-marathon': 'L. Marathon',
+  'reading-practice': 'R. Practice',
+  'listening-practice': 'L. Practice',
+  vocabulary: 'Vocab',
+  mock: 'Mock',
+};
+// Signed up on the site and nothing opened yet.
+const isWaiting = (s) => s.self_registered && !(s.access ?? []).length;
 
 export function StudentsView({ version, onChanged, notify }) {
   const { data, error, loading, reload } = useLoad(() => api.students(), [version]);
@@ -32,12 +42,13 @@ export function StudentsView({ version, onChanged, notify }) {
     all: students.length,
     active: students.filter((s) => s.status === 'active').length,
     inactive: students.filter((s) => s.status === 'inactive').length,
-    marathon: students.filter((s) => !s.practice_access).length,
-    practice: students.filter((s) => s.practice_access).length,
+    waiting: students.filter(isWaiting).length,
   };
+  const [section, setSection] = useState('');
+  const tabs = counts.waiting ? [STATUS_TABS[0], { id: 'waiting', label: 'Waiting for approval' }, ...STATUS_TABS.slice(1)] : STATUS_TABS;
   const matchesTab = (s) =>
-    status === 'all' ||
-    (status === 'marathon' ? !s.practice_access : status === 'practice' ? s.practice_access : s.status === status);
+    (status === 'all' || (status === 'waiting' ? isWaiting(s) : s.status === status)) &&
+    (!section || (section === 'none' ? !(s.access ?? []).length : (s.access ?? []).includes(section)));
 
   const q = search.trim().toLowerCase();
   const visible = students.filter(
@@ -73,7 +84,7 @@ export function StudentsView({ version, onChanged, notify }) {
           />
         </label>
         <div className="seg-tabs" role="tablist" aria-label="Status">
-          {STATUS_TABS.map((t) => (
+          {tabs.map((t) => (
             <button
               key={t.id}
               role="tab"
@@ -85,6 +96,15 @@ export function StudentsView({ version, onChanged, notify }) {
             </button>
           ))}
         </div>
+        <select className="input input--pill" value={section} onChange={(e) => setSection(e.target.value)} aria-label="Opened section">
+          <option value="">Any access</option>
+          {SECTIONS.map((x) => (
+            <option key={x.key} value={x.key}>
+              {x.label} open
+            </option>
+          ))}
+          <option value="none">Nothing open</option>
+        </select>
         {groups.length > 0 && (
           <select className="input input--pill" value={group} onChange={(e) => setGroup(e.target.value)} aria-label="Group">
             <option value="">All groups</option>
@@ -138,7 +158,13 @@ export function StudentsView({ version, onChanged, notify }) {
                 <span>
                   <strong>
                     {s.full_name}
-                    {!s.practice_access && <span className="tag tag--muted student-row__access">Marathon only</span>}
+                    {isWaiting(s) ? (
+                      <span className="tag tag--warn student-row__access">Waiting for approval</span>
+                    ) : (s.access ?? []).length < SECTIONS.length ? (
+                      <span className="tag tag--muted student-row__access" title={(s.access ?? []).map(sectionLabel).join(', ') || 'Nothing open'}>
+                        {(s.access ?? []).length ? (s.access ?? []).map((k) => SHORT[k]).join(' · ') : 'Nothing open'}
+                      </span>
+                    ) : null}
                   </strong>
                   <span className="muted-sm">
                     {s.self_registered ? 'Signed up · ' : ''}

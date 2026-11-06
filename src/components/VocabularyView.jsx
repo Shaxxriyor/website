@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { vocabularyBooks } from '../data/vocabulary.js';
-import { askToSignIn } from '../lib/access.js';
+import { askForAccess, askToSignIn, TRIAL_UNIT } from '../lib/access.js';
 import { LockIcon, Tick, VocabularyIcon } from './Icons.jsx';
 import { Flashcards } from './Flashcards.jsx';
 
@@ -13,12 +13,13 @@ const remembered = () => {
   }
 };
 
-/** Vocabulary: the books as flashcard decks, one deck per unit. Unit 1 of each book is free. */
-export function VocabularyView({ me = null, admin = null, signedIn = false, onChanged }) {
+/** Vocabulary: the books as flashcard decks, one deck per unit. Until the teacher opens it, a student may try Unit 1. */
+export function VocabularyView({ me = null, admin = null, signedIn = false, unlocked: sectionOpen = false, onChanged }) {
   const [bookId, setBookId] = useState(() => vocabularyBooks.find((b) => b.id === remembered())?.id ?? vocabularyBooks[0].id);
   const [open, setOpen] = useState(null);
   const book = vocabularyBooks.find((b) => b.id === bookId);
-  const unlocked = signedIn || Boolean(admin);
+  const unlocked = sectionOpen || Boolean(admin);
+  const canTry = (n) => unlocked || (signedIn && n === TRIAL_UNIT);
 
   // Known cards per unit, from the student's saved progress.
   const progress = useMemo(() => {
@@ -87,7 +88,7 @@ export function VocabularyView({ me = null, admin = null, signedIn = false, onCh
 
       <ol className="vunits">
         {book.units.map((u, i) => {
-          const locked = !unlocked && u.n !== 1;
+          const locked = !canTry(u.n);
           const known = Math.min(knownIn(book, u.n), u.count);
           const done = known >= u.count;
           return (
@@ -95,16 +96,22 @@ export function VocabularyView({ me = null, admin = null, signedIn = false, onCh
               <button
                 type="button"
                 className={`vunit tone-${tones[i % tones.length]} ${locked ? 'is-locked' : ''} ${done ? 'is-done' : ''}`}
-                onClick={() => (locked ? askToSignIn(`${book.title} · Unit ${u.n}`) : setOpen(u))}
+                onClick={() =>
+                  locked
+                    ? signedIn
+                      ? askForAccess(`${book.title} · Unit ${u.n}`, 'vocabulary')
+                      : askToSignIn(`${book.title} · Unit ${u.n}`)
+                    : setOpen(u)
+                }
               >
                 <span className="vunit__top">
                   <span className="day-card__label">Unit</span>
                   {locked ? (
                     <span className="pill pill--glass day-card__status">
-                      <LockIcon size={12} /> Students
+                      <LockIcon size={12} /> {signedIn ? 'Locked' : 'Students'}
                     </span>
                   ) : !unlocked ? (
-                    <span className="pill pill--glass day-card__status">Free</span>
+                    <span className="pill pill--glass day-card__status">Free trial</span>
                   ) : done ? (
                     <span className="pill pill--glass day-card__status">
                       <Tick size={12} /> All known
@@ -135,7 +142,7 @@ export function VocabularyView({ me = null, admin = null, signedIn = false, onCh
           canSave={Boolean(me)}
           onSaved={onChanged}
           onNext={
-            book.units.some((u) => u.n === open.n + 1) && (unlocked || open.n + 1 === 1)
+            book.units.some((u) => u.n === open.n + 1) && canTry(open.n + 1)
               ? () => setOpen(book.units.find((u) => u.n === open.n + 1))
               : null
           }

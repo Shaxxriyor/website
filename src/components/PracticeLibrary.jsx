@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { readingPractice } from '../data/readingPractice.js';
 import { listeningPractice } from '../data/listeningPractice.js';
 import { BookIcon, ListeningIcon, LockIcon, SearchIcon, Tick } from './Icons.jsx';
-import { askToSignIn, isFreePractice } from '../lib/access.js';
+import { askToSignIn, isTrialPractice } from '../lib/access.js';
 import { PracticeSummary } from './PracticeSummary.jsx';
 
 const tones = { 1: 'mint', 2: 'peach', 3: 'lilac', 4: 'rose' };
@@ -45,7 +45,7 @@ export function PracticeLibrary({ skill = 'reading', results = [], attempts = []
   const FILTERS = [{ id: 0, label: 'All' }, ...lib.filters];
   const [passage, setPassage] = useState(0);
   const [q, setQ] = useState('');
-  // Signed in, but Reading Practice isn't opened for this account yet.
+  // Signed in, but this section isn't opened for the account yet (one trial test only).
   const [gate, setGate] = useState(0);
   const gated = signedIn && !unlocked;
   const askForPractice = (title) => {
@@ -93,9 +93,8 @@ export function PracticeLibrary({ skill = 'reading', results = [], attempts = []
       {gated && (
         <div className="practice-gate" key={gate} role="status">
           <p>
-            <LockIcon size={16} /> <b>{lib.title} is for course students.</b>{' '}
-            {skill === 'reading' ? 'The first passage of each part is free.' : 'Test 1 is free.'} Ask your teacher to open
-            all {all.length} {lib.unit} for your account.
+            <LockIcon size={16} /> <b>{lib.title} is not open for your account yet.</b> You can try{' '}
+            {skill === 'reading' ? 'one passage' : 'Test 1'} for free; your teacher opens all {all.length} {lib.unit} for you.
           </p>
           <a className="btn btn--dark btn--sm" href="https://t.me/READING_CDI" target="_blank" rel="noopener">
             Ask on Telegram
@@ -142,7 +141,8 @@ export function PracticeLibrary({ skill = 'reading', results = [], attempts = []
         <ul className="plib">
           {visible.map((p) => {
             const r = best.get(p.id);
-            const locked = !unlocked && !isFreePractice(p.id);
+            const trial = !unlocked && signedIn && isTrialPractice(p.id);
+            const locked = !unlocked && !trial;
             const Item = locked ? 'button' : 'a';
             return (
               <li key={p.id}>
@@ -159,11 +159,11 @@ export function PracticeLibrary({ skill = 'reading', results = [], attempts = []
                     </span>
                   </span>
                   {locked ? (
-                    <span className="plib__go" aria-label="For course students">
+                    <span className="plib__go" aria-label="Not open for your account">
                       <LockIcon size={15} />
                     </span>
-                  ) : !unlocked ? (
-                    <span className="pill pill--glass plib__score">Free</span>
+                  ) : trial && !r ? (
+                    <span className="pill pill--glass plib__score">Free trial</span>
                   ) : r ? (
                     <span className="pill pill--glass plib__score">
                       <Tick size={12} /> {r.correct != null ? `${r.correct}/${r.total} · Band ${Number(r.band).toFixed(1)}` : 'Done'}
@@ -180,7 +180,7 @@ export function PracticeLibrary({ skill = 'reading', results = [], attempts = []
         </ul>
       )}
       {!signedIn && (
-        <p className="muted-sm plib__hint">Sign in with your code to save your scores. All {lib.unit} open for course students.</p>
+        <p className="muted-sm plib__hint">Create a free account to try one test. Your teacher then opens all {lib.unit} for you.</p>
       )}
     </section>
   );

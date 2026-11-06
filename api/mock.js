@@ -1,5 +1,5 @@
-import { json, readBody, route, searchParams } from '../server/http.js';
-import { currentAdmin, requireAdmin, requireStudent } from '../server/auth.js';
+import { ApiError, json, readBody, route, searchParams } from '../server/http.js';
+import { currentAdmin, currentStudent, requireAdmin, requireStudent } from '../server/auth.js';
 import { id } from '../server/model.js';
 import { deleteMockResult, getMockResult, listMockResults, saveMockResult } from '../server/mock.js';
 
@@ -15,8 +15,10 @@ export const GET = route(async (request) => {
 export const POST = route(async (request) => {
   const body = await readBody(request);
   if (body.action === 'save') {
-    const sid = await requireStudent(request);
-    return json(await saveMockResult(sid, body.result));
+    const student = await currentStudent(request);
+    if (!student) throw new ApiError('Please sign in.', 401);
+    if (!student.access.includes('mock')) throw new ApiError('Your teacher has not opened Mock Tests for you yet.', 403);
+    return json(await saveMockResult(student.id, body.result));
   }
   if (body.action === 'delete') {
     requireAdmin(request);

@@ -323,59 +323,101 @@ assert.deepEqual(r.data.attempts.find((g) => g.key === 'listening-5').tries.map(
 r = await call('students', { query: `?id=${kamola}` });
 assert.ok(r.data.attempts.some((g) => g.key === 'p2-coral-reefs' && g.tries.length === 1), 'teacher sees attempts; older scores backfilled');
 
-// course materials: day 1 free, the rest for signed-in students / teacher
+// course materials: visitors open nothing; students open the sections the teacher opened
 const get = (path, cookieHeader) =>
   api.content.GET(new Request(`https://example.test/api/content?path=${encodeURIComponent(path)}`, { headers: cookieHeader ? { cookie: cookieHeader } : {} }));
 r = await get('els/day-01-1.webp');
 assert.equal(r.status, 404, 'ELS Reading is gone');
 r = await get('practice/reading/p1-a-brief-history-of-ballet.html');
-assert.equal(r.status, 200, 'first Passage 1 practice is free');
-r = await get('practice/reading/p1-rubber.html');
+assert.equal(r.status, 401, 'visitors open nothing, not even the trial items');
+assert.match(await r.text(), /Create a free account/);
+r = await get('marathon/reading/day-01.html');
 assert.equal(r.status, 401);
-assert.match(await r.text(), /For READING_CDI students/);
 r = await get('vocab/collocations/unit-05.json', studentCookie);
-assert.equal(r.status, 200, 'signed-in student opens everything');
+assert.equal(r.status, 200, 'students added by the teacher get every section');
 assert.equal(r.headers.get('cache-control'), 'private, no-store');
 r = await get('practice/listening/test-30.html', cookie);
 assert.equal(r.status, 200, 'teacher too');
-r = await get('marathon/reading/day-01.html');
-assert.equal(r.status, 401, 'marathons are for registered students only (no free day)');
-r = await get('marathon/listening/day-01.html');
-assert.equal(r.status, 401);
 r = await get('marathon/reading/day-20.html', studentCookie);
-assert.equal(r.status, 200, 'registered students open every marathon day');
-
-// sign-up is closed: the teacher registers students and gives them a code
-r = await asStudent('me', { method: 'POST', body: { action: 'signup', full_name: 'Aziz Karimov', email: 'aziz@example.com', password: 'longenough1' }, ip: '7.7.7.7' });
-assert.equal(r.status, 400, 'no self sign-up');
-r = await asStudent('me', { method: 'POST', body: { action: 'email-login', email: 'aziz@example.com', password: 'longenough1' }, ip: '7.7.7.7' });
-assert.equal(r.status, 400, 'no email sign-in');
-// practice access is per student, set by the teacher
-r = await call('students', { method: 'POST', body: { action: 'create', ...base, email: '', full_name: 'Aziz Karimov', practice_access: false } });
-const aziz = r.data;
-let azizCookie = '';
-{
-  const res = await api.me.POST(new Request('https://example.test/api/me', { method: 'POST', headers: { 'x-forwarded-for': '7.7.7.8', 'content-type': 'application/json', 'x-requested-with': 'fetch' }, body: JSON.stringify({ action: 'login', code: aziz.access_code }) }));
-  azizCookie = res.headers.get('set-cookie').split(';')[0];
-}
-r = await get('practice/reading/p1-rubber.html', azizCookie);
-assert.equal(r.status, 403, 'Reading Practice locked until the teacher opens it');
-assert.match(await r.text(), /Reading Practice is for course students/);
-r = await get('practice/reading/p1-a-brief-history-of-ballet.html', azizCookie);
-assert.equal(r.status, 200, 'free practice passage still open');
-r = await get('marathon/listening/day-05.html', azizCookie);
-assert.equal(r.status, 200, 'marathons open to every registered student');
-r = await get('practice/reading/p1-rubber.html', studentCookie);
-assert.equal(r.status, 200, 'students with practice access open it');
-r = await call('students', { method: 'POST', body: { action: 'practice-access', id: aziz.id, value: true } });
 assert.equal(r.status, 200);
-r = await get('practice/reading/p1-rubber.html', azizCookie);
-assert.equal(r.status, 200, 'teacher opened Reading Practice');
+
+// sign-up on the site: every section closed, one trial item each, until the teacher opens it
+r = await asStudent('me', { method: 'POST', body: { action: 'signup', full_name: 'Aziz Karimov', phone: '+998 90 111 22 33', email: 'aziz@example.com', password: 'short' }, ip: '7.7.7.7' });
+assert.equal(r.status, 422, 'password 8+ characters');
+r = await asStudent('me', { method: 'POST', body: { action: 'signup', full_name: 'Aziz Karimov', email: 'aziz@example.com', password: 'longenough1' }, ip: '7.7.7.7' });
+assert.equal(r.status, 422, 'phone is required');
+let azizCookie = '';
+const azizCall = async (name, body) => {
+  const headers = { 'x-forwarded-for': '7.7.7.8', 'content-type': 'application/json', 'x-requested-with': 'fetch' };
+  if (azizCookie) headers.cookie = azizCookie;
+  const res = await api[name][body ? 'POST' : 'GET'](new Request(`https://example.test/api/${name}`, { method: body ? 'POST' : 'GET', headers, body: body && JSON.stringify(body) }));
+  const set = res.headers.get('set-cookie');
+  if (set) azizCookie = set.split(';')[0];
+  return { status: res.status, data: await res.json() };
+};
+r = await azizCall('me', { action: 'signup', full_name: 'Aziz Karimov', phone: '+998 90 111 22 33', email: 'Aziz@Example.com', password: 'longenough1' });
+assert.equal(r.status, 201);
+r = await azizCall('me', { action: 'signup', full_name: 'Aziz 2', phone: '+998 90 111 22 34', email: 'aziz@example.com', password: 'longenough1' });
+assert.equal(r.status, 409, 'one account per email');
+r = await azizCall('me');
+assert.deepEqual(r.data.student.access, [], 'nothing opened yet');
+assert.equal(r.data.student.self_registered, true);
+const aziz = { id: r.data.student.id };
+for (const [path, status] of [
+  ['marathon/reading/day-01.html', 200],
+  ['marathon/reading/day-02.html', 403],
+  ['marathon/listening/day-01.html', 200],
+  ['marathon/listening/day-03.html', 403],
+  ['practice/reading/p1-a-brief-history-of-ballet.html', 200],
+  ['practice/reading/p2-coral-reefs.html', 403],
+  ['practice/listening/test-1.html', 200],
+  ['practice/listening/test-2.html', 403],
+  ['vocab/essential-words-5/unit-01.json', 200],
+  ['vocab/essential-words-5/unit-02.json', 403],
+  ['mock/full-mock-06-11-2026.html', 403],
+]) {
+  r = await get(path, azizCookie);
+  assert.equal(r.status, status, `trial: ${path}`);
+}
+r = await get('marathon/reading/day-02.html', azizCookie);
+assert.match(await r.text(), /Reading Marathon is not open for you yet/);
+// The teacher sees the new student waiting and opens only the mocks.
+r = await call('students');
+assert.deepEqual(r.data.students.find((x) => x.id === aziz.id).access, []);
+r = await call('students', { method: 'POST', body: { action: 'access', id: aziz.id, access: ['mock', 'nonsense'] } });
+assert.deepEqual(r.data.access, ['mock'], 'unknown sections dropped');
+r = await get('mock/full-mock-06-11-2026.html', azizCookie);
+assert.equal(r.status, 200, 'mock opened');
+r = await get('marathon/reading/day-02.html', azizCookie);
+assert.equal(r.status, 403, 'marathons still closed');
+// …then the Reading Marathon as well.
+r = await call('students', { method: 'POST', body: { action: 'access', id: aziz.id, access: ['reading-marathon', 'mock'] } });
+r = await get('marathon/reading/day-02.html', azizCookie);
+assert.equal(r.status, 200, 'Reading Marathon opened');
+r = await get('marathon/listening/day-03.html', azizCookie);
+assert.equal(r.status, 403, 'Listening Marathon still closed');
+// Editing the student without touching access keeps it.
+r = await call('students', { query: `?id=${aziz.id}` });
+const azizRow = r.data.student;
+r = await call('students', { method: 'POST', body: { action: 'update', id: aziz.id, ...base, email: azizRow.email, phone: azizRow.phone, full_name: 'Aziz Karimov', level: 'B1' } });
+assert.equal(r.status, 200);
+r = await call('students', { query: `?id=${aziz.id}` });
+assert.deepEqual(r.data.student.access, ['reading-marathon', 'mock'], 'edit keeps access');
+// Email sign-in works for accounts made on the site.
+azizCookie = '';
+r = await azizCall('me', { action: 'email-login', email: 'aziz@example.com', password: 'wrong-pass' });
+assert.equal(r.status, 401);
+r = await azizCall('me', { action: 'email-login', email: 'AZIZ@example.com', password: 'longenough1' });
+assert.equal(r.status, 200);
+// Open everything for the checks below.
+await call('students', { method: 'POST', body: { action: 'access', id: aziz.id, access: ['reading-marathon', 'listening-marathon', 'reading-practice', 'listening-practice', 'vocabulary', 'mock'] } });
+// A student the teacher registers with some sections only.
+r = await call('students', { method: 'POST', body: { action: 'create', ...base, email: '', full_name: 'Marathon Only', access: ['reading-marathon', 'listening-marathon'] } });
+r = await call('students', { query: `?id=${r.data.id}` });
+assert.deepEqual(r.data.student.access, ['reading-marathon', 'listening-marathon']);
 const selfSignedIn = azizCookie;
 
 // Listening Practice: test 1 free, the engine is public, the rest need practice access
-r = await get('practice/listening/test-1.html');
-assert.equal(r.status, 200, 'Listening Test 1 is free');
 r = await get('practice/listening/test-9.html');
 assert.equal(r.status, 401);
 r = await get('practice/listening/test-9.html', studentCookie);
@@ -399,8 +441,8 @@ assert.equal(lt.skill, 'listening');
 assert.equal(lt.band, 7, '31/40 listening → band 7.0');
 
 // vocabulary flashcards: unit 1 free, the rest with any account; progress saved per unit
-r = await get('vocab/collocations/unit-01.json');
-assert.equal(r.status, 200, 'unit 1 is free');
+r = await get('vocab/collocations/unit-01.json', selfSignedIn);
+assert.equal(r.status, 200);
 assert.ok((await r.json()).cards.length > 10);
 r = await get('vocab/essential-words-5/unit-02.json');
 assert.equal(r.status, 401, 'unit 2 needs an account');

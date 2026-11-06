@@ -132,6 +132,11 @@ const SCHEMA = [
    SELECT l.id, l.correct, l.total, l.lesson_date::timestamptz + interval '12 hours' FROM lessons l
    WHERE l.correct IS NOT NULL AND l.total IS NOT NULL
      AND NOT EXISTS (SELECT 1 FROM attempts a WHERE a.lesson_id = l.id)`,
+  // Per-section access: the sections the teacher has opened for each student. Students from before
+  // keep what they had (everything; Reading and Listening Practice only where it was open).
+  // Students who sign up on the site start with none (they may try one item of each section).
+  `ALTER TABLE students ADD COLUMN IF NOT EXISTS access TEXT[]`,
+  `UPDATE students SET access = CASE WHEN practice_access THEN ARRAY['reading-marathon','listening-marathon','reading-practice','listening-practice','vocabulary','mock']::text[] ELSE ARRAY['reading-marathon','listening-marathon','vocabulary','mock']::text[] END WHERE access IS NULL`,
   // Full mock tests: one row per sitting, saved by the mock page after every part.
   `CREATE TABLE IF NOT EXISTS mock_results (
     id SERIAL PRIMARY KEY,

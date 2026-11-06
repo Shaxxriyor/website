@@ -8,10 +8,12 @@ import { MarathonGrid } from './MarathonGrid.jsx';
 import { PracticeSummary } from './PracticeSummary.jsx';
 import { AttemptsList } from './AttemptsList.jsx';
 import { VocabSummary } from './VocabSummary.jsx';
+import { SECTIONS } from '../lib/access.js';
 
 /**
- * Right panel on the home page. Signed out: sign in with the code from the teacher
- * (students are registered by the teacher), or the teacher signs in as admin.
+ * Right panel on the home page. Signed out: create a free account (every section closed
+ * but one trial item each until the teacher opens it), sign in with email + password or
+ * the code from the teacher, or the teacher signs in as admin.
  * Signed in: the student's own progress, saved automatically from the marathon pages.
  */
 export function StudentHomePanel({ me, onSignedIn, onAdminSignedIn, onSignOut, onChanged, notify }) {
@@ -39,6 +41,8 @@ export function StudentHomePanel({ me, onSignedIn, onAdminSignedIn, onSignOut, o
           </span>
         )}
       </div>
+
+      <AccessNote access={s.access} />
 
       <div className="friends card-white friends--static">
         <span>
@@ -85,13 +89,15 @@ export function StudentHomePanel({ me, onSignedIn, onAdminSignedIn, onSignOut, o
 }
 
 const MODES = {
+  signup: { title: 'Create a free account', button: 'Create account', busy: 'Creating…' },
+  login: { title: 'Welcome back', button: 'Sign in', busy: 'Signing in…' },
   code: { title: 'Sign in with your code', button: 'Sign in', busy: 'Signing in…' },
   admin: { title: 'Teacher / admin', button: 'Sign in as admin', busy: 'Signing in…' },
 };
 
 function SignInPanel({ onSignedIn, onAdminSignedIn }) {
-  const [mode, setMode] = useState('code');
-  const [form, setForm] = useState({ code: '', admin: '' });
+  const [mode, setMode] = useState('signup');
+  const [form, setForm] = useState({ full_name: '', phone: '', email: '', password: '', code: '', admin: '' });
   const [error, setError] = useState('');
   const [fields, setFields] = useState({});
   const [busy, setBusy] = useState(false);
@@ -123,11 +129,22 @@ function SignInPanel({ onSignedIn, onAdminSignedIn }) {
     setFields({});
   }
 
-  const ready = mode === 'admin' ? form.admin : form.code.trim();
+  const ready =
+    mode === 'admin'
+      ? form.admin
+      : mode === 'code'
+        ? form.code.trim()
+        : mode === 'login'
+          ? form.email.trim() && form.password
+          : form.full_name.trim() && form.phone.trim() && form.email.trim() && form.password;
 
   async function submit(e) {
     e.preventDefault();
     if (!ready) return;
+    if (mode === 'signup' && form.password.length < 8) {
+      setFields({ password: 'At least 8 characters' });
+      return;
+    }
     setBusy(true);
     setError('');
     try {
@@ -137,8 +154,11 @@ function SignInPanel({ onSignedIn, onAdminSignedIn }) {
         await onAdminSignedIn?.();
         return;
       }
-      await api.studentLogin(form.code);
-      await onSignedIn();
+      if (mode === 'signup') {
+        await api.signup({ full_name: form.full_name, phone: form.phone, email: form.email, password: form.password });
+      } else if (mode === 'login') await api.emailLogin(form.email, form.password);
+      else await api.studentLogin(form.code);
+      await onSignedIn(mode === 'signup');
     } catch (err) {
       setFields(err.fields || {});
       setError(err.fields && Object.keys(err.fields).length ? '' : err.message);
@@ -148,8 +168,13 @@ function SignInPanel({ onSignedIn, onAdminSignedIn }) {
   }
 
   const m = MODES[mode];
+  const field = (key, props) => (
+    <SignField error={fields[key]}>
+      <input className="input" value={form[key]} onChange={set(key)} aria-label={props.placeholder} {...props} />
+    </SignField>
+  );
   return (
-    <aside className="panel glass panel--signin" aria-label="Sign in">
+    <aside className="panel glass panel--signin" aria-label="Sign up or sign in">
       <form ref={formRef} className="student-signin" onSubmit={submit} noValidate>
         <span className="brand__mark brand__mark--lg">
           <LogoMark size={44} />
@@ -157,32 +182,20 @@ function SignInPanel({ onSignedIn, onAdminSignedIn }) {
         <h2 className="profile__name">{m.title}</h2>
         {wanted && (
           <p key={pulse} className="signin-locked">
-            <LockIcon size={14} /> <b>{wanted.what}</b>{' '}
-            {wanted.kind === 'practice'
-              ? '— Reading & Listening Practice are for course students. Sign in, then ask your teacher to open them for your account.'
-              : '— this is for READING_CDI students. Sign in with the code from your teacher.'}
+            <LockIcon size={14} /> <b>{wanted.what}</b> — create a free account (or sign in) to try one day or test of every section.
           </p>
         )}
-        {mode === 'code' && (
-          <p className="muted-sm">Enter the code from your teacher. Your scores and study time are then saved automatically.</p>
+        {mode === 'signup' && (
+          <p className="muted-sm">Try one day or test of every section for free. Your teacher then opens the full course for you.</p>
         )}
+        {mode === 'login' && <p className="muted-sm">Sign in with the email and password of your account.</p>}
+        {mode === 'code' && <p className="muted-sm">Enter the code from your teacher. Your scores and study time are then saved automatically.</p>}
         {mode === 'admin' && <p className="muted-sm">For the teacher: opens Students, Practice and every material.</p>}
 
         <div className={`signin-fields ${pulse ? 'is-wanted' : ''}`} key={`f-${pulse}-${mode}`}>
           {mode === 'admin' ? (
-            <SignField error={fields.admin}>
-              <input
-                className="input"
-                type="password"
-                value={form.admin}
-                onChange={set('admin')}
-                placeholder="Admin password"
-                aria-label="Admin password"
-                autoComplete="current-password"
-                maxLength={200}
-              />
-            </SignField>
-          ) : (
+            field('admin', { type: 'password', placeholder: 'Admin password', autoComplete: 'current-password', maxLength: 200 })
+          ) : mode === 'code' ? (
             <input
               className="input input--code"
               value={form.code}
@@ -194,6 +207,18 @@ function SignInPanel({ onSignedIn, onAdminSignedIn }) {
               spellCheck={false}
               maxLength={12}
             />
+          ) : (
+            <>
+              {mode === 'signup' && field('full_name', { placeholder: 'Full name (shown in the Rating)', autoComplete: 'name', maxLength: 120 })}
+              {mode === 'signup' && field('phone', { type: 'tel', placeholder: 'Phone number', autoComplete: 'tel', inputMode: 'tel', maxLength: 40 })}
+              {field('email', { type: 'email', placeholder: 'Email', autoComplete: 'email', autoCapitalize: 'none', spellCheck: false, maxLength: 160 })}
+              {field('password', {
+                type: 'password',
+                placeholder: mode === 'signup' ? 'Password (8+ characters)' : 'Password',
+                autoComplete: mode === 'signup' ? 'new-password' : 'current-password',
+                maxLength: 200,
+              })}
+            </>
           )}
         </div>
         {error && (
@@ -205,27 +230,52 @@ function SignInPanel({ onSignedIn, onAdminSignedIn }) {
           {busy ? m.busy : m.button}
         </button>
 
-        {mode === 'admin' ? (
+        {mode !== 'admin' && (
           <p className="signin-switch muted-sm">
-            <button type="button" className="link-btn" onClick={() => switchTo('code')}>
-              ← Student sign-in
-            </button>
+            {mode === 'signup' ? (
+              <>
+                Already have an account?{' '}
+                <button type="button" className="link-btn" onClick={() => switchTo('login')}>
+                  Sign in
+                </button>
+              </>
+            ) : (
+              <>
+                New here?{' '}
+                <button type="button" className="link-btn" onClick={() => switchTo('signup')}>
+                  Create a free account
+                </button>
+              </>
+            )}
           </p>
-        ) : (
+        )}
+        <p className="signin-switch muted-sm">
+          {mode === 'code' || mode === 'admin' ? (
+            <button type="button" className="link-btn" onClick={() => switchTo('login')}>
+              Sign in with email instead
+            </button>
+          ) : (
+            <button type="button" className="link-btn" onClick={() => switchTo('code')}>
+              I have a code from my teacher
+            </button>
+          )}
+        </p>
+        {mode !== 'admin' && (
           <button type="button" className="btn btn--glass btn--sm signin-admin" onClick={() => switchTo('admin')}>
             Teacher / admin
           </button>
         )}
+        {mode === 'login' && <p className="muted-sm signin-forgot">Forgot your password? Ask your teacher on Telegram for a sign-in code.</p>}
 
         <ul className="student-signin__points">
           <li>
-            <CheckIcon size={14} /> Marathons, practice tests and Vocabulary
+            <CheckIcon size={14} /> Free trial: Day 1 of both marathons, one Reading and one Listening test, Unit 1 of Vocabulary
+          </li>
+          <li>
+            <CheckIcon size={14} /> Your teacher opens marathons, practice tests, Vocabulary and mocks for you
           </li>
           <li>
             <CheckIcon size={14} /> Scores and time saved automatically
-          </li>
-          <li>
-            <CheckIcon size={14} /> No code yet? Ask your teacher on Telegram: t.me/READING_CDI
           </li>
         </ul>
       </form>
@@ -297,5 +347,30 @@ function ProfilePhoto({ student, onChanged, notify }) {
         </span>
       )}
     </>
+  );
+}
+
+/** What is open for the student, and what they can only try, while the teacher hasn't opened it. */
+function AccessNote({ access = [] }) {
+  const closed = SECTIONS.filter((x) => !access.includes(x.key));
+  if (!closed.length) return null;
+  const none = closed.length === SECTIONS.length;
+  return (
+    <div className="access-note card-white">
+      <strong>{none ? 'Your account is waiting for approval' : 'Some sections are not open yet'}</strong>
+      <p className="muted-sm">
+        {none ? 'Until your teacher opens the course, you can try:' : 'Until your teacher opens them, you can try:'}
+      </p>
+      <ul>
+        {closed.map((x) => (
+          <li key={x.key}>
+            <LockIcon size={12} /> {x.label}: {x.trial ? <b>{x.trial}</b> : 'opened by your teacher'}
+          </li>
+        ))}
+      </ul>
+      <a className="link-btn" href="https://t.me/READING_CDI" target="_blank" rel="noopener">
+        Write to your teacher on Telegram
+      </a>
+    </div>
   );
 }

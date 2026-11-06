@@ -3,6 +3,7 @@ import { ApiError } from './http.js';
 import { averageBand, bandFor } from '../src/lib/band.js';
 import { marathonTotal } from '../src/lib/marathons.js';
 import { query } from './db.js';
+import { SECTION_KEYS, cleanAccess } from '../src/lib/access.js';
 
 export const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 export const STATUSES = ['active', 'inactive'];
@@ -61,8 +62,21 @@ export function studentInput(input) {
     registered_at: date(input, 'registered_at'),
     status: oneOf(input, 'status', STATUSES),
     notes: text(input, 'notes', { max: 2000 }),
-    practice_access: input.practice_access === undefined ? true : Boolean(input.practice_access),
+    // Sections opened for the student; leaving it out keeps what they have (new students: everything).
+    access: input.access === undefined ? null : cleanAccess(input.access),
   };
+}
+
+/** Sign-up on the site: name, phone, email and a password (8+ characters). */
+export function signupInput(input) {
+  const email = text(input, 'email', { max: 160, required: true }).toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fail('email', 'Enter a valid email');
+  const phone = text(input, 'phone', { max: 40, required: true });
+  if (!/^[+\d][\d\s()-]{5,}$/.test(phone)) fail('phone', 'Enter a valid phone number');
+  const password = String(input.password ?? '');
+  if (password.length < 8) fail('password', 'At least 8 characters');
+  if (password.length > 200) fail('password', 'At most 200 characters');
+  return { full_name: text(input, 'full_name', { max: 120, required: true }), phone, email, password };
 }
 
 function optionalInt(input, field, min, max) {
@@ -118,7 +132,7 @@ export function lessonInput(input) {
 
 const STUDENT_COLUMNS = `s.id, s.full_name, s.phone, s.email, s.group_name, s.level,
   s.registered_at::text AS registered_at, s.status, s.notes, s.access_code, s.avatar_v,
-  s.practice_access, s.self_registered, (s.password_hash IS NOT NULL) AS has_password,
+  s.access, s.self_registered, (s.password_hash IS NOT NULL) AS has_password,
   to_char(s.last_active_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_active_at`;
 
 const LESSON_COLUMNS = `l.id, l.student_id, l.lesson_date::text AS lesson_date, l.kind, l.skill, l.day, l.topic,
@@ -279,20 +293,41 @@ export async function createStudent(input) {
   const s = studentInput(input);
   return withFreshCode(async (code) => {
     const [row] = await query(
-      `INSERT INTO students (full_name, phone, email, group_name, level, registered_at, status, notes, practice_access, access_code)
+      `INSERT INTO students (full_name, phone, email, group_name, level, registered_at, status, notes, access, access_code)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id, access_code`,
-      [s.full_name, s.phone, s.email, s.group_name, s.level, s.registered_at, s.status, s.notes, s.practice_access, code],
+      [s.full_name, s.phone, s.email, s.group_name, s.level, s.registered_at, s.status, s.notes, s.access ?? SECTION_KEYS, code],
     );
     return row;
   });
 }
 
-export async function setPracticeAccess(studentId, value) {
-  const rows = await query('UPDATE students SET practice_access = $1, updated_at = now() WHERE id = $2 RETURNING id', [
-    Boolean(value),
+/** A student who signed up on the site: every section closed until the teacher opens it (one trial item each). */
+export async function registerStudent({ full_name, phone, email, password_hash }) {
+  return withFreshCode(async (code) => {
+    try {
+      const [row] = await query(
+        `INSERT INTO students (full_name, phone, email, level, registered_at, status, password_hash, self_registered, practice_access, access, access_code)
+         VALUES ($1, $2, $3, '', CURRENT_DATE, 'active', $4, true, false, '{}', $5) RETURNING id`,
+        [full_name, phone, email, password_hash, code],
+      );
+      return row;
+    } catch (err) {
+      if (/duplicate key|unique/i.test(String(err.message)) && /email/.test(String(err.message))) {
+        throw new ApiError('This email already has an account — sign in instead.', 409, { email: 'Already registered' });
+      }
+      throw err;
+    }
+  });
+}
+
+/** Open or close sections for a student (the list replaces what they had). */
+export async function setAccess(studentId, list) {
+  const rows = await query('UPDATE students SET access = $1, updated_at = now() WHERE id = $2 RETURNING access', [
+    cleanAccess(list),
     studentId,
   ]);
   if (!rows.length) throw new ApiError('Student not found.', 404);
+  return rows[0].access;
 }
 
 /** Issue a new sign-in code (the old one stops working; signed-in devices stay signed in). */
@@ -308,9 +343,9 @@ export async function updateStudent(studentId, input) {
   const s = studentInput(input);
   const rows = await query(
     `UPDATE students SET full_name = $1, phone = $2, email = $3, group_name = $4, level = $5,
-       registered_at = $6, status = $7, notes = $8, practice_access = $9, updated_at = now()
+       registered_at = $6, status = $7, notes = $8, access = COALESCE($9, access), updated_at = now()
      WHERE id = $10 RETURNING id`,
-    [s.full_name, s.phone, s.email, s.group_name, s.level, s.registered_at, s.status, s.notes, s.practice_access, studentId],
+    [s.full_name, s.phone, s.email, s.group_name, s.level, s.registered_at, s.status, s.notes, s.access, studentId],
   ).catch((err) => {
     if (/duplicate key|unique/i.test(String(err.message)) && /email/.test(String(err.message))) {
       throw new ApiError('Another account already signs in with this email.', 409, { email: 'Already used by another account' });
@@ -364,9 +399,9 @@ export async function deleteLesson(lessonId) {
 /** What a signed-in student sees about themselves — no contact details, no teacher notes. */
 export async function studentSelf(studentId, { recent = 8 } = {}) {
   const data = await getStudent(studentId);
-  const { id: sid, full_name, group_name, level, avatar_v, practice_access } = data.student;
+  const { id: sid, full_name, group_name, level, avatar_v, access, self_registered } = data.student;
   return {
-    student: { id: sid, full_name, group_name, level, avatar_v, practice_access },
+    student: { id: sid, full_name, group_name, level, avatar_v, access: access ?? [], self_registered },
     stats: data.stats,
     marathon: data.marathon,
     practice: data.practice,

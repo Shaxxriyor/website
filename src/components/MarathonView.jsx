@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { ArrowRight, LockIcon, Tick } from './Icons.jsx';
-import { askToSignIn } from '../lib/access.js';
+import { askForAccess, askToSignIn, TRIAL_DAY } from '../lib/access.js';
 
 const tones = ['rose', 'peach', 'lilac', 'mint', 'sky'];
 
@@ -19,7 +19,7 @@ function startedDays(days) {
   return started;
 }
 
-export function MarathonView({ marathon, icon: Icon, skill, results = [], attempts = [], signedIn = false }) {
+export function MarathonView({ marathon, icon: Icon, skill, results = [], attempts = [], signedIn = false, unlocked = signedIn }) {
   const tries = useMemo(() => new Map((attempts ?? []).filter((g) => g.kind === 'marathon' && g.skill === skill).map((g) => [g.day, g.tries])), [attempts, skill]);
   const days = marathon.days;
   const local = useMemo(() => startedDays(days), [days]);
@@ -68,21 +68,27 @@ export function MarathonView({ marathon, icon: Icon, skill, results = [], attemp
           {days.map((d, i) => {
             const done = started.has(d.day);
             const result = saved.get(d.day);
-            // Marathons are for the students the teacher registers (no free preview day).
-            const locked = !signedIn;
+            // Opened per student by the teacher; until then a signed-in student may try Day 1.
+            const trial = !unlocked && signedIn && d.day === TRIAL_DAY;
+            const locked = !unlocked && !trial;
+            const what = `${marathon.title} · Day ${d.day}`;
             const Link = locked ? 'button' : 'a';
             return (
               <li key={d.day} className={`day-card tone-${tones[i % tones.length]} ${locked ? 'is-locked' : ''}`}>
                 <Link
                   className="day-card__link"
-                  {...(locked ? { type: 'button', onClick: () => askToSignIn(`${marathon.title} · Day ${d.day}`) } : { href: d.href })}
+                  {...(locked
+                    ? { type: 'button', onClick: () => (signedIn ? askForAccess(what, `${skill}-marathon`) : askToSignIn(what)) }
+                    : { href: d.href })}
                 >
                   <span className="day-card__top">
                     <span className="day-card__label">Day</span>
                     {locked ? (
                       <span className="pill pill--glass day-card__status">
-                        <LockIcon size={12} /> Students
+                        <LockIcon size={12} /> {signedIn ? 'Locked' : 'Students'}
                       </span>
+                    ) : trial && !done ? (
+                      <span className="pill pill--glass day-card__status">Free trial</span>
                     ) : done ? (
                       <span className="pill pill--glass day-card__status">
                         <Tick size={12} />{' '}

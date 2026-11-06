@@ -1,12 +1,12 @@
 import { MOCKS } from '../lib/mocks.js';
 import { api } from '../lib/api.js';
-import { askToSignIn } from '../lib/access.js';
+import { askForAccess, askToSignIn } from '../lib/access.js';
 import { ArrowRight, LockIcon, MockTestIcon } from './Icons.jsx';
 import { MockResults } from './MockResults.jsx';
 import { ErrorNote, Skeleton, useLoad } from './admin/ui.jsx';
 
 /** Mock Tests tab: the full mocks (registered students only) and the student's own results. */
-export function MockView({ signedIn = false, isStudent = false, teacher = false }) {
+export function MockView({ unlocked = false, isStudent = false, teacher = false }) {
   const { data, error, loading, reload } = useLoad(() => (isStudent ? api.mockResults() : Promise.resolve({ results: [] })), [isStudent]);
   const results = data?.results ?? [];
 
@@ -29,19 +29,21 @@ export function MockView({ signedIn = false, isStudent = false, teacher = false 
 
       <ol className="day-grid mock-grid">
         {MOCKS.map((m, i) => {
-          const locked = !signedIn;
+          const locked = !unlocked;
           const Link = locked ? 'button' : 'a';
           return (
             <li key={m.id} className={`day-card tone-${['lemon', 'rose', 'lilac', 'mint', 'sky'][i % 5]} ${locked ? 'is-locked' : ''}`}>
               <Link
                 className="day-card__link"
-                {...(locked ? { type: 'button', onClick: () => askToSignIn(m.title) } : { href: `./mock/${m.id}.html` })}
+                {...(locked
+                  ? { type: 'button', onClick: () => (isStudent ? askForAccess(m.title, 'mock') : askToSignIn(m.title)) }
+                  : { href: `./mock/${m.id}.html` })}
               >
                 <span className="day-card__top">
                   <span className="day-card__label">Full mock</span>
                   {locked && (
                     <span className="pill pill--glass day-card__status">
-                      <LockIcon size={12} /> Students
+                      <LockIcon size={12} /> {isStudent ? 'Locked' : 'Students'}
                     </span>
                   )}
                 </span>

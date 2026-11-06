@@ -132,6 +132,26 @@ const SCHEMA = [
    SELECT l.id, l.correct, l.total, l.lesson_date::timestamptz + interval '12 hours' FROM lessons l
    WHERE l.correct IS NOT NULL AND l.total IS NOT NULL
      AND NOT EXISTS (SELECT 1 FROM attempts a WHERE a.lesson_id = l.id)`,
+  // Full mock tests: one row per sitting, saved by the mock page after every part.
+  `CREATE TABLE IF NOT EXISTS mock_results (
+    id SERIAL PRIMARY KEY,
+    student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    mock TEXT NOT NULL,
+    sitting TEXT NOT NULL,
+    data JSONB NOT NULL,
+    listening_correct INTEGER,
+    listening_band NUMERIC(2,1),
+    reading_correct INTEGER,
+    reading_band NUMERIC(2,1),
+    writing_words INTEGER[] NOT NULL DEFAULT '{0,0}',
+    leaves INTEGER NOT NULL DEFAULT 0,
+    started_at TIMESTAMPTZ,
+    finished_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (student_id, mock, sitting)
+  )`,
+  `CREATE INDEX IF NOT EXISTS mock_results_updated ON mock_results (updated_at DESC)`,
 ];
 
 // Two fresh instances can start at once (e.g. right after a deploy) and run the

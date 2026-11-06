@@ -8,6 +8,7 @@ import {
   MockTestIcon,
 } from '../components/Icons.jsx';
 import { LISTENING_QUESTIONS, READING_QUESTIONS } from '../lib/marathons.js';
+import { MOCKS } from '../lib/mocks.js';
 
 // Static files in /public are served next to index.html, wherever it lives.
 const asset = (path) => `${import.meta.env.BASE_URL}${path}`;
@@ -19,6 +20,7 @@ export const sectionTones = {
   'reading-practice': 'rose',
   'listening-practice': 'lilac',
   vocabulary: 'sky',
+  mock: 'lemon',
 };
 
 export const categories = [
@@ -92,6 +94,18 @@ export const popularCourses = [
     title: 'Vocabulary',
     meta: '4000 Essential Words and Collocations in Use, with Uzbek translations',
     tab: 'vocabulary',
+  },
+  {
+    id: 'mock',
+    tone: 'lemon',
+    category: 'Mock Tests',
+    skill: 'reading',
+    icon: MockTestIcon,
+    figure: String(MOCKS.length),
+    unit: MOCKS.length === 1 ? 'full mock' : 'full mocks',
+    title: 'Mock Tests',
+    meta: 'Listening, Reading and Writing in one sitting, CDI format',
+    tab: 'mock',
   },
 ];
 

@@ -27,7 +27,7 @@ export const isEngine = (path) => /^practice\/listening\/_shared\/[a-f0-9]{12}\.
 export function cleanPath(raw) {
   const path = normalize(String(raw || '')).replace(/^([/\\])+/, '');
   if (!path || path.startsWith('..') || path.includes('\0') || !TYPES[extname(path)]) return null;
-  if (!/^(marathon|practice|vocab)\//.test(path)) return null;
+  if (!/^(marathon|practice|vocab|mock)\//.test(path)) return null;
   if (path.endsWith('.json') && !/^vocab\/[a-z0-9-]+\/unit-\d{2}\.json$/.test(path)) return null;
   // Scripts and styles only for the shared engine.
   if (/\.(js|css)$/.test(path) && !isEngine(path)) return null;
@@ -41,7 +41,9 @@ export async function readContent(path) {
 
 /** Friendly page shown instead of a locked lesson. */
 export function lockedPage(path, reason = 'signin') {
-  const back = path.startsWith('practice/listening/')
+  const back = path.startsWith('mock/')
+    ? 'mock'
+    : path.startsWith('practice/listening/')
     ? 'listening-practice'
     : path.startsWith('practice/')
       ? 'reading-practice'

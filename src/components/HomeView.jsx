@@ -5,12 +5,11 @@ import { FeaturedCourse } from './FeaturedCourse.jsx';
 import { MarathonView } from './MarathonView.jsx';
 import { PracticeLibrary } from './PracticeLibrary.jsx';
 import { VocabularyView } from './VocabularyView.jsx';
+import { MockView } from './MockView.jsx';
 import { ReadingMarathonIcon, ListeningMarathonIcon, LogoMark, Wordmark, SparkleIcon } from './Icons.jsx';
 import { categories, popularCourses, listeningMarathon, readingMarathon } from '../data/mock.js';
 
-const SOON = {
-  mock: 'Full mock tests in CDI format are on the way.',
-};
+const SOON = {};
 
 /** The public student-facing dashboard (marathons and courses). */
 // The open tab lives in the address (#/reading-practice), so the test pages'
@@ -57,6 +56,8 @@ export function HomeView({ onChanged, tab: routeTab, results = [], practice = []
           <MarathonView marathon={listeningMarathon} icon={ListeningMarathonIcon} skill="listening" results={results} attempts={me?.attempts} signedIn={unlocked} />
         ) : tab === 'reading-marathon' ? (
           <MarathonView marathon={readingMarathon} icon={ReadingMarathonIcon} skill="reading" results={results} attempts={me?.attempts} signedIn={unlocked} />
+        ) : tab === 'mock' ? (
+          <MockView signedIn={unlocked} isStudent={Boolean(me)} teacher={Boolean(admin)} />
         ) : SOON[tab] ? (
           <div className="empty card-white">
             <span className="empty__icon">

@@ -63,6 +63,11 @@ export const api = {
   setAvatar: (image) => request('me', { body: { action: 'avatar', image } }),
   removeAvatar: () => request('me', { body: { action: 'avatar', image: null } }),
   teacherRemoveAvatar: (id) => request('students', { body: { action: 'remove-avatar', id } }),
+
+  // Full mock tests: the teacher gets everyone's results, a student their own.
+  mockResults: () => request('mock'),
+  mockResult: (id) => request('mock', { params: { id } }),
+  deleteMockResult: (id) => request('mock', { body: { action: 'delete', id } }),
 };
 
 /** A student's profile photo; `v` changes whenever they replace it. */

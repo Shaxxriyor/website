@@ -417,6 +417,10 @@ a {
   --tone: var(--sky);
   --tone-deep: var(--sky-deep);
 }
+.tone-lemon {
+  --tone: var(--lemon);
+  --tone-deep: var(--lemon-deep);
+}
 
 /* ---------- Course cards ---------- */
 .course-grid {
@@ -4974,4 +4978,95 @@ a.rating__row:hover .rating__chev {
 }
 .tab.is-active .tab__icon {
   background: var(--tone, #ffffff);
+}
+
+/* ---------- Full mock tests ---------- */
+.day-grid.mock-grid {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+.day-grid.mock-grid .day-card__num.mock-card__date {
+  font-size: clamp(28px, 4vw, 36px);
+  letter-spacing: -0.02em;
+}
+@media (max-width: 640px) {
+  .day-grid.mock-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.mock-mine {
+  margin-top: 8px;
+}
+.mock-results {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+}
+.mock-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) auto auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+}
+.mock-row + .mock-row {
+  border-top: 1px solid var(--line);
+}
+.mock-row--teacher {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto auto;
+}
+.mock-row__what {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.mock-row__what strong {
+  font-weight: 600;
+}
+.mock-row__scores {
+  display: flex;
+  gap: 14px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.mock-row__scores > span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 52px;
+}
+.mock-row__scores small {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.mock-row__scores .is-main {
+  color: var(--accent-ink);
+}
+.mock-row__left {
+  font-size: 13px;
+  color: var(--success);
+  white-space: nowrap;
+}
+.mock-row__left.is-bad {
+  color: var(--danger);
+  font-weight: 600;
+}
+.mock-row__act {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+@media (max-width: 900px) {
+  .mock-row,
+  .mock-row--teacher {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .mock-row__scores {
+    grid-column: 1 / -1;
+    order: 3;
+    justify-content: flex-start;
+  }
+  .mock-row--teacher .mock-row__what {
+    grid-column: 1 / -1;
+  }
 }

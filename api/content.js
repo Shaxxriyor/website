@@ -2,7 +2,7 @@ import { json, route, searchParams } from '../server/http.js';
 import { currentAdmin, currentStudent } from '../server/auth.js';
 import { cleanPath, isEngine, isFree, lockedPage, readContent } from '../server/content.js';
 
-// Serves /marathon/*, /practice/* and /vocab/* (rewritten here by vercel.json).
+// Serves /marathon/*, /practice/*, /vocab/* and /mock/* (rewritten here by vercel.json).
 export const GET = route(async (request) => {
   const path = cleanPath(searchParams(request).get('path'));
   if (!path) return json({ error: 'Not found.' }, 404);

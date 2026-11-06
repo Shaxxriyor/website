@@ -24,6 +24,7 @@ const api = {
   leaderboard: await import('../api/leaderboard.js'),
   avatar: await import('../api/avatar.js'),
   content: await import('../api/content.js'),
+  mock: await import('../api/mock.js'),
 };
 
 let cookie = '';
@@ -462,6 +463,75 @@ r = await call('lessons', { method: 'POST', body: { action: 'create', lesson_dat
 assert.equal(r.status, 201);
 r = await call('lessons', { query: `?student_id=${kamola}&kind=marathon&skill=listening` });
 assert.equal(r.data.lessons.find((l) => l.day === 14).total, 32, 'teacher records use the day total too');
+
+// --- full mock tests: students save every part; the teacher sees and downloads them all ---
+{
+  r = await call('students', { method: 'POST', body: { action: 'create', ...base, full_name: 'Mock Candidate' } });
+  const mockStudent = r.data.id;
+  let mc = '';
+  const asMock = async (method, { body, query = '' } = {}) => {
+    const headers = { 'x-forwarded-for': '6.6.6.6' };
+    if (mc) headers.cookie = mc;
+    if (body) Object.assign(headers, { 'content-type': 'application/json', 'x-requested-with': 'fetch' });
+    const name = body?.action === 'login' ? 'me' : 'mock';
+    const res = await api[name][method](new Request(`https://example.test/api/${name}${query}`, { method, headers, body: body && JSON.stringify(body) }));
+    const set = res.headers.get('set-cookie');
+    if (set) mc = set.split(';')[0];
+    return { status: res.status, data: await res.json() };
+  };
+  const sitting = 'abc123def456';
+  const result = {
+    mock: 'full-mock-06-11-2026', sitting, name: 'Mock Candidate', startedAt: Date.now() - 3600e3,
+    res: { listening: { correct: 30, total: 40, band: '7.0', rows: [{ q: '1', ua: 'river', ca: 'river', got: 1, of: 1, part: 1 }] } },
+    w: { t1: '', t2: '' }, leaves: [{ at: Date.now(), type: 'tab', mod: 'listening' }, { at: Date.now(), type: 'evil', mod: 'x' }],
+    tasks: { 1: { text: 'The table below…', image: '/mock-media/full-mock-06-11-2026-8ab23eedd9.jpg' }, 2: { text: 'Discuss', image: 'javascript:alert(1)' } },
+  };
+  r = await asMock('POST', { body: { action: 'save', result } });
+  assert.equal(r.status, 401, 'saving needs a signed-in student');
+  r = await asMock('POST', { body: { action: 'login', code: (await call('students', { query: `?id=${mockStudent}` })).data.student.access_code } });
+  assert.equal(r.status, 200);
+  r = await asMock('POST', { body: { action: 'save', result: { ...result, mock: 'nope' } } });
+  assert.equal(r.status, 400, 'only known mocks');
+  r = await asMock('POST', { body: { action: 'save', result } });
+  assert.equal(r.status, 200);
+  const rid = r.data.id;
+  // The same sitting again (Reading and Writing done) updates the row.
+  result.res.reading = { correct: 33, total: 40, band: '7.5', rows: [] };
+  result.w = { t1: 'Water use differs a lot between the four countries.', t2: 'Education matters.' };
+  result.finishedAt = Date.now();
+  r = await asMock('POST', { body: { action: 'save', result } });
+  assert.equal(r.data.id, rid, 'one row per sitting');
+  r = await asMock('GET');
+  assert.equal(r.data.results.length, 1);
+  assert.equal(r.data.results[0].reading_band, 7.5);
+  assert.deepEqual(r.data.results[0].writing_words, [9, 2]);
+  assert.equal(r.data.results[0].leaves, 2);
+  assert.ok(r.data.results[0].finished_at, 'finished');
+  r = await asMock('GET', { query: `?id=${rid}` });
+  assert.equal(r.data.result.data.leaves[1].type, 'window', 'unknown leave types are cleaned');
+  assert.equal(r.data.result.data.tasks[2].image, '', 'only /mock-media pictures');
+  assert.equal(r.data.result.data.tasks[1].image, '/mock-media/full-mock-06-11-2026-8ab23eedd9.jpg');
+  r = await asMock('POST', { body: { action: 'delete', id: rid } });
+  assert.equal(r.status, 401, 'students cannot delete');
+  // The teacher sees every student's result and can delete it.
+  r = await call('mock');
+  assert.equal(r.data.results.find((x) => x.id === rid).full_name, 'Mock Candidate');
+  r = await call('mock', { query: `?id=${rid}` });
+  assert.equal(r.data.result.data.w.t1.startsWith('Water'), true);
+  // The mock page itself: students only.
+  const page = (c) => api.content.GET(new Request('https://example.test/api/content?path=mock/full-mock-06-11-2026.html', { headers: c ? { cookie: c } : {} }));
+  assert.equal((await page('')).status, 401, 'visitors see the lock');
+  const ok = await page(mc);
+  assert.equal(ok.status, 200);
+  const html = await ok.text();
+  assert.ok(html.includes("PASSWORD   = 'reading_cdi'"), 'password unchanged');
+  assert.ok(!/t\.me\//i.test(html), 'no Telegram links');
+  assert.ok(html.includes('/mock-guard.js'), 'guard attached');
+  r = await call('mock', { method: 'POST', body: { action: 'delete', id: rid } });
+  assert.equal(r.status, 200);
+  r = await call('mock');
+  assert.equal(r.data.results.some((x) => x.id === rid), false);
+}
 
 // delete all students: needs the typed confirmation, removes everyone and their records
 r = await call('students', { method: 'POST', body: { action: 'delete-all', confirm: 'yes' } });

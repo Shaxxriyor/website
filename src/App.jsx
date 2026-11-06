@@ -7,13 +7,14 @@ import { PublicProfile } from './components/PublicProfile.jsx';
 import { StudentsView } from './components/admin/StudentsView.jsx';
 import { StudentProfile } from './components/admin/StudentProfile.jsx';
 import { PracticeView } from './components/admin/PracticeView.jsx';
+import { MockResultsView } from './components/admin/MockResultsView.jsx';
 import { LoginView } from './components/admin/LoginView.jsx';
 import { OverviewPanel, SignedOutPanel, StudentPanel } from './components/admin/AdminPanel.jsx';
 import { Skeleton } from './components/admin/ui.jsx';
 import { api, setUnauthorizedHandler } from './lib/api.js';
 import { navigate, useRoute } from './lib/router.js';
 
-const ADMIN_ROUTES = ['students', 'practice'];
+const ADMIN_ROUTES = ['students', 'practice', 'mock-results'];
 
 export default function App() {
   const route = useRoute();
@@ -129,7 +130,7 @@ export default function App() {
     );
     panel = <StudentPanel data={profile} onSignOut={signOut} />;
   } else {
-    const View = route.name === 'practice' ? PracticeView : StudentsView;
+    const View = route.name === 'practice' ? PracticeView : route.name === 'mock-results' ? MockResultsView : StudentsView;
     main = <View version={version} onChanged={refresh} notify={notify} />;
     panel = <OverviewPanel version={version} onSignOut={signOut} />;
   }

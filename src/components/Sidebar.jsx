@@ -1,4 +1,4 @@
-import { LogoMark, HomeIcon, UsersIcon, LessonIcon, TrophyIcon } from './Icons.jsx';
+import { LogoMark, HomeIcon, UsersIcon, LessonIcon, TrophyIcon, MockTestIcon } from './Icons.jsx';
 import { Avatar } from './Avatar.jsx';
 
 const nav = [
@@ -7,6 +7,7 @@ const nav = [
   // Teacher-only: shown when the teacher is signed in (or already on a teacher page).
   { id: 'students', label: 'Students', icon: UsersIcon, href: '#/students', teacher: true },
   { id: 'practice', label: 'Practice', icon: LessonIcon, href: '#/practice', teacher: true },
+  { id: 'mock-results', label: 'Mock results', icon: MockTestIcon, href: '#/mock-results', teacher: true },
 ];
 
 export function Sidebar({ active, userName, userId = null, userAvatar = null, teacher = false }) {

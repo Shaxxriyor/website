@@ -76,7 +76,15 @@ cut('background watermark layers', /(:is\([^{]*\)::before\{content:"";position:a
 const links = [...new Set(html.match(/t\.me\/[\w]+|href="https?:[^"]+"/gi) || [])];
 if (links.length) console.warn('  links still in the page:', links.join(', '));
 
-// ---- 3. the site's guard: stay in the window, save results ----
+// ---- 3. open the parts as soon as they are ready ----
+// The page waited for each part's full load (every picture, font and the audio) and gave
+// up after 10 seconds. With the media in separate files that is too slow on a phone, a slow
+// connection or with a content blocker. The parts start on DOMContentLoaded, so wait for
+// that instead, and for up to a minute.
+cut('wait for the part to load', /fr\.contentDocument && fr\.contentDocument\.readyState === 'complete' && typeof/g, "fr.contentDocument && fr.contentDocument.readyState !== 'loading' && typeof", { all: true });
+cut('give the part a minute to start', /\} else if\(tries > 200\)\{ clearInterval\(t\); alert\('The (test|review) could not be opened/g, "} else if(tries > 1200){ clearInterval(t); alert('The $1 could not be opened", { all: true });
+
+// ---- 4. the site's guard: stay in the window, save results ----
 const guard = `<script>window.__MOCK_ID = ${JSON.stringify(slug)};</script>\n<script src="/mock-guard.js"></script>\n`;
 const end = html.lastIndexOf('</body>');
 html = html.slice(0, end) + guard + html.slice(end);

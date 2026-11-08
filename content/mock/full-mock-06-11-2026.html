@@ -22026,10 +22026,10 @@ function launchModule(k){
   const t = setInterval(() => {
     tries++;
     const fn = w.__mockStart;
-    if(fr.contentDocument && fr.contentDocument.readyState === 'complete' && typeof fn === 'function'){
+    if(fr.contentDocument && fr.contentDocument.readyState !== 'loading' && typeof fn === 'function'){
       clearInterval(t);
       setTimeout(() => fn(S.name), 120);
-    } else if(tries > 200){ clearInterval(t); alert('The test could not be opened. Please reload the page.'); }
+    } else if(tries > 1200){ clearInterval(t); alert('The test could not be opened. Please reload the page.'); }
   }, 50);
 }
 /* called by the embedded app when it is submitted (or time runs out) */
@@ -22229,9 +22229,9 @@ function openReview(k){
   let tries = 0;
   const t = setInterval(() => {
     tries++;
-    if(fr.contentDocument && fr.contentDocument.readyState === 'complete' && typeof w.__mockReview === 'function'){
+    if(fr.contentDocument && fr.contentDocument.readyState !== 'loading' && typeof w.__mockReview === 'function'){
       clearInterval(t); setTimeout(() => w.__mockReview(S.name, ans), 150);
-    } else if(tries > 200){ clearInterval(t); alert('The review could not be opened. Please reload the page.'); }
+    } else if(tries > 1200){ clearInterval(t); alert('The review could not be opened. Please reload the page.'); }
   }, 50);
 }
 let reviewing = null;

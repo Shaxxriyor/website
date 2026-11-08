@@ -7,7 +7,9 @@ export async function downloadMockPdf(id) {
     api.mockResult(id),
     import('jspdf'),
     import('jspdf-autotable'),
-    import(/* @vite-ignore */ `${import.meta.env.BASE_URL}mock-report.mjs`),
+    // Resolved against the page, not this file: with the relative build base ('./') a plain
+    // './mock-report.mjs' would point into /assets/, where the file isn't.
+    import(/* @vite-ignore */ new URL('mock-report.mjs', document.baseURI).href),
   ]);
   applyPlugin(jsPDF);
   const data = { ...result.data, name: result.full_name || result.data.name };

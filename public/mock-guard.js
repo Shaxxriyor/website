@@ -302,10 +302,21 @@
     paintSaved();
     return r;
   };
-  // The PDF report: both Writing tasks with their pictures, for the examiner.
+  // The PDF report: both Writing tasks with their pictures, for the examiner. A plain script
+  // (window.MockReport), because Safari refuses module scripts the host doesn't type as JavaScript.
+  function loadReport() {
+    if (window.MockReport) return Promise.resolve(window.MockReport);
+    return new Promise(function (ok, no) {
+      var sc = document.createElement('script');
+      sc.src = '/mock-report.js?v=2';
+      sc.onload = function () { window.MockReport ? ok(window.MockReport) : no(); };
+      sc.onerror = function () { sc.remove(); no(); };
+      document.head.appendChild(sc);
+    });
+  }
   downloadPDF = function () {
     if (!window.jspdf || !window.jspdf.jsPDF) { alert('The PDF maker is not available here. Use Download .txt instead.'); return; }
-    import('/mock-report.mjs')
+    loadReport()
       .then(function (m) {
         var r = result();
         return m.buildMockPdf(r, window.jspdf.jsPDF).then(function (doc) { doc.save(m.fileName(r)); });

@@ -1,20 +1,66 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "api/content.js": { "includeFiles": "content/**" }
+    "api/content.js": {
+      "includeFiles": "content/**"
+    }
   },
   "rewrites": [
-    { "source": "/marathon/:path*", "destination": "/api/content?path=marathon/:path*" },
-    { "source": "/practice/:path*", "destination": "/api/content?path=practice/:path*" },
-    { "source": "/vocab/:path*", "destination": "/api/content?path=vocab/:path*" },
-    { "source": "/mock/:path*", "destination": "/api/content?path=mock/:path*" }
+    {
+      "source": "/marathon/:path*",
+      "destination": "/api/content?path=marathon/:path*"
+    },
+    {
+      "source": "/practice/:path*",
+      "destination": "/api/content?path=practice/:path*"
+    },
+    {
+      "source": "/vocab/:path*",
+      "destination": "/api/content?path=vocab/:path*"
+    },
+    {
+      "source": "/mock/:path*",
+      "destination": "/api/content?path=mock/:path*"
+    }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    },
+    {
+      "source": "/mock-report.js",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/javascript; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/mock-guard.js",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/javascript; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
       ]
     }
   ]

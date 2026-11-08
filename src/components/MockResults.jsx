@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { api } from '../lib/api.js';
-import { downloadMockPdf } from '../lib/mockPdf.js';
+import { makeMockPdf, needsTapToSave, savePdf } from '../lib/mockPdf.js';
 import { DownloadIcon, TrashIcon } from './Icons.jsx';
 import { Avatar } from './Avatar.jsx';
-import { ConfirmSheet } from './admin/ui.jsx';
+import { ConfirmSheet, Sheet } from './admin/ui.jsx';
 
 const band = (b) => (b == null ? '—' : Number(b).toFixed(1));
 const overall = (r) =>
@@ -17,11 +17,15 @@ const when = (t) =>
 export function MockResults({ results, teacher = false, onDeleted, notify }) {
   const [busy, setBusy] = useState(null);
   const [deleting, setDeleting] = useState(null);
+  // iPhone: the finished PDF waits here for a tap on "Save PDF".
+  const [ready, setReady] = useState(null);
 
   async function download(r) {
     setBusy(r.id);
     try {
-      await downloadMockPdf(r.id);
+      const pdf = await makeMockPdf(r.id);
+      if (needsTapToSave()) setReady(pdf);
+      else await savePdf(pdf);
     } catch (e) {
       notify?.(e?.message || 'The PDF could not be made.');
     } finally {
@@ -87,6 +91,36 @@ export function MockResults({ results, teacher = false, onDeleted, notify }) {
           );
         })}
       </ul>
+      {ready && (
+        <Sheet
+          title="The PDF is ready"
+          size="sm"
+          onClose={() => setReady(null)}
+          footer={
+            <>
+              <button type="button" className="btn btn--glass" onClick={() => setReady(null)}>
+                Close
+              </button>
+              <button
+                type="button"
+                className="btn btn--dark"
+                onClick={() => {
+                  savePdf(ready);
+                  setReady(null);
+                }}
+              >
+                <DownloadIcon size={15} /> Save PDF
+              </button>
+            </>
+          }
+        >
+          <p className="sheet__message">
+            <b>{ready.name}</b>
+            <br />
+            Tap Save PDF, then choose Save to Files (or send it on Telegram).
+          </p>
+        </Sheet>
+      )}
       {deleting && (
         <ConfirmSheet
           title="Delete this result?"

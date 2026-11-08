@@ -43,7 +43,12 @@ async function pdfLibrary() {
   }
 }
 
-export async function downloadMockPdf(id) {
+/** iPhone and iPad: a file can only be saved straight from a tap, not after the seconds the PDF takes. */
+export const needsTapToSave = () =>
+  /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+/** Build the PDF of one saved result: { blob, name }. */
+export async function makeMockPdf(id) {
   const [{ result }, [{ jsPDF }, { applyPlugin }], report] = await Promise.all([api.mockResult(id), pdfLibrary(), loadReport()]);
   try {
     sessionStorage.removeItem('rcdi_pdf_reload');
@@ -53,5 +58,29 @@ export async function downloadMockPdf(id) {
   applyPlugin(jsPDF);
   const data = { ...result.data, name: result.full_name || result.data.name };
   const doc = await report.buildMockPdf(data, jsPDF);
-  doc.save(report.fileName(data));
+  return { blob: doc.output('blob'), name: report.fileName(data) };
+}
+
+/** Save a built PDF (call it from a tap on iPhone). */
+export async function savePdf({ blob, name }) {
+  const file = typeof File === 'function' ? new File([blob], name, { type: 'application/pdf' }) : null;
+  if (needsTapToSave() && file && navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: name });
+      return;
+    } catch (err) {
+      if (err?.name === 'AbortError') return; // closed the share sheet
+    }
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  if (needsTapToSave()) a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+    a.remove();
+  }, 60000);
 }

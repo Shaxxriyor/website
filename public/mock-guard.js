@@ -314,12 +314,49 @@
       document.head.appendChild(sc);
     });
   }
+  function tapToSave() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+  function savePdfFile(blob, name) {
+    var file = null;
+    try { file = new File([blob], name, { type: 'application/pdf' }); } catch (e) {}
+    if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: name }).catch(function (err) {
+        if (!err || err.name !== 'AbortError') openBlob(blob, name);
+      });
+      return;
+    }
+    openBlob(blob, name);
+  }
+  function openBlob(blob, name) {
+    var url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = name; a.target = '_blank';
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 60000);
+  }
   downloadPDF = function () {
     if (!window.jspdf || !window.jspdf.jsPDF) { alert('The PDF maker is not available here. Use Download .txt instead.'); return; }
     loadReport()
       .then(function (m) {
         var r = result();
-        return m.buildMockPdf(r, window.jspdf.jsPDF).then(function (doc) { doc.save(m.fileName(r)); });
+        return m.buildMockPdf(r, window.jspdf.jsPDF).then(function (doc) {
+          var name = m.fileName(r);
+          if (!tapToSave()) { doc.save(name); return; }
+          // iPhone/iPad: saving must come straight from a tap, so offer a Save button once it is ready.
+          var blob = doc.output('blob');
+          box.classList.add('info');
+          $('mg-t').textContent = 'Your PDF is ready';
+          $('mg-p').textContent = 'Tap Save PDF, then choose Save to Files (or send it on Telegram).';
+          $('mg-c').textContent = '';
+          var btn = $('mg-b');
+          btn.textContent = 'Save PDF';
+          box.classList.add('on');
+          btn.onclick = function () {
+            btn.onclick = null;
+            box.classList.remove('on');
+            savePdfFile(blob, name);
+          };
+        });
       })
       .catch(function () { alert('The PDF could not be made. Use Download .txt instead.'); });
   };

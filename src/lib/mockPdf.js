@@ -9,7 +9,7 @@ function loadReport() {
   loading ??= new Promise((resolve, reject) => {
     const s = document.createElement('script');
     // Resolved against the page: with the relative build base a plain path would point into /assets/.
-    s.src = new URL('mock-report.js?v=2', document.baseURI).href;
+    s.src = new URL('mock-report.js?v=3', document.baseURI).href;
     s.onload = () => (window.MockReport ? resolve(window.MockReport) : reject(new Error('The PDF maker did not load.')));
     s.onerror = () => {
       loading = null;

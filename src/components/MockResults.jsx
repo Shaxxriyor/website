@@ -6,8 +6,13 @@ import { Avatar } from './Avatar.jsx';
 import { ConfirmSheet, Sheet } from './admin/ui.jsx';
 
 const band = (b) => (b == null ? '—' : Number(b).toFixed(1));
-const overall = (r) =>
-  r.listening_band == null || r.reading_band == null ? null : (Math.round(((r.listening_band + r.reading_band) / 2) * 2) / 2).toFixed(1);
+// All four skills once Writing and Speaking are marked; until then Listening + Reading.
+const overall = (r) => {
+  const four = [r.listening_band, r.reading_band, r.writing, r.speaking];
+  const have = four.every((x) => x != null) ? four : [r.listening_band, r.reading_band];
+  if (have.some((x) => x == null)) return null;
+  return (Math.round((have.reduce((a, b) => a + b, 0) / have.length) * 2) / 2).toFixed(1);
+};
 const when = (t) =>
   t
     ? new Date(t).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -19,6 +24,7 @@ export function MockResults({ results, teacher = false, onDeleted, notify }) {
   const [deleting, setDeleting] = useState(null);
   // iPhone: the finished PDF waits here for a tap on "Save PDF".
   const [ready, setReady] = useState(null);
+  const [reading, setReading] = useState(null);
 
   async function download(r) {
     setBusy(r.id);
@@ -65,19 +71,28 @@ export function MockResults({ results, teacher = false, onDeleted, notify }) {
                   <small>Reading</small>
                   {band(r.reading_band)}
                 </span>
-                <span className="is-main">
+                <span title={`Task 1: ${w1} words, Task 2: ${w2} words`}>
+                  <small>Writing</small>
+                  {r.writing != null ? band(r.writing) : teacher && w1 + w2 ? `${w1} + ${w2}` : '—'}
+                </span>
+                <span title={r.speaking_parts ? `F / L / G / P: ${r.speaking_parts}` : undefined}>
+                  <small>Speaking</small>
+                  {band(r.speaking)}
+                </span>
+                <span className="is-main" title={r.writing != null && r.speaking != null ? 'All four skills' : 'Listening and Reading'}>
                   <small>Overall</small>
                   {ov ?? '—'}
-                </span>
-                <span title="Words written in Task 1 and Task 2">
-                  <small>Writing</small>
-                  {w1 + w2 ? `${w1} + ${w2}` : '—'}
                 </span>
               </span>
               <span className={`mock-row__left ${r.leaves ? 'is-bad' : ''}`} title="Times the student left the test window">
                 {r.leaves ? `Left ${r.leaves}×` : 'Stayed in'}
               </span>
               <span className="mock-row__act">
+                {r.feedback && (
+                  <button type="button" className="btn btn--glass btn--sm" onClick={() => setReading(r)}>
+                    Feedback
+                  </button>
+                )}
                 <button type="button" className="btn btn--dark btn--sm" disabled={busy === r.id} onClick={() => download(r)}>
                   <DownloadIcon size={15} /> {busy === r.id ? 'Making PDF…' : 'PDF'}
                 </button>
@@ -91,6 +106,11 @@ export function MockResults({ results, teacher = false, onDeleted, notify }) {
           );
         })}
       </ul>
+      {reading && (
+        <Sheet title="Writing feedback" subtitle={`${reading.full_name} · ${reading.title}`} size="lg" onClose={() => setReading(null)}>
+          <div className="mock-feedback">{reading.feedback}</div>
+        </Sheet>
+      )}
       {ready && (
         <Sheet
           title="The PDF is ready"

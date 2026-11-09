@@ -30,11 +30,14 @@
     const d = new Date(t || Date.now());
     return `${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}, ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
   };
+  // All four skills once the examiners' Writing and Speaking bands are in; until then Listening + Reading.
   function overall(r) {
     const L = r.res?.listening;
     const R = r.res?.reading;
     if (!L || !R) return '';
-    return (Math.round(((Number(L.band) + Number(R.band)) / 2) * 2) / 2).toFixed(1);
+    const m = r.marks || {};
+    const b = m.writing != null && m.speaking != null ? [L.band, R.band, m.writing, m.speaking] : [L.band, R.band];
+    return (Math.round((b.reduce((s, x) => s + Number(x), 0) / b.length) * 2) / 2).toFixed(1);
   }
   const mark = (x) => (!String(x.ua || '').trim() ? 'x (no answer)' : x.got === x.of ? 'correct' : x.got ? `x (${x.got} of ${x.of})` : 'x');
 
@@ -74,6 +77,7 @@
     const w = r.w || {};
     const tasks = r.tasks || {};
     const leaves = r.leaves || [];
+    const marks = r.marks || {};
     const title = r.title || 'Full Mock Test';
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
     const W = doc.internal.pageSize.getWidth();
@@ -112,13 +116,14 @@
       body: [
         ['Listening', r.res?.listening ? `${L.correct} / ${L.total || 40}` : 'not taken', r.res?.listening ? L.band : '-'],
         ['Reading', r.res?.reading ? `${R.correct} / ${R.total || 40}` : 'not taken', r.res?.reading ? R.band : '-'],
-        ['Overall (Listening + Reading)', '', overall(r) || '-'],
-        ['Writing', `Task 1: ${w1} words, Task 2: ${w2} words`, 'for the examiner'],
+        ['Writing', `Task 1: ${w1} words, Task 2: ${w2} words`, marks.writing != null ? Number(marks.writing).toFixed(1) : 'for the examiner'],
+        ['Speaking', marks.speaking_parts ? `F / L / G / P: ${marks.speaking_parts}` : '', marks.speaking != null ? Number(marks.speaking).toFixed(1) : '-'],
+        [marks.writing != null && marks.speaking != null ? 'Overall (all four skills)' : 'Overall (Listening + Reading)', '', overall(r) || '-'],
         ['Left the test window', leaves.length ? `${leaves.length} time${leaves.length === 1 ? '' : 's'}` : 'never', ''],
       ],
       didParseCell: (d) => {
-        if (d.section === 'body' && d.row.index === 2) d.cell.styles.fontStyle = 'bold';
-        if (d.section === 'body' && d.row.index === 4 && leaves.length) d.cell.styles.textColor = [200, 20, 40];
+        if (d.section === 'body' && d.row.index === 4) d.cell.styles.fontStyle = 'bold';
+        if (d.section === 'body' && d.row.index === 5 && leaves.length) d.cell.styles.textColor = [200, 20, 40];
       },
     });
 
@@ -237,6 +242,28 @@
       doc.text(`Examiner - Task ${n}`, M + 3, yy + 5);
       doc.setFont('helvetica', 'normal');
       doc.text(n === 1 ? 'TA ____   CC ____   LR ____   GRA ____   Band ____' : 'TR ____   CC ____   LR ____   GRA ____   Band ____', M + 3, yy + 13);
+    }
+
+    // The examiner's feedback, when there is some.
+    if (String(marks.feedback || '').trim()) {
+      doc.addPage();
+      let yy = 18;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.text('Writing feedback', M, yy);
+      yy += 8;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10.5);
+      for (const para of safe(marks.feedback).split(/\r?\n/)) {
+        for (const l of para.trim() ? doc.splitTextToSize(para, W - 2 * M) : ['']) {
+          if (yy > H - 16) {
+            doc.addPage();
+            yy = 18;
+          }
+          doc.text(l, M, yy);
+          yy += 5.4;
+        }
+      }
     }
 
     const pages = doc.getNumberOfPages();

@@ -5339,3 +5339,16 @@ a.rating__row:hover .rating__chev {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.mock-feedback {
+  white-space: pre-wrap;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.mt-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+}

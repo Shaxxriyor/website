@@ -296,6 +296,7 @@ function EditTable({ rows, onSave, onRemove }) {
 }
 
 function EditRow({ r, onSave, onRemove }) {
+  const [writing, setWriting] = useState(false);
   const [v, setV] = useState({ writing: r.writing ?? '', speaking_parts: r.speaking_parts ?? '', speaking: r.speaking ?? '' });
   const commit = (key) => {
     const value = String(v[key]).trim().replace(',', '.');
@@ -337,7 +338,21 @@ function EditRow({ r, onSave, onRemove }) {
       <td>{input('writing', { inputMode: 'decimal', placeholder: '6.5', 'aria-label': 'Writing band', maxLength: 3 })}</td>
       <td>{input('speaking_parts', { placeholder: '6/7/7/7', 'aria-label': 'Speaking F/L/G/P', maxLength: 15 })}</td>
       <td>{input('speaking', { inputMode: 'decimal', placeholder: '7.0', 'aria-label': 'Speaking band', maxLength: 3 })}</td>
-      <td>
+      <td className="mt-actions">
+        <button className={`btn btn--sm ${r.feedback ? 'btn--dark' : 'btn--glass'}`} onClick={() => setWriting(true)}>
+          {r.feedback ? 'Feedback ✓' : 'Feedback'}
+        </button>
+        {writing && (
+          <FeedbackSheet
+            name={r.full_name}
+            value={r.feedback}
+            onClose={() => setWriting(false)}
+            onSave={async (feedback) => {
+              await onSave(r, { feedback });
+              setWriting(false);
+            }}
+          />
+        )}
         {!r.id && (
           <button className="icon-btn icon-btn--ghost icon-btn--sm" aria-label="Remove candidate" onClick={() => onRemove(r)}>
             <TrashIcon size={15} />
@@ -345,6 +360,44 @@ function EditRow({ r, onSave, onRemove }) {
         )}
       </td>
     </tr>
+  );
+}
+
+/** The examiner's written feedback for one candidate; the student sees it with their result. */
+function FeedbackSheet({ name, value, onClose, onSave }) {
+  const [text, setText] = useState(value || '');
+  const [busy, setBusy] = useState(false);
+  return (
+    <Sheet
+      title={`Feedback for ${name}`}
+      subtitle="The student sees this under their mock result (Mock Tests → Your results) and in their PDF."
+      size="lg"
+      onClose={onClose}
+      footer={
+        <>
+          <button type="button" className="btn btn--glass" onClick={onClose}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="btn btn--dark"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              try {
+                await onSave(text);
+              } catch {
+                setBusy(false);
+              }
+            }}
+          >
+            {busy ? 'Saving…' : 'Save feedback'}
+          </button>
+        </>
+      }
+    >
+      <textarea className="input input--area mt-paste" rows={16} value={text} onChange={(e) => setText(e.target.value)} maxLength={8000} autoFocus />
+    </Sheet>
   );
 }
 

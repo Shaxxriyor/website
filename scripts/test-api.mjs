@@ -590,6 +590,16 @@ assert.equal(r.data.lessons.find((l) => l.day === 14).total, 32, 'teacher record
   assert.equal(r.status, 422, 'parts as F/L/G/P');
   r = await asMock('GET', { query: '?table=full-mock-06-11-2026' });
   assert.equal(r.status, 401, 'the table is for the teacher');
+  // Feedback: saved once, kept when other marks change, shown to the student with their bands.
+  r = await call('mock', { method: 'POST', body: { action: 'marks', mock: 'full-mock-06-11-2026', marks: [{ result_id: rid, writing: 6.5, speaking: 7, speaking_parts: '7/7/7/7', feedback: 'Task 1: good overview.' }] } });
+  assert.equal(r.status, 200);
+  r = await call('mock', { method: 'POST', body: { action: 'marks', mock: 'full-mock-06-11-2026', marks: [{ result_id: rid, writing: 7, speaking: 7, speaking_parts: '7/7/7/7' }] } });
+  assert.equal(r.data.rows.find((x) => x.id === rid).feedback, 'Task 1: good overview.', 'feedback kept');
+  r = await asMock('GET');
+  assert.equal(r.data.results[0].writing, 7, 'the student sees their Writing band');
+  assert.equal(r.data.results[0].feedback, 'Task 1: good overview.');
+  r = await asMock('GET', { query: `?id=${rid}` });
+  assert.equal(r.data.result.data.marks.speaking, 7, 'marks go into the PDF data');
   r = await call('mock', { method: 'POST', body: { action: 'delete-mark', id: only.mark_id } });
   r = await call('mock', { query: '?table=full-mock-06-11-2026' });
   assert.equal(r.data.rows.some((x) => x.full_name === 'Iffatoy'), false);

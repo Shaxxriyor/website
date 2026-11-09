@@ -102,12 +102,15 @@ export async function saveMockResult(studentId, input) {
 
 const SUMMARY = `r.id, r.student_id, s.full_name, s.group_name, r.mock, r.data->>'title' AS title,
   r.listening_correct, r.listening_band::float AS listening_band, r.reading_correct, r.reading_band::float AS reading_band,
-  r.writing_words, r.leaves, r.started_at, r.finished_at, r.updated_at`;
+  r.writing_words, r.leaves, r.started_at, r.finished_at, r.updated_at,
+  mk.writing::float AS writing, mk.speaking::float AS speaking, COALESCE(mk.speaking_parts, '') AS speaking_parts,
+  COALESCE(mk.feedback, '') AS feedback`;
+const MARKS_JOIN = 'LEFT JOIN mock_marks mk ON mk.result_id = r.id';
 
 /** Summaries (no answers): every student's for the teacher, or one student's own. */
 export async function listMockResults(studentId = null) {
   const rows = await query(
-    `SELECT ${SUMMARY} FROM mock_results r JOIN students s ON s.id = r.student_id
+    `SELECT ${SUMMARY} FROM mock_results r JOIN students s ON s.id = r.student_id ${MARKS_JOIN}
      ${studentId ? 'WHERE r.student_id = $1' : ''} ORDER BY COALESCE(r.finished_at, r.updated_at) DESC LIMIT 500`,
     studentId ? [studentId] : [],
   );
@@ -118,13 +121,14 @@ export async function listMockResults(studentId = null) {
 /** One full result (answers and writing), for the PDF. */
 export async function getMockResult(id, studentId = null) {
   const [row] = await query(
-    `SELECT ${SUMMARY}, r.data FROM mock_results r JOIN students s ON s.id = r.student_id
+    `SELECT ${SUMMARY}, r.data FROM mock_results r JOIN students s ON s.id = r.student_id ${MARKS_JOIN}
      WHERE r.id = $1 ${studentId ? 'AND r.student_id = $2' : ''}`,
     studentId ? [id, studentId] : [id],
   );
   if (!row) throw new ApiError('Result not found.', 404);
   const title = mockById(row.mock)?.title ?? row.title;
-  return { ...row, title, data: { ...row.data, title } };
+  const marks = { writing: row.writing, speaking: row.speaking, speaking_parts: row.speaking_parts, feedback: row.feedback };
+  return { ...row, title, data: { ...row.data, title, marks } };
 }
 
 export async function deleteMockResult(id) {
@@ -165,20 +169,20 @@ export async function mockTable(mock) {
     [mock],
   );
   const marks = await query(
-    `SELECT id, result_id, name, writing::float AS writing, speaking::float AS speaking, speaking_parts, hidden
+    `SELECT id, result_id, name, writing::float AS writing, speaking::float AS speaking, speaking_parts, hidden, feedback
      FROM mock_marks WHERE mock = $1 ORDER BY id`,
     [mock],
   );
   const byResult = new Map(marks.filter((m) => m.result_id).map((m) => [m.result_id, m]));
   const rows = results.map((r) => {
     const m = byResult.get(r.id);
-    return { ...r, mark_id: m?.id ?? null, writing: m?.writing ?? null, speaking: m?.speaking ?? null, speaking_parts: m?.speaking_parts ?? '', hidden: m?.hidden ?? false };
+    return { ...r, mark_id: m?.id ?? null, writing: m?.writing ?? null, speaking: m?.speaking ?? null, speaking_parts: m?.speaking_parts ?? '', hidden: m?.hidden ?? false, feedback: m?.feedback ?? '' };
   });
   for (const m of marks) {
     // Marks of a sitting that is no longer the student's chosen one stay out of the table.
     if (m.result_id) continue;
     rows.push({ id: null, student_id: null, full_name: m.name, listening_correct: null, listening_band: null, reading_correct: null, reading_band: null,
-      writing_words: null, date: null, mark_id: m.id, writing: m.writing, speaking: m.speaking, speaking_parts: m.speaking_parts, hidden: m.hidden });
+      writing_words: null, date: null, mark_id: m.id, writing: m.writing, speaking: m.speaking, speaking_parts: m.speaking_parts, hidden: m.hidden, feedback: m.feedback });
   }
   return rows;
 }
@@ -189,25 +193,29 @@ export async function saveMarks(mock, list) {
   if (!Array.isArray(list) || list.length > 300) throw new ApiError('Bad marks.', 400);
   for (const m of list) {
     const values = [band(m.writing), band(m.speaking), parts(m.speaking_parts), Boolean(m.hidden)];
+    // Left out = keep the feedback already saved.
+    const feedback = m.feedback === undefined ? null : str(m.feedback, 8000).trim();
     if (m.result_id) {
       const [ok] = await query('SELECT 1 FROM mock_results WHERE id = $1 AND mock = $2', [Number(m.result_id), mock]);
       if (!ok) throw new ApiError('Result not found.', 404);
       await query(
-        `INSERT INTO mock_marks (mock, result_id, writing, speaking, speaking_parts, hidden) VALUES ($1, $2, $3, $4, $5, $6)
+        `INSERT INTO mock_marks (mock, result_id, writing, speaking, speaking_parts, hidden, feedback) VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7, ''))
          ON CONFLICT (result_id) WHERE result_id IS NOT NULL DO UPDATE SET writing = EXCLUDED.writing, speaking = EXCLUDED.speaking,
-           speaking_parts = EXCLUDED.speaking_parts, hidden = EXCLUDED.hidden, updated_at = now()`,
-        [mock, Number(m.result_id), ...values],
+           speaking_parts = EXCLUDED.speaking_parts, hidden = EXCLUDED.hidden,
+           feedback = COALESCE($7, mock_marks.feedback), updated_at = now()`,
+        [mock, Number(m.result_id), ...values, feedback],
       );
     } else if (m.mark_id) {
       await query(
-        `UPDATE mock_marks SET writing = $3, speaking = $4, speaking_parts = $5, hidden = $6, name = COALESCE(NULLIF($7, ''), name), updated_at = now()
+        `UPDATE mock_marks SET writing = $3, speaking = $4, speaking_parts = $5, hidden = $6, name = COALESCE(NULLIF($7, ''), name),
+           feedback = COALESCE($8, feedback), updated_at = now()
          WHERE id = $1 AND mock = $2 AND result_id IS NULL`,
-        [Number(m.mark_id), mock, ...values, str(m.name, 120).trim()],
+        [Number(m.mark_id), mock, ...values, str(m.name, 120).trim(), feedback],
       );
     } else {
       const name = str(m.name, 120).trim();
       if (!name) throw new ApiError('A name is needed for a candidate without a mock sitting.', 422);
-      await query(`INSERT INTO mock_marks (mock, name, writing, speaking, speaking_parts, hidden) VALUES ($1, $2, $3, $4, $5, $6)`, [mock, name, ...values]);
+      await query(`INSERT INTO mock_marks (mock, name, writing, speaking, speaking_parts, hidden, feedback) VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7, ''))`, [mock, name, ...values, feedback]);
     }
   }
   return { rows: await mockTable(mock) };

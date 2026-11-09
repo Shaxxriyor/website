@@ -171,6 +171,8 @@ const SCHEMA = [
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`,
   `CREATE UNIQUE INDEX IF NOT EXISTS mock_marks_result ON mock_marks (result_id) WHERE result_id IS NOT NULL`,
+  // The examiner's written feedback, shown to the student with their result.
+  `ALTER TABLE mock_marks ADD COLUMN IF NOT EXISTS feedback TEXT NOT NULL DEFAULT ''`,
 ];
 
 // Two fresh instances can start at once (e.g. right after a deploy) and run the

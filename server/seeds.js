@@ -35,6 +35,36 @@ async function replaceMarks(c, previous, marks) {
 }
 }
 
+// Marjona Rasulova's result from her PDF, into her latest sitting (or a new one).
+async function putMarjona(c, sid) {
+  const mock = MARJONA.mock;
+  const L = MARJONA.res.listening;
+  const R = MARJONA.res.reading;
+  const values = [JSON.stringify(MARJONA), L.correct, Number(L.band), R.correct, Number(R.band), [words(MARJONA.w.t1), words(MARJONA.w.t2)], MARJONA.finishedAt];
+  const [latest] = await c.query(`SELECT id FROM mock_results WHERE student_id = $1 AND mock = $2 ORDER BY updated_at DESC LIMIT 1`, [sid, mock]);
+  if (latest) {
+    await c.query(
+      `UPDATE mock_results SET data = $2, listening_correct = $3, listening_band = $4, reading_correct = $5, reading_band = $6,
+         writing_words = $7, finished_at = to_timestamp($8::bigint / 1000.0), updated_at = now() WHERE id = $1`,
+      [latest.id, ...values],
+    );
+    return latest.id;
+  }
+  const [row] = await c.query(
+    `INSERT INTO mock_results (student_id, mock, sitting, data, listening_correct, listening_band, reading_correct, reading_band,
+       writing_words, leaves, finished_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 0, to_timestamp($10::bigint / 1000.0)) RETURNING id`,
+    [sid, mock, MARJONA.sitting, ...values],
+  );
+  return row.id;
+}
+
+// Students whose name contains every given word (any order or case; spaces and apostrophes ignored).
+async function studentsNamed(c, ...parts) {
+  const where = parts.map((_, i) => `regexp_replace(lower(full_name), '[^a-z]', '', 'g') LIKE $${i + 1}`).join(' AND ');
+  return (await c.query(`SELECT id FROM students WHERE ${where}`, parts.map((w) => `%${w}%`))).map((r) => r.id);
+}
+
 const SEEDS = [
   {
     // Full Mock Test of 8 November 2026: Marjona Rasulova's result from her PDF, then the
@@ -45,26 +75,7 @@ const SEEDS = [
       const studentIds = async (name) =>
         (await c.query(`SELECT id FROM students WHERE lower(btrim(full_name)) = lower(btrim($1))`, [name])).map((r) => r.id);
 
-      for (const sid of await studentIds(MARJONA.name)) {
-        const L = MARJONA.res.listening;
-        const R = MARJONA.res.reading;
-        const values = [JSON.stringify(MARJONA), L.correct, Number(L.band), R.correct, Number(R.band), [words(MARJONA.w.t1), words(MARJONA.w.t2)], MARJONA.finishedAt];
-        const [latest] = await c.query(`SELECT id FROM mock_results WHERE student_id = $1 AND mock = $2 ORDER BY updated_at DESC LIMIT 1`, [sid, mock]);
-        if (latest) {
-          await c.query(
-            `UPDATE mock_results SET data = $2, listening_correct = $3, listening_band = $4, reading_correct = $5, reading_band = $6,
-               writing_words = $7, finished_at = to_timestamp($8 / 1000.0), updated_at = now() WHERE id = $1`,
-            [latest.id, ...values],
-          );
-        } else {
-          await c.query(
-            `INSERT INTO mock_results (student_id, mock, sitting, data, listening_correct, listening_band, reading_correct, reading_band,
-               writing_words, leaves, finished_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 0, to_timestamp($10 / 1000.0))`,
-            [sid, mock, MARJONA.sitting, ...values],
-          );
-        }
-      }
+      for (const sid of await studentIds(MARJONA.name)) await putMarjona(c, sid);
 
       for (const m of MARKS) {
         for (const sid of await studentIds(m.name)) {
@@ -151,7 +162,30 @@ const SEEDS = [
       await replaceMarks(c, MARKS_MIN5, MARKS_FINAL);
     },
   },
+  {
+    // Marjona's result did not show: her name on the site may be written differently. Find her by
+    // the words of her name in any order, put her result in, and give that sitting her marks.
+    id: 'mock-2026-11-08-marjona-v2',
+    async apply(c) {
+      let found = await studentsNamed(c, 'marjona', 'rasul');
+      if (!found.length) found = await studentsNamed(c, 'marjona');
+      if (found.length !== 1) throw new Error(`Marjona Rasulova: ${found.length} matching students`);
+      const rid = await putMarjona(c, found[0]);
+      const m = MARKS_FINAL.find((x) => x.name === 'Marjona Rasulova');
+      await c.query(
+        `INSERT INTO mock_marks (mock, result_id, writing, task1, task2, feedback) VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT (result_id) WHERE result_id IS NOT NULL DO UPDATE SET
+           writing = COALESCE(mock_marks.writing, EXCLUDED.writing), task1 = COALESCE(mock_marks.task1, EXCLUDED.task1),
+           task2 = COALESCE(mock_marks.task2, EXCLUDED.task2),
+           feedback = CASE WHEN mock_marks.feedback = '' THEN EXCLUDED.feedback ELSE mock_marks.feedback END, updated_at = now()`,
+        [MARJONA.mock, rid, m.writing, m.task1, m.task2, m.feedback],
+      );
+    },
+  },
 ];
+
+/** The last failure of each one-time change in this instance (shown on the teacher's check page). */
+export const lastErrors = {};
 
 export async function runSeeds(c) {
   for (const seed of SEEDS) {
@@ -162,6 +196,7 @@ export async function runSeeds(c) {
     } catch (err) {
       console.error('[seed]', seed.id, err);
       await c.query(`DELETE FROM data_seeds WHERE id = $1`, [seed.id]).catch(() => {});
+      lastErrors[seed.id] = String(err?.message || err).slice(0, 300);
     }
   }
 }

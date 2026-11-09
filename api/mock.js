@@ -1,11 +1,26 @@
 import { ApiError, json, readBody, route, searchParams } from '../server/http.js';
 import { currentAdmin, currentStudent, requireAdmin, requireStudent } from '../server/auth.js';
 import { id } from '../server/model.js';
+import { query } from '../server/db.js';
+import { lastErrors } from '../server/seeds.js';
 import { deleteMark, deleteMockResult, getMockResult, listMockResults, mockTable, saveMarks, saveMockResult } from '../server/mock.js';
 
 // Full mock test results. The teacher sees everyone's; a student sees their own.
 export const GET = route(async (request) => {
   const params = searchParams(request);
+  // The teacher's check page: one-time changes applied, their last errors, and Marjona's records.
+  if (params.get('check')) {
+    requireAdmin(request);
+    const seeds = await query(`SELECT id, applied_at FROM data_seeds ORDER BY applied_at`);
+    const students = await query(
+      `SELECT s.id, s.full_name, s.status,
+         (SELECT json_agg(json_build_object('result', r.id, 'listening', r.listening_band, 'reading', r.reading_band,
+            'finished', r.finished_at, 'updated', r.updated_at, 'words', r.writing_words) ORDER BY r.updated_at)
+          FROM mock_results r WHERE r.student_id = s.id) AS sittings
+       FROM students s WHERE lower(full_name) LIKE '%marjona%' OR lower(full_name) LIKE '%rasul%'`,
+    );
+    return json({ seeds, errors: lastErrors, marjona: students });
+  }
   if (params.get('table')) {
     requireAdmin(request);
     return json({ rows: await mockTable(params.get('table')) });

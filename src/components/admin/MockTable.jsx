@@ -317,7 +317,8 @@ function EditRow({ r, onSave, onRemove }) {
       const t1 = Number(key === 'task1' ? value : v.task1);
       const t2 = Number(key === 'task2' ? value : v.task2);
       if (String(key === 'task1' ? v.task2 : v.task1).trim() !== '' && !Number.isNaN(t1) && !Number.isNaN(t2)) {
-        const w = Math.round(((t1 + 2 * t2) / 3) * 2) / 2;
+        // Never below 5.0 (the teacher's rule for mock Writing bands).
+        const w = Math.max(5, Math.round(((t1 + 2 * t2) / 3) * 2) / 2);
         change.writing = w;
         setV((x) => ({ ...x, writing: w }));
       }

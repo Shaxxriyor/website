@@ -3,8 +3,36 @@
 // the claim released, so the site keeps working and it is tried again later.
 import { MARJONA, MARKS } from './seeds/mock-2026-11-08.js';
 import { MARKS_FULL } from './seeds/mock-2026-11-08-full.js';
+import { MARKS_MIN5 } from './seeds/mock-2026-11-08-min5.js';
 
 const words = (t) => (String(t || '').match(/[A-Za-z0-9À-ɏ][A-Za-z0-9À-ɏ'’-]*/g) || []).length;
+
+// Replace marks a previous seed set with new ones, only where they are still unchanged
+// (or empty), so whatever the teacher typed in between stays.
+async function replaceMarks(c, previous, marks) {
+  const mock = MARJONA.mock;
+  const before = new Map(previous.map((m) => [m.name, m]));
+  for (const m of marks) {
+    const old = before.get(m.name) || {};
+    const results = await c.query(
+      `SELECT r.id FROM mock_results r JOIN students s ON s.id = r.student_id
+       WHERE r.mock = $1 AND lower(btrim(s.full_name)) = lower(btrim($2))`,
+      [mock, m.name],
+    );
+    for (const { id } of results) {
+      await c.query(
+        `INSERT INTO mock_marks (mock, result_id, writing, task1, task2, feedback) VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT (result_id) WHERE result_id IS NOT NULL DO UPDATE SET
+           writing = CASE WHEN mock_marks.writing IS NULL OR mock_marks.writing IS NOT DISTINCT FROM $7::numeric THEN EXCLUDED.writing ELSE mock_marks.writing END,
+           task1 = CASE WHEN mock_marks.task1 IS NULL OR mock_marks.task1 IS NOT DISTINCT FROM $8::numeric THEN EXCLUDED.task1 ELSE mock_marks.task1 END,
+           task2 = CASE WHEN mock_marks.task2 IS NULL OR mock_marks.task2 IS NOT DISTINCT FROM $9::numeric THEN EXCLUDED.task2 ELSE mock_marks.task2 END,
+           feedback = CASE WHEN mock_marks.feedback = '' OR mock_marks.feedback = $10 THEN EXCLUDED.feedback ELSE mock_marks.feedback END,
+           updated_at = now()`,
+        [mock, id, m.writing, m.task1, m.task2, m.feedback, old.writing ?? null, old.task1 ?? null, old.task2 ?? null, old.feedback ?? ''],
+      );
+    }
+}
+}
 
 const SEEDS = [
   {
@@ -61,30 +89,7 @@ const SEEDS = [
     // A mark is replaced only while it is still the one the first seed set (or empty), so
     // anything the teacher typed in the meantime stays.
     id: 'mock-2026-11-08-writing-full',
-    async apply(c) {
-      const mock = MARJONA.mock;
-      const before = new Map(MARKS.map((m) => [m.name, m]));
-      for (const m of MARKS_FULL) {
-        const old = before.get(m.name) || {};
-        const results = await c.query(
-          `SELECT r.id FROM mock_results r JOIN students s ON s.id = r.student_id
-           WHERE r.mock = $1 AND lower(btrim(s.full_name)) = lower(btrim($2))`,
-          [mock, m.name],
-        );
-        for (const { id } of results) {
-          await c.query(
-            `INSERT INTO mock_marks (mock, result_id, writing, task1, task2, feedback) VALUES ($1, $2, $3, $4, $5, $6)
-             ON CONFLICT (result_id) WHERE result_id IS NOT NULL DO UPDATE SET
-               writing = CASE WHEN mock_marks.writing IS NULL OR mock_marks.writing IS NOT DISTINCT FROM $7::numeric THEN EXCLUDED.writing ELSE mock_marks.writing END,
-               task1 = CASE WHEN mock_marks.task1 IS NULL OR mock_marks.task1 IS NOT DISTINCT FROM $8::numeric THEN EXCLUDED.task1 ELSE mock_marks.task1 END,
-               task2 = CASE WHEN mock_marks.task2 IS NULL OR mock_marks.task2 IS NOT DISTINCT FROM $9::numeric THEN EXCLUDED.task2 ELSE mock_marks.task2 END,
-               feedback = CASE WHEN mock_marks.feedback = '' OR mock_marks.feedback = $10 THEN EXCLUDED.feedback ELSE mock_marks.feedback END,
-               updated_at = now()`,
-            [mock, id, m.writing, m.task1, m.task2, m.feedback, old.writing ?? null, old.task1 ?? null, old.task2 ?? null, old.feedback ?? ''],
-          );
-        }
-      }
-    },
+    apply: (c) => replaceMarks(c, MARKS, MARKS_FULL),
   },
   {
     // The speaking examiner's "Akbarxo'ja 7.5 (8/8/7/7)" is Akbar Raxmatullayev. Set it unless
@@ -111,6 +116,11 @@ const SEEDS = [
         await c.query(`DELETE FROM mock_marks WHERE mock = $1 AND result_id IS NULL AND lower(replace(replace(name, '''', ''), 'ʻ', '')) LIKE 'akbarxoja%'`, [mock]);
       }
     },
+  },
+  {
+    // The teacher's rule: no Writing or Task band below 5.0.
+    id: 'mock-2026-11-08-writing-min5',
+    apply: (c) => replaceMarks(c, MARKS_FULL, MARKS_MIN5),
   },
 ];
 

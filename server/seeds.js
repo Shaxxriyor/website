@@ -4,6 +4,7 @@
 import { MARJONA, MARKS } from './seeds/mock-2026-11-08.js';
 import { MARKS_FULL } from './seeds/mock-2026-11-08-full.js';
 import { MARKS_MIN5 } from './seeds/mock-2026-11-08-min5.js';
+import { ESSAYS, MARKS_FINAL } from './seeds/mock-2026-11-08-final.js';
 
 const words = (t) => (String(t || '').match(/[A-Za-z0-9À-ɏ][A-Za-z0-9À-ɏ'’-]*/g) || []).length;
 
@@ -121,6 +122,34 @@ const SEEDS = [
     // The teacher's rule: no Writing or Task band below 5.0.
     id: 'mock-2026-11-08-writing-min5',
     apply: (c) => replaceMarks(c, MARKS_FULL, MARKS_MIN5),
+  },
+  {
+    // Final Writing marks, and the full essays the site did not save, as the teacher sent them
+    // (so the students' PDFs and All writing show the whole text).
+    id: 'mock-2026-11-08-writing-final',
+    async apply(c) {
+      const mock = MARJONA.mock;
+      for (const e of ESSAYS) {
+        const rows = await c.query(
+          `SELECT r.id, r.data FROM mock_results r JOIN students s ON s.id = r.student_id
+           WHERE r.mock = $1 AND lower(btrim(s.full_name)) = lower(btrim($2))`,
+          [mock, e.name],
+        );
+        for (const r of rows) {
+          const data = typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
+          const w = { t1: '', t2: '', ...(data.w || {}) };
+          // Only ever longer: never replace a fuller text with this one.
+          if (e.t1 && words(e.t1) > words(w.t1)) w.t1 = e.t1;
+          if (e.t2 && words(e.t2) > words(w.t2)) w.t2 = e.t2;
+          await c.query(`UPDATE mock_results SET data = $2, writing_words = $3, updated_at = now() WHERE id = $1`, [
+            r.id,
+            JSON.stringify({ ...data, w }),
+            [words(w.t1), words(w.t2)],
+          ]);
+        }
+      }
+      await replaceMarks(c, MARKS_MIN5, MARKS_FINAL);
+    },
   },
 ];
 

@@ -569,6 +569,30 @@ assert.equal(r.data.lessons.find((l) => l.day === 14).total, 32, 'teacher record
   assert.ok(html.includes("PASSWORD   = 'reading_cdi'"), 'password unchanged');
   assert.ok(!/t\.me\//i.test(html), 'no Telegram links');
   assert.ok(html.includes('/mock-guard.js'), 'guard attached');
+  // Results table: Writing and Speaking from the examiners, plus speaking-only candidates.
+  r = await call('mock', { query: '?table=full-mock-06-11-2026' });
+  assert.equal(r.status, 200);
+  const row = r.data.rows.find((x) => x.id === rid);
+  assert.equal(row.reading_band, 7.5);
+  assert.equal(row.speaking, null);
+  r = await call('mock', { method: 'POST', body: { action: 'marks', mock: 'full-mock-06-11-2026', marks: [
+    { result_id: rid, writing: 6.5, speaking: 7, speaking_parts: '7/7/7/7' },
+    { name: 'Iffatoy', speaking: 6.5, speaking_parts: '6/7/7/7' },
+  ] } });
+  assert.equal(r.status, 200);
+  assert.equal(r.data.rows.find((x) => x.id === rid).writing, 6.5);
+  const only = r.data.rows.find((x) => x.full_name === 'Iffatoy');
+  assert.equal(only.speaking, 6.5);
+  assert.equal(only.id, null, 'speaking-only candidate');
+  r = await call('mock', { method: 'POST', body: { action: 'marks', mock: 'full-mock-06-11-2026', marks: [{ result_id: rid, writing: 6.3 }] } });
+  assert.equal(r.status, 422, 'half bands only');
+  r = await call('mock', { method: 'POST', body: { action: 'marks', mock: 'full-mock-06-11-2026', marks: [{ result_id: rid, speaking_parts: '7-7' }] } });
+  assert.equal(r.status, 422, 'parts as F/L/G/P');
+  r = await asMock('GET', { query: '?table=full-mock-06-11-2026' });
+  assert.equal(r.status, 401, 'the table is for the teacher');
+  r = await call('mock', { method: 'POST', body: { action: 'delete-mark', id: only.mark_id } });
+  r = await call('mock', { query: '?table=full-mock-06-11-2026' });
+  assert.equal(r.data.rows.some((x) => x.full_name === 'Iffatoy'), false);
   r = await call('mock', { method: 'POST', body: { action: 'delete', id: rid } });
   assert.equal(r.status, 200);
   r = await call('mock');

@@ -69,6 +69,9 @@ export const api = {
   // Full mock tests: the teacher gets everyone's results, a student their own.
   mockResults: () => request('mock'),
   mockResult: (id) => request('mock', { params: { id } }),
+  mockTable: (mock) => request('mock', { params: { table: mock } }),
+  saveMockMarks: (mock, marks) => request('mock', { body: { action: 'marks', mock, marks } }),
+  deleteMockMark: (id) => request('mock', { body: { action: 'delete-mark', id } }),
   deleteMockResult: (id) => request('mock', { body: { action: 'delete', id } }),
 };
 

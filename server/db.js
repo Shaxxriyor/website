@@ -157,6 +157,20 @@ const SCHEMA = [
     UNIQUE (student_id, mock, sitting)
   )`,
   `CREATE INDEX IF NOT EXISTS mock_results_updated ON mock_results (updated_at DESC)`,
+  // Marks from the examiners for the results table: Writing and Speaking per candidate. A row is
+  // tied to a sitting (result_id), or stands alone for a candidate who only did Speaking.
+  `CREATE TABLE IF NOT EXISTS mock_marks (
+    id SERIAL PRIMARY KEY,
+    mock TEXT NOT NULL,
+    result_id INTEGER REFERENCES mock_results(id) ON DELETE CASCADE,
+    name TEXT NOT NULL DEFAULT '',
+    writing NUMERIC(2,1),
+    speaking NUMERIC(2,1),
+    speaking_parts TEXT NOT NULL DEFAULT '',
+    hidden BOOLEAN NOT NULL DEFAULT false,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS mock_marks_result ON mock_marks (result_id) WHERE result_id IS NOT NULL`,
 ];
 
 // Two fresh instances can start at once (e.g. right after a deploy) and run the

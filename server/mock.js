@@ -129,3 +129,89 @@ export async function deleteMockResult(id) {
   if (!rows.length) throw new ApiError('Result not found.', 404);
   return { ok: true };
 }
+
+// ---------- the results table: Listening and Reading from the mock, Writing and Speaking from the examiners ----------
+
+const band = (v) => {
+  if (v === '' || v == null) return null;
+  const n = Number(v);
+  if (!Number.isFinite(n) || n < 0 || n > 9 || Math.round(n * 2) !== n * 2) throw new ApiError('Bands are 0–9 in half steps.', 422);
+  return n;
+};
+const parts = (v) => {
+  const t = String(v ?? '').trim();
+  if (!t) return '';
+  if (!/^\d(\.5)?(\/\d(\.5)?){3}$/.test(t)) throw new ApiError('Speaking parts look like 6/7/7/7 (F/L/G/P).', 422);
+  return t;
+};
+
+/**
+ * One row per student who sat the mock (their most complete sitting), plus candidates who only
+ * have examiner marks. Each row: the sitting's scores and the marks saved for it.
+ */
+export async function mockTable(mock) {
+  if (!mockById(mock)) throw new ApiError('Unknown mock test.', 400);
+  const results = await query(
+    `SELECT DISTINCT ON (r.student_id) r.id, r.student_id, s.full_name, r.listening_correct, r.listening_band::float AS listening_band,
+       r.reading_correct, r.reading_band::float AS reading_band, r.writing_words,
+       to_char(COALESCE(r.finished_at, r.updated_at) AT TIME ZONE 'Asia/Tashkent', 'YYYY-MM-DD') AS date
+     FROM mock_results r JOIN students s ON s.id = r.student_id
+     WHERE r.mock = $1
+     ORDER BY r.student_id, (r.finished_at IS NOT NULL) DESC,
+       ((r.listening_band IS NOT NULL)::int + (r.reading_band IS NOT NULL)::int) DESC, r.updated_at DESC`,
+    [mock],
+  );
+  const marks = await query(
+    `SELECT id, result_id, name, writing::float AS writing, speaking::float AS speaking, speaking_parts, hidden
+     FROM mock_marks WHERE mock = $1 ORDER BY id`,
+    [mock],
+  );
+  const byResult = new Map(marks.filter((m) => m.result_id).map((m) => [m.result_id, m]));
+  const rows = results.map((r) => {
+    const m = byResult.get(r.id);
+    return { ...r, mark_id: m?.id ?? null, writing: m?.writing ?? null, speaking: m?.speaking ?? null, speaking_parts: m?.speaking_parts ?? '', hidden: m?.hidden ?? false };
+  });
+  for (const m of marks) {
+    // Marks of a sitting that is no longer the student's chosen one stay out of the table.
+    if (m.result_id) continue;
+    rows.push({ id: null, student_id: null, full_name: m.name, listening_correct: null, listening_band: null, reading_correct: null, reading_band: null,
+      writing_words: null, date: null, mark_id: m.id, writing: m.writing, speaking: m.speaking, speaking_parts: m.speaking_parts, hidden: m.hidden });
+  }
+  return rows;
+}
+
+/** Save examiner marks: [{ result_id } or { mark_id } or { name }, writing, speaking, speaking_parts, hidden]. */
+export async function saveMarks(mock, list) {
+  if (!mockById(mock)) throw new ApiError('Unknown mock test.', 400);
+  if (!Array.isArray(list) || list.length > 300) throw new ApiError('Bad marks.', 400);
+  for (const m of list) {
+    const values = [band(m.writing), band(m.speaking), parts(m.speaking_parts), Boolean(m.hidden)];
+    if (m.result_id) {
+      const [ok] = await query('SELECT 1 FROM mock_results WHERE id = $1 AND mock = $2', [Number(m.result_id), mock]);
+      if (!ok) throw new ApiError('Result not found.', 404);
+      await query(
+        `INSERT INTO mock_marks (mock, result_id, writing, speaking, speaking_parts, hidden) VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT (result_id) WHERE result_id IS NOT NULL DO UPDATE SET writing = EXCLUDED.writing, speaking = EXCLUDED.speaking,
+           speaking_parts = EXCLUDED.speaking_parts, hidden = EXCLUDED.hidden, updated_at = now()`,
+        [mock, Number(m.result_id), ...values],
+      );
+    } else if (m.mark_id) {
+      await query(
+        `UPDATE mock_marks SET writing = $3, speaking = $4, speaking_parts = $5, hidden = $6, name = COALESCE(NULLIF($7, ''), name), updated_at = now()
+         WHERE id = $1 AND mock = $2 AND result_id IS NULL`,
+        [Number(m.mark_id), mock, ...values, str(m.name, 120).trim()],
+      );
+    } else {
+      const name = str(m.name, 120).trim();
+      if (!name) throw new ApiError('A name is needed for a candidate without a mock sitting.', 422);
+      await query(`INSERT INTO mock_marks (mock, name, writing, speaking, speaking_parts, hidden) VALUES ($1, $2, $3, $4, $5, $6)`, [mock, name, ...values]);
+    }
+  }
+  return { rows: await mockTable(mock) };
+}
+
+/** Remove a speaking-only candidate (marks of a sitting are cleared with saveMarks instead). */
+export async function deleteMark(id) {
+  await query('DELETE FROM mock_marks WHERE id = $1 AND result_id IS NULL', [id]);
+  return { ok: true };
+}

@@ -63,7 +63,7 @@ export async function makeMockPdf(id) {
 
 /** Save a built PDF (call it from a tap on iPhone). */
 export async function savePdf({ blob, name }) {
-  const file = typeof File === 'function' ? new File([blob], name, { type: 'application/pdf' }) : null;
+  const file = typeof File === 'function' ? new File([blob], name, { type: blob.type || 'application/pdf' }) : null;
   if (needsTapToSave() && file && navigator.canShare?.({ files: [file] })) {
     try {
       await navigator.share({ files: [file], title: name });

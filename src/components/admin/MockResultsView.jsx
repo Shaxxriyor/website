@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { api } from '../../lib/api.js';
 import { MockTestIcon, SearchIcon } from '../Icons.jsx';
 import { MockResults } from '../MockResults.jsx';
+import { MockTable } from './MockTable.jsx';
 import { EmptyState, ErrorNote, Skeleton, useLoad } from './ui.jsx';
 
 /** Teacher: every full mock result, newest first, each with its PDF for the examiner. */
 export function MockResultsView({ version, onChanged, notify }) {
   const [search, setSearch] = useState('');
+  const [view, setView] = useState(() => (location.hash.includes('table') ? 'table' : 'sittings'));
   const { data, error, loading, reload } = useLoad(() => api.mockResults(), [version]);
   const results = data?.results ?? [];
   const q = search.trim().toLowerCase();
@@ -24,6 +26,21 @@ export function MockResultsView({ version, onChanged, notify }) {
         </div>
       </header>
 
+      <div className="seg-tabs mt-views" role="tablist" aria-label="View">
+        {[
+          ['sittings', 'Sittings and PDFs'],
+          ['table', 'Results table'],
+        ].map(([id, label]) => (
+          <button key={id} role="tab" aria-selected={view === id} className={`chip ${view === id ? 'is-active' : ''}`} onClick={() => setView(id)}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {view === 'table' ? (
+        <MockTable notify={notify} />
+      ) : (
+      <>
       {results.length > 0 && (
         <div className="toolbar">
           <label className="search">
@@ -43,6 +60,8 @@ export function MockResultsView({ version, onChanged, notify }) {
         </EmptyState>
       ) : (
         <MockResults results={visible} teacher notify={notify} onDeleted={onChanged} />
+      )}
+      </>
       )}
     </>
   );

@@ -86,6 +86,32 @@ const SEEDS = [
       }
     },
   },
+  {
+    // The speaking examiner's "Akbarxo'ja 7.5 (8/8/7/7)" is Akbar Raxmatullayev. Set it unless
+    // his Speaking is already in, and drop the speaking-only row the name made on its own.
+    id: 'mock-2026-11-08-akbar-speaking',
+    async apply(c) {
+      const mock = MARJONA.mock;
+      const results = await c.query(
+        `SELECT r.id FROM mock_results r JOIN students s ON s.id = r.student_id
+         WHERE r.mock = $1 AND lower(btrim(s.full_name)) = 'akbar raxmatullayev'`,
+        [mock],
+      );
+      for (const { id } of results) {
+        await c.query(
+          `INSERT INTO mock_marks (mock, result_id, speaking, speaking_parts) VALUES ($1, $2, 7.5, '8/8/7/7')
+           ON CONFLICT (result_id) WHERE result_id IS NOT NULL DO UPDATE SET
+             speaking = COALESCE(mock_marks.speaking, 7.5),
+             speaking_parts = CASE WHEN mock_marks.speaking IS NULL THEN '8/8/7/7' ELSE mock_marks.speaking_parts END,
+             updated_at = now()`,
+          [mock, id],
+        );
+      }
+      if (results.length) {
+        await c.query(`DELETE FROM mock_marks WHERE mock = $1 AND result_id IS NULL AND lower(replace(replace(name, '''', ''), 'ʻ', '')) LIKE 'akbarxoja%'`, [mock]);
+      }
+    },
+  },
 ];
 
 export async function runSeeds(c) {

@@ -197,7 +197,10 @@
       lang: S.lang || '',
       done: S.done || {},
       res: S.res || {},
-      w: S.w || { t1: '', t2: '' },
+      w: (function () {
+        var w = S.w || { t1: '', t2: '' }, a = $('wText1'), b = $('wText2');
+        return running === 'writing' && a && b ? { t1: a.value, t2: b.value } : w;
+      })(),
       leaves: S.leaves || [],
       tasks: tasks(),
     };
@@ -272,11 +275,25 @@
     if (S.finishedAt) { box.classList.remove('on'); send(); }
     return r;
   };
-  // Writing is saved as it is typed (every 20 seconds of typing), in case the computer fails.
+  // Writing is saved while it is typed: at most 15 seconds after any change, even if the typing
+  // never stops (a timer that restarted on every key only saved after a 20-second pause), and
+  // whenever the page is hidden or closed.
+  var writeTimer = null;
   ['wText1', 'wText2'].forEach(function (id) {
     var t = $(id);
-    if (t) t.addEventListener('input', function () { if (running === 'writing') syncSoon(20000); });
+    if (t) t.addEventListener('input', function () {
+      if (running !== 'writing' || writeTimer) return;
+      writeTimer = setTimeout(function () { writeTimer = null; send(); }, 15000);
+    });
   });
+  function flush() {
+    if (!S || !S.name || !S.sitting || !student) return;
+    if (S.w) { var a = $('wText1'), b = $('wText2'); if (a) S.w.t1 = a.value; if (b) S.w.t2 = b.value; }
+    clearTimeout(writeTimer); writeTimer = null;
+    send();
+  }
+  document.addEventListener('visibilitychange', function () { if (document.hidden) flush(); });
+  window.addEventListener('pagehide', flush);
   var _report = renderReport;
   renderReport = function () {
     var r = _report.apply(this, arguments);

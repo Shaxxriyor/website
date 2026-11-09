@@ -1,5 +1,6 @@
 // Imports a full mock test (one self-contained HTML file) into the site:
-//   node scripts/import-mock.mjs "<path to FULL_MOCK.html>" full-mock-06-11-2026
+//   node scripts/import-mock.mjs "<path to FULL_MOCK.html>" full-mock-06-11-2026 [08.11.2026]
+//   (the optional last argument is the date the mock is held, when it differs from the file's)
 //
 // - The big embedded audio, videos and pictures are written to public/mock-media/
 //   (a Vercel function can only return 4.5 MB, the file is ~22 MB) and the page
@@ -13,12 +14,22 @@
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
-const [src, slug] = process.argv.slice(2);
+const [src, slug, heldOn] = process.argv.slice(2);
 if (!src || !/^[a-z0-9-]+$/.test(slug || '')) {
   console.error('Usage: node scripts/import-mock.mjs <file.html> <slug>');
   process.exit(1);
 }
 let html = readFileSync(src, 'utf8');
+
+// ---- 0. the date the mock is held, everywhere the page shows its title ----
+if (heldOn) {
+  if (!/^\d{2}\.\d{2}\.\d{4}$/.test(heldOn)) {
+    console.error('The date is written like 08.11.2026');
+    process.exit(1);
+  }
+  const was = html.match(/const MOCK_TITLE\s*=\s*'[^']*?(\d{2}\.\d{2}\.\d{4})'/)?.[1];
+  if (was && was !== heldOn) html = html.replaceAll(was, heldOn);
+}
 
 // ---- 1. media out of the page ----
 const EXT = { 'audio/mpeg': 'mp3', 'audio/mp3': 'mp3', 'video/mp4': 'mp4', 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' };

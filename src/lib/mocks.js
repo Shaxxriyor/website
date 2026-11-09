@@ -3,8 +3,9 @@
 export const MOCKS = [
   {
     id: 'full-mock-06-11-2026',
-    title: 'Full Mock Test 06.11.2026',
-    date: '2026-11-06',
+    // The id keeps the file's date; the mock was held on 8 November.
+    title: 'Full Mock Test 08.11.2026',
+    date: '2026-11-08',
     parts: 'Listening · Reading · Writing',
     minutes: 160,
   },

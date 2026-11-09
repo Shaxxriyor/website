@@ -53,6 +53,30 @@ export function MockTable({ notify }) {
     ...change,
   });
 
+  // Every student's Task 1 and Task 2 with the questions, in one file (for marking).
+  async function allWriting() {
+    setBusy('txt');
+    try {
+      const sittings = rows.filter((r) => r.id && !r.hidden).sort((a, b) => a.full_name.localeCompare(b.full_name));
+      const full = [];
+      for (const r of sittings) full.push((await api.mockResult(r.id)).result);
+      const words = (t) => (String(t || '').match(/[A-Za-z0-9\u00C0-\u024F][A-Za-z0-9\u00C0-\u024F'’-]*/g) || []).length;
+      const line = '='.repeat(70);
+      const tasks = full.find((x) => x.data?.tasks?.[1]?.text)?.data.tasks || {};
+      const out = [`${info.title} - Writing of every candidate`, line, '', 'WRITING TASK 1', tasks[1]?.text || '', tasks[1]?.image ? `(Task 1 picture: ${location.origin}${tasks[1].image})` : '', '', 'WRITING TASK 2', tasks[2]?.text || '', ''];
+      for (const x of full) {
+        const w = x.data?.w || {};
+        out.push(line, `CANDIDATE: ${x.full_name}`, line, '', `TASK 1 (${words(w.t1)} words)`, (w.t1 || '').trim() || '(no answer)', '', `TASK 2 (${words(w.t2)} words)`, (w.t2 || '').trim() || '(no answer)', '');
+      }
+      const file = { blob: new Blob(['\ufeff' + out.join('\r\n')], { type: 'text/plain;charset=utf-8' }), name: `${info.title} - all writing.txt` };
+      if (needsTapToSave()) setReady(file);
+      else await savePdf(file);
+    } catch (err) {
+      notify?.(err?.message || 'The writing could not be collected.');
+    }
+    setBusy('');
+  }
+
   async function picture() {
     const { default: html2canvas } = await import('html2canvas');
     await document.fonts?.ready;
@@ -102,6 +126,9 @@ export function MockTable({ notify }) {
           <EditIcon size={15} /> {editing ? 'Done editing' : 'Edit marks'}
         </button>
         <span className="mt-toolbar__gap" />
+        <button className="btn btn--glass btn--sm" disabled={!!busy || !rows.some((r) => r.id)} onClick={allWriting}>
+          <DownloadIcon size={15} /> {busy === 'txt' ? 'Collecting…' : 'All writing (.txt)'}
+        </button>
         <button className="btn btn--glass btn--sm" disabled={!!busy || !shown.length} onClick={() => download('png')}>
           <DownloadIcon size={15} /> {busy === 'png' ? 'Making…' : 'Image'}
         </button>

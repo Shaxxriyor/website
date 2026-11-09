@@ -106,11 +106,13 @@ const SUMMARY = `r.id, r.student_id, s.full_name, s.group_name, r.mock, r.data->
 
 /** Summaries (no answers): every student's for the teacher, or one student's own. */
 export async function listMockResults(studentId = null) {
-  return query(
+  const rows = await query(
     `SELECT ${SUMMARY} FROM mock_results r JOIN students s ON s.id = r.student_id
      ${studentId ? 'WHERE r.student_id = $1' : ''} ORDER BY COALESCE(r.finished_at, r.updated_at) DESC LIMIT 500`,
     studentId ? [studentId] : [],
   );
+  // The title as it is now (results keep the one they were saved with).
+  return rows.map((r) => ({ ...r, title: mockById(r.mock)?.title ?? r.title }));
 }
 
 /** One full result (answers and writing), for the PDF. */
@@ -121,7 +123,8 @@ export async function getMockResult(id, studentId = null) {
     studentId ? [id, studentId] : [id],
   );
   if (!row) throw new ApiError('Result not found.', 404);
-  return row;
+  const title = mockById(row.mock)?.title ?? row.title;
+  return { ...row, title, data: { ...row.data, title } };
 }
 
 export async function deleteMockResult(id) {

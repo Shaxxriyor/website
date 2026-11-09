@@ -182,11 +182,11 @@ function SignInPanel({ onSignedIn, onAdminSignedIn }) {
         <h2 className="profile__name">{m.title}</h2>
         {wanted && (
           <p key={pulse} className="signin-locked">
-            <LockIcon size={14} /> <b>{wanted.what}</b> — create a free account (or sign in) to try one day or test of every section.
+            <LockIcon size={14} /> <b>{wanted.what}</b> — create a free account (or sign in) to open it.
           </p>
         )}
         {mode === 'signup' && (
-          <p className="muted-sm">Try one day or test of every section for free. Your teacher then opens the full course for you.</p>
+          <p className="muted-sm">Create your account to open the marathons, practice tests, Vocabulary and mock tests.</p>
         )}
         {mode === 'login' && <p className="muted-sm">Sign in with the email and password of your account.</p>}
         {mode === 'code' && <p className="muted-sm">Enter the code from your teacher. Your scores and study time are then saved automatically.</p>}
@@ -269,10 +269,10 @@ function SignInPanel({ onSignedIn, onAdminSignedIn }) {
 
         <ul className="student-signin__points">
           <li>
-            <CheckIcon size={14} /> Free trial: Day 1 of both marathons, one Reading and one Listening test, Unit 1 of Vocabulary
+            <CheckIcon size={14} /> Reading and Listening Marathons, 137 Reading and 101 Listening tests
           </li>
           <li>
-            <CheckIcon size={14} /> Your teacher opens marathons, practice tests, Vocabulary and mocks for you
+            <CheckIcon size={14} /> Vocabulary flashcards and full mock tests
           </li>
           <li>
             <CheckIcon size={14} /> Scores and time saved automatically

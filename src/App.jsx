@@ -101,7 +101,7 @@ export default function App() {
       me={me}
       onSignedIn={async (isNew) => {
         await loadMe();
-        notify(isNew ? 'Account created — try one item of every section' : 'Signed in — your progress will be saved');
+        notify(isNew ? 'Account created — everything is open' : 'Signed in — your progress will be saved');
       }}
       onAdminSignedIn={async () => {
         const s = await api.session().catch(() => ({ admin: null }));

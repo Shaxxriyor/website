@@ -49,7 +49,7 @@ export function lockedPage(path, reason = 'signin') {
 <p>Your teacher opens each section for your account. Until then you can try one ${section === 'mock' ? 'section' : 'item'} of every section. Write to your teacher to open ${what}.</p>
 <a href="/#/${back}">Back to READING_CDI</a>`
       : `<h1>Create a free account</h1>
-<p>Sign up on READING_CDI to try one day or test of every section. Your teacher then opens the full course for you.</p>
+<p>Sign up on READING_CDI to open the marathons, practice tests, Vocabulary and mock tests.</p>
 <a href="/#/${back}">Sign up on READING_CDI</a>`;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Locked · READING_CDI</title><meta name="robots" content="noindex">

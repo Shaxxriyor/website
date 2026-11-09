@@ -2,6 +2,7 @@ import { bandFor, averageBand } from '../src/lib/band.js';
 // End-to-end checks for the /api functions against an in-memory PGlite database.
 // Run: npm run test:api
 import assert from 'node:assert/strict';
+import { SECTION_KEYS as SECTION_KEYS_ALL } from '../src/lib/access.js';
 import { PGlite } from '@electric-sql/pglite';
 
 process.env.ADMIN_USERNAME = 'teacher';
@@ -360,9 +361,11 @@ assert.equal(r.status, 201);
 r = await azizCall('me', { action: 'signup', full_name: 'Aziz 2', phone: '+998 90 111 22 34', email: 'aziz@example.com', password: 'longenough1' });
 assert.equal(r.status, 409, 'one account per email');
 r = await azizCall('me');
-assert.deepEqual(r.data.student.access, [], 'nothing opened yet');
+assert.deepEqual(r.data.student.access, SECTION_KEYS_ALL, 'a new account starts with everything open');
 assert.equal(r.data.student.self_registered, true);
 const aziz = { id: r.data.student.id };
+// The trial rules still apply to a student whose sections are closed: close them all.
+await call('students', { method: 'POST', body: { action: 'access', id: aziz.id, access: [] } });
 for (const [path, status] of [
   ['marathon/reading/day-01.html', 200],
   ['marathon/reading/day-02.html', 403],

@@ -5,6 +5,7 @@ import { MARJONA, MARKS } from './seeds/mock-2026-11-08.js';
 import { MARKS_FULL } from './seeds/mock-2026-11-08-full.js';
 import { MARKS_MIN5 } from './seeds/mock-2026-11-08-min5.js';
 import { ESSAYS, MARKS_FINAL } from './seeds/mock-2026-11-08-final.js';
+import { SECTION_KEYS } from '../src/lib/access.js';
 
 const words = (t) => (String(t || '').match(/[A-Za-z0-9À-ɏ][A-Za-z0-9À-ɏ'’-]*/g) || []).length;
 
@@ -179,6 +180,16 @@ const SEEDS = [
            task2 = COALESCE(mock_marks.task2, EXCLUDED.task2),
            feedback = CASE WHEN mock_marks.feedback = '' THEN EXCLUDED.feedback ELSE mock_marks.feedback END, updated_at = now()`,
         [MARJONA.mock, rid, m.writing, m.task1, m.task2, m.feedback],
+      );
+    },
+  },
+  {
+    // The teacher approved everyone waiting: every student with no section opened gets them all.
+    id: 'approve-all-waiting-2026-11-09',
+    async apply(c) {
+      await c.query(
+        `UPDATE students SET access = $1, practice_access = true, updated_at = now() WHERE COALESCE(cardinality(access), 0) = 0`,
+        [SECTION_KEYS],
       );
     },
   },

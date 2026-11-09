@@ -301,14 +301,14 @@ export async function createStudent(input) {
   });
 }
 
-/** A student who signed up on the site: every section closed until the teacher opens it (one trial item each). */
+/** A student who signed up on the site: every section open (the teacher can close any of them). */
 export async function registerStudent({ full_name, phone, email, password_hash }) {
   return withFreshCode(async (code) => {
     try {
       const [row] = await query(
         `INSERT INTO students (full_name, phone, email, level, registered_at, status, password_hash, self_registered, practice_access, access, access_code)
-         VALUES ($1, $2, $3, '', CURRENT_DATE, 'active', $4, true, false, '{}', $5) RETURNING id`,
-        [full_name, phone, email, password_hash, code],
+         VALUES ($1, $2, $3, '', CURRENT_DATE, 'active', $4, true, true, $5, $6) RETURNING id`,
+        [full_name, phone, email, password_hash, SECTION_KEYS, code],
       );
       return row;
     } catch (err) {

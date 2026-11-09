@@ -1,4 +1,5 @@
 import { neon } from '@neondatabase/serverless';
+import { runSeeds } from './seeds.js';
 
 // Production: Neon Postgres via DATABASE_URL (set automatically when the Neon
 // integration is connected in Vercel). Local dev and tests: the Vite plugin /
@@ -173,6 +174,11 @@ const SCHEMA = [
   `CREATE UNIQUE INDEX IF NOT EXISTS mock_marks_result ON mock_marks (result_id) WHERE result_id IS NOT NULL`,
   // The examiner's written feedback, shown to the student with their result.
   `ALTER TABLE mock_marks ADD COLUMN IF NOT EXISTS feedback TEXT NOT NULL DEFAULT ''`,
+  // A band for each Writing task (an unfinished task stays empty: not marked).
+  `ALTER TABLE mock_marks ADD COLUMN IF NOT EXISTS task1 NUMERIC(2,1)`,
+  `ALTER TABLE mock_marks ADD COLUMN IF NOT EXISTS task2 NUMERIC(2,1)`,
+  // One-time data changes already applied (server/seeds.js).
+  `CREATE TABLE IF NOT EXISTS data_seeds (id TEXT PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL DEFAULT now())`,
 ];
 
 // Two fresh instances can start at once (e.g. right after a deploy) and run the
@@ -202,10 +208,13 @@ async function migrate(c) {
 export async function query(text, params = []) {
   const c = getClient();
   if (!ready) {
-    ready = migrate(c).catch((err) => {
-      ready = undefined;
-      throw err;
-    });
+    ready = migrate(c)
+      // One-time data changes: a failure there never stops the site.
+      .then(() => runSeeds(c).catch((err) => console.error('[seeds]', err)))
+      .catch((err) => {
+        ready = undefined;
+        throw err;
+      });
   }
   await ready;
   try {

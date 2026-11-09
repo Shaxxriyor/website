@@ -138,7 +138,8 @@ export function MockTable({ notify }) {
       </div>
       {editing && (
         <p className="muted-sm mt-hint">
-          Type the Writing band and Speaking (F/L/G/P and band) for each candidate; each change is saved when you leave the box. Untick
+          Type the band of each finished Writing task (leave an unfinished task empty: it shows as not marked), the Writing band and
+          Speaking (F/L/G/P and band); each change is saved when you leave the box. With both tasks marked, the Writing band fills in itself. Untick
           a row to leave it out of the table (rows with no score yet are left out anyway).{' '}
           <button className="link-btn" onClick={() => setAdding(true)}>
             Add a candidate without a mock sitting
@@ -280,6 +281,8 @@ function EditTable({ rows, onSave, onRemove }) {
           <th className="mt-name">Candidate</th>
           <th>Listening</th>
           <th>Reading</th>
+          <th>Task 1</th>
+          <th>Task 2</th>
           <th>Writing band</th>
           <th>Speaking F/L/G/P</th>
           <th>Speaking band</th>
@@ -297,12 +300,28 @@ function EditTable({ rows, onSave, onRemove }) {
 
 function EditRow({ r, onSave, onRemove }) {
   const [writing, setWriting] = useState(false);
-  const [v, setV] = useState({ writing: r.writing ?? '', speaking_parts: r.speaking_parts ?? '', speaking: r.speaking ?? '' });
+  const [v, setV] = useState({
+    task1: r.task1 ?? '',
+    task2: r.task2 ?? '',
+    writing: r.writing ?? '',
+    speaking_parts: r.speaking_parts ?? '',
+    speaking: r.speaking ?? '',
+  });
   const commit = (key) => {
     const value = String(v[key]).trim().replace(',', '.');
     const before = String(r[key] ?? '');
     if (value === before) return;
     const change = { [key]: value === '' ? null : key === 'speaking_parts' ? value : Number(value) };
+    // Both tasks marked and no Writing band yet: Task 2 counts twice, (Task 1 + 2 × Task 2) / 3.
+    if ((key === 'task1' || key === 'task2') && value !== '' && String(v.writing).trim() === '') {
+      const t1 = Number(key === 'task1' ? value : v.task1);
+      const t2 = Number(key === 'task2' ? value : v.task2);
+      if (String(key === 'task1' ? v.task2 : v.task1).trim() !== '' && !Number.isNaN(t1) && !Number.isNaN(t2)) {
+        const w = Math.round(((t1 + 2 * t2) / 3) * 2) / 2;
+        change.writing = w;
+        setV((x) => ({ ...x, writing: w }));
+      }
+    }
     // Parts typed without a band: the band is their average.
     if (key === 'speaking_parts' && value && String(v.speaking).trim() === '') {
       const p = value.split('/').map(Number);
@@ -335,6 +354,8 @@ function EditRow({ r, onSave, onRemove }) {
       </td>
       <td>{r.listening_band != null ? `${r.listening_correct} · ${fmt(r.listening_band)}` : '–'}</td>
       <td>{r.reading_band != null ? `${r.reading_correct} · ${fmt(r.reading_band)}` : '–'}</td>
+      <td>{input('task1', { inputMode: 'decimal', placeholder: '—', 'aria-label': 'Task 1 band', maxLength: 3, title: 'Leave empty if unfinished (not marked)' })}</td>
+      <td>{input('task2', { inputMode: 'decimal', placeholder: '—', 'aria-label': 'Task 2 band', maxLength: 3, title: 'Leave empty if unfinished (not marked)' })}</td>
       <td>{input('writing', { inputMode: 'decimal', placeholder: '6.5', 'aria-label': 'Writing band', maxLength: 3 })}</td>
       <td>{input('speaking_parts', { placeholder: '6/7/7/7', 'aria-label': 'Speaking F/L/G/P', maxLength: 15 })}</td>
       <td>{input('speaking', { inputMode: 'decimal', placeholder: '7.0', 'aria-label': 'Speaking band', maxLength: 3 })}</td>

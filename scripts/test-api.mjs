@@ -600,6 +600,15 @@ assert.equal(r.data.lessons.find((l) => l.day === 14).total, 32, 'teacher record
   assert.equal(r.data.results[0].feedback, 'Task 1: good overview.');
   r = await asMock('GET', { query: `?id=${rid}` });
   assert.equal(r.data.result.data.marks.speaking, 7, 'marks go into the PDF data');
+  // A band for each Writing task; leaving one out keeps it, null clears it.
+  r = await call('mock', { method: 'POST', body: { action: 'marks', mock: 'full-mock-06-11-2026', marks: [{ result_id: rid, writing: 7, speaking: 7, speaking_parts: '7/7/7/7', task1: 6.5, task2: null }] } });
+  assert.equal(r.status, 200);
+  r = await call('mock', { method: 'POST', body: { action: 'marks', mock: 'full-mock-06-11-2026', marks: [{ result_id: rid, writing: 7, speaking: 7, speaking_parts: '7/7/7/7' }] } });
+  const tr = r.data.rows.find((x) => x.id === rid);
+  assert.equal(tr.task1, 6.5);
+  assert.equal(tr.task2, null, 'unfinished task: not marked');
+  r = await asMock('GET', { query: `?id=${rid}` });
+  assert.equal(r.data.result.data.marks.task1, 6.5);
   r = await call('mock', { method: 'POST', body: { action: 'delete-mark', id: only.mark_id } });
   r = await call('mock', { query: '?table=full-mock-06-11-2026' });
   assert.equal(r.data.rows.some((x) => x.full_name === 'Iffatoy'), false);

@@ -325,7 +325,7 @@
     if (window.MockReport) return Promise.resolve(window.MockReport);
     return new Promise(function (ok, no) {
       var sc = document.createElement('script');
-      sc.src = '/mock-report.js?v=3';
+      sc.src = '/mock-report.js?v=4';
       sc.onload = function () { window.MockReport ? ok(window.MockReport) : no(); };
       sc.onerror = function () { sc.remove(); no(); };
       document.head.appendChild(sc);

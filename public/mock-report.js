@@ -78,6 +78,8 @@
     const tasks = r.tasks || {};
     const leaves = r.leaves || [];
     const marks = r.marks || {};
+    // The examiner has marked this sitting (any band or feedback saved).
+    const marked = [marks.writing, marks.task1, marks.task2].some((x) => x != null) || Boolean(String(marks.feedback || '').trim());
     const title = r.title || 'Full Mock Test';
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
     const W = doc.internal.pageSize.getWidth();
@@ -116,7 +118,13 @@
       body: [
         ['Listening', r.res?.listening ? `${L.correct} / ${L.total || 40}` : 'not taken', r.res?.listening ? L.band : '-'],
         ['Reading', r.res?.reading ? `${R.correct} / ${R.total || 40}` : 'not taken', r.res?.reading ? R.band : '-'],
-        ['Writing', `Task 1: ${w1} words, Task 2: ${w2} words`, marks.writing != null ? Number(marks.writing).toFixed(1) : 'for the examiner'],
+        [
+          'Writing',
+          marked
+            ? `Task 1: ${marks.task1 != null ? Number(marks.task1).toFixed(1) : 'not marked'}, Task 2: ${marks.task2 != null ? Number(marks.task2).toFixed(1) : 'not marked'}`
+            : `Task 1: ${w1} words, Task 2: ${w2} words`,
+          marks.writing != null ? Number(marks.writing).toFixed(1) : marked ? 'not marked' : 'for the examiner',
+        ],
         ['Speaking', marks.speaking_parts ? `F / L / G / P: ${marks.speaking_parts}` : '', marks.speaking != null ? Number(marks.speaking).toFixed(1) : '-'],
         [marks.writing != null && marks.speaking != null ? 'Overall (all four skills)' : 'Overall (Listening + Reading)', '', overall(r) || '-'],
         ['Left the test window', leaves.length ? `${leaves.length} time${leaves.length === 1 ? '' : 's'}` : 'never', ''],
@@ -240,8 +248,23 @@
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9);
       doc.text(`Examiner - Task ${n}`, M + 3, yy + 5);
-      doc.setFont('helvetica', 'normal');
-      doc.text(n === 1 ? 'TA ____   CC ____   LR ____   GRA ____   Band ____' : 'TR ____   CC ____   LR ____   GRA ____   Band ____', M + 3, yy + 13);
+      const taskBand = marks[`task${n}`];
+      if (marked) {
+        // Marked by the examiner: the band, or "not marked" for an unfinished task.
+        doc.setFontSize(14);
+        if (taskBand != null) doc.text(`Band ${Number(taskBand).toFixed(1)}`, M + 3, yy + 16);
+        else {
+          doc.setTextColor(200, 20, 40);
+          doc.text(String(text || '').trim() ? 'Not marked - unfinished' : 'Not marked - not written', M + 3, yy + 16);
+          doc.setTextColor(0);
+        }
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.text(marks.feedback ? 'See the examiner\'s feedback at the end of this report.' : '', M + 3, yy + 24);
+      } else {
+        doc.setFont('helvetica', 'normal');
+        doc.text(n === 1 ? 'TA ____   CC ____   LR ____   GRA ____   Band ____' : 'TR ____   CC ____   LR ____   GRA ____   Band ____', M + 3, yy + 13);
+      }
     }
 
     // The examiner's feedback, when there is some.
@@ -250,7 +273,7 @@
       let yy = 18;
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(13);
-      doc.text('Writing feedback', M, yy);
+      doc.text("Examiner's Writing feedback", M, yy);
       yy += 8;
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(10.5);

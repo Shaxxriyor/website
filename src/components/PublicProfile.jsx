@@ -93,7 +93,7 @@ export function PublicProfile({ id, myId }) {
       </section>
 
 
-      <ActivityChart data={activity} series={CATEGORIES} rangeLabel="Last 7 months" title="Study activity" />
+      <ActivityChart data={activity} series={CATEGORIES} title="Study activity" />
 
       <section aria-labelledby="pp-recent">
         <div className="section-head">

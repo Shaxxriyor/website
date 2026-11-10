@@ -48,7 +48,7 @@ export function OverviewPanel({ version, onSignOut }) {
             </div>
           </div>
 
-          <ActivityChart data={data.activity} series={CATEGORIES} rangeLabel="Last 7 months" title="All students" />
+          <ActivityChart data={data.activity} series={CATEGORIES} title="All students" />
 
           <div className="section-head section-head--panel">
             <h3 className="label">Latest practice</h3>
@@ -116,7 +116,7 @@ export function StudentPanel({ data, onSignOut }) {
         </span>
       </div>
 
-      <ActivityChart data={activity} series={CATEGORIES} rangeLabel="Last 7 months" title="Study activity" />
+      <ActivityChart data={activity} series={CATEGORIES} title="Study activity" />
     </aside>
   );
 }

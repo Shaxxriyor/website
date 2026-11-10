@@ -224,28 +224,41 @@ export async function listLessons({ studentId, kind, skill, from, to, limit = 30
 }
 
 /** Hours per category (kind_skill) for each of the last `months` calendar months (oldest first). */
-export async function monthlyActivity(studentId = null, months = 7) {
-  const now = new Date();
-  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (months - 1), 1));
-  const params = [start.toISOString().slice(0, 10)];
+/**
+ * Study hours for each day of the current month (Tashkent time), by kind of practice.
+ * Each bucket: { key: 'YYYY-MM-DD', label: day number, title: '10 Nov', today, future, <category>: hours }.
+ */
+export async function monthlyActivity(studentId = null) {
+  const [{ today }] = await query(`SELECT to_char((now() AT TIME ZONE 'Asia/Tashkent')::date, 'YYYY-MM-DD') AS today`);
+  const [y, m, d] = today.split('-').map(Number);
+  const days = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const first = `${today.slice(0, 7)}-01`;
+  const params = [first];
   const rows = await query(
-    `SELECT to_char(lesson_date, 'YYYY-MM') AS ym, kind || '_' || skill AS category,
+    `SELECT to_char(lesson_date, 'YYYY-MM-DD') AS study_day, kind || '_' || skill AS category,
        SUM(duration_minutes)::int AS minutes
      FROM lessons
-     WHERE lesson_date >= $1 ${studentId ? `AND student_id = $${params.push(studentId)}` : ''}
-     GROUP BY ym, category`,
+     WHERE lesson_date >= $1 AND lesson_date < ($1::date + interval '1 month')
+       ${studentId ? `AND student_id = $${params.push(studentId)}` : ''}
+     GROUP BY study_day, category`,
     params,
   );
   const buckets = [];
-  for (let i = 0; i < months; i++) {
-    const d = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + i, 1));
-    const bucket = { key: d.toISOString().slice(0, 7), month: d.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' }) };
+  for (let i = 1; i <= days; i++) {
+    const date = new Date(Date.UTC(y, m - 1, i));
+    const bucket = {
+      key: date.toISOString().slice(0, 10),
+      label: String(i),
+      title: date.toLocaleString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' }),
+      today: i === d,
+      future: i > d,
+    };
     for (const c of CATEGORIES) bucket[c] = 0;
     buckets.push(bucket);
   }
   for (const r of rows) {
-    const b = buckets.find((x) => x.key === r.ym);
-    if (b && r.category in b) b[r.category] = Math.round((r.minutes / 60) * 100) / 100;
+    const bucket = buckets.find((x) => x.key === r.study_day);
+    if (bucket && r.category in bucket) bucket[r.category] = Math.round((r.minutes / 60) * 100) / 100;
   }
   return buckets;
 }
@@ -301,14 +314,14 @@ export async function createStudent(input) {
   });
 }
 
-/** A student who signed up on the site: every section open (the teacher can close any of them). */
+/** A student who signed up on the site: every section closed until the teacher opens it (one trial item each). */
 export async function registerStudent({ full_name, phone, email, password_hash }) {
   return withFreshCode(async (code) => {
     try {
       const [row] = await query(
         `INSERT INTO students (full_name, phone, email, level, registered_at, status, password_hash, self_registered, practice_access, access, access_code)
-         VALUES ($1, $2, $3, '', CURRENT_DATE, 'active', $4, true, true, $5, $6) RETURNING id`,
-        [full_name, phone, email, password_hash, SECTION_KEYS, code],
+         VALUES ($1, $2, $3, '', CURRENT_DATE, 'active', $4, true, false, '{}', $5) RETURNING id`,
+        [full_name, phone, email, password_hash, code],
       );
       return row;
     } catch (err) {

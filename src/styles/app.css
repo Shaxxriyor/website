@@ -5352,3 +5352,65 @@ a.rating__row:hover .rating__chev {
   gap: 6px;
   justify-content: flex-end;
 }
+
+/* ---------- Activity by day of the month ---------- */
+.chart.chart--days {
+  grid-template-columns: repeat(var(--cols, 30), minmax(0, 1fr));
+  gap: 2px;
+}
+.chart--days .chart__bar {
+  border-radius: 3px 3px 1px 1px;
+  animation-delay: 0s !important;
+}
+.chart--days .chart__seg:first-child {
+  border-radius: 3px 3px 0 0;
+}
+.chart--days .chart__seg {
+  min-height: 2px;
+}
+.chart--days .chart__col {
+  border-radius: 4px;
+}
+.chart--days .chart__col.is-selected .chart__bar {
+  padding: 1px;
+  border-radius: 4px 4px 2px 2px;
+  box-shadow: 0 0 0 1.5px var(--ink);
+}
+.chart--days .chart__col.is-future .chart__bar {
+  opacity: 0.35;
+}
+.chart--days .chart__col::before {
+  /* a faint base line for each day, so empty days are visible */
+  content: '';
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--line);
+}
+.chart--days .chart__col.is-today::before {
+  background: var(--accent);
+}
+.chart--days .chart__month {
+  font-size: 9.5px;
+  overflow: visible;
+  white-space: nowrap;
+}
+.chart--days .chart__col.is-selected .chart__month {
+  padding: 1px 5px;
+}
+.activity__day {
+  margin-left: 2px;
+}
+/* Tooltips of the first and last days open inwards, so they stay inside the card. */
+.chart--days .chart__col:nth-child(-n + 8) .chart__tip {
+  left: 0;
+  translate: 0 0;
+}
+.chart--days .chart__col:nth-last-child(-n + 6) .chart__tip {
+  left: auto;
+  right: 0;
+  translate: 0 0;
+}

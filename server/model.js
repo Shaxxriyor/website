@@ -706,3 +706,42 @@ export async function vocabFor(studentId) {
     [studentId],
   );
 }
+
+
+/**
+ * What every active student did, newest first, for the shared Live activity feed: each
+ * scored try (marathon day or practice test), study time without a score, vocabulary
+ * progress and mock results. No contact details.
+ */
+export async function activityFeed({ limit = 80, before = null } = {}) {
+  const lim = Math.min(200, Math.max(10, Number(limit) || 80));
+  const until = before && !Number.isNaN(Date.parse(before)) ? new Date(before).toISOString() : null;
+  const rows = await query(
+    `SELECT f.*, s.full_name, s.avatar_v FROM (
+       SELECT 'try' AS type, a.created_at AS at, l.student_id, l.kind, l.skill, l.day, l.item, l.topic,
+         a.correct, a.total, l.duration_minutes, NULL::text AS book, NULL::int AS unit, NULL::int AS known,
+         NULL::text AS mock, NULL::float AS listening, NULL::float AS reading
+       FROM attempts a JOIN lessons l ON l.id = a.lesson_id
+       UNION ALL
+       SELECT 'study', l.created_at, l.student_id, l.kind, l.skill, l.day, l.item, l.topic,
+         l.correct, l.total, l.duration_minutes, NULL, NULL, NULL, NULL, NULL, NULL
+       FROM lessons l WHERE NOT EXISTS (SELECT 1 FROM attempts a WHERE a.lesson_id = l.id)
+       UNION ALL
+       SELECT 'vocab', v.updated_at, v.student_id, NULL, NULL, NULL, NULL, NULL,
+         NULL, v.total, NULL, v.book, v.unit, cardinality(v.known), NULL, NULL, NULL
+       FROM vocab_progress v WHERE cardinality(v.known) > 0
+       UNION ALL
+       SELECT 'mock', COALESCE(r.finished_at, r.updated_at), r.student_id, NULL, NULL, NULL, NULL, NULL,
+         NULL, NULL, NULL, NULL, NULL, NULL, r.mock, r.listening_band::float, r.reading_band::float
+       FROM mock_results r WHERE r.listening_band IS NOT NULL OR r.reading_band IS NOT NULL
+     ) f JOIN students s ON s.id = f.student_id
+     WHERE s.status = 'active' ${until ? 'AND f.at < $2' : ''}
+     ORDER BY f.at DESC LIMIT $1`,
+    until ? [lim, until] : [lim],
+  );
+  return rows.map((r) => ({
+    ...r,
+    at: r.at instanceof Date ? r.at.toISOString() : r.at,
+    band: r.type === 'try' || r.type === 'study' ? bandFor(r.skill, r.correct, r.total) : null,
+  }));
+}

@@ -33,7 +33,7 @@ export function HomeView({ onChanged, tab: routeTab, results = [], practice = []
 
       <div className="hero">
         <h1 className="hero-title">
-          Prepare with
+          Prepare with{' '}
           <br />
           the best
         </h1>

@@ -22,6 +22,7 @@ const api = {
   me: await import('../api/me.js'),
   track: await import('../api/track.js'),
   leaderboard: await import('../api/leaderboard.js'),
+  rating: await import('../api/rating.js'),
   avatar: await import('../api/avatar.js'),
   content: await import('../api/content.js'),
   mock: await import('../api/mock.js'),
@@ -480,6 +481,24 @@ for (const bad of ['../package.json', 'marathon/../../.env', '/etc/passwd', 'mar
   assert.ok(!raw.includes('@example.com') && !raw.includes('+998') && !raw.includes('access_code'), 'no private data');
   const anon = await api.leaderboard.GET(new Request(`https://example.test/api/leaderboard?id=${kamola}`));
   assert.equal(anon.status, 401);
+}
+
+// Live activity: every student's actions for everyone signed in, newest first, no contact details.
+{
+  const res = await api.rating.GET(new Request('https://example.test/api/rating?feed=1', { headers: { cookie: studentCookie } }));
+  assert.equal(res.status, 200);
+  const { feed } = await res.json();
+  assert.ok(feed.length > 0, 'there is activity');
+  assert.ok(feed.some((e) => e.type === 'try' && e.correct != null), 'scored tries are in the feed');
+  for (let i = 1; i < feed.length; i++) assert.ok(feed[i - 1].at >= feed[i].at, 'newest first');
+  const raw = JSON.stringify(feed);
+  assert.ok(!raw.includes('@example.com') && !raw.includes('+998') && !raw.includes('access_code'), 'no private data');
+  const anon = await api.rating.GET(new Request('https://example.test/api/rating?feed=1'));
+  assert.equal(anon.status, 401, 'visitors do not see it');
+  const older = await api.rating.GET(new Request(`https://example.test/api/rating?feed=1&before=${encodeURIComponent(feed.at(-1).at)}`, { headers: { cookie: studentCookie } }));
+  assert.equal(older.status, 200);
+  const board = await api.rating.GET(new Request('https://example.test/api/rating?period=month', { headers: { cookie: studentCookie } }));
+  assert.ok((await board.json()).students.length > 0, 'the rating at /api/rating');
 }
 
 // new code: old one stops working; inactive students are signed out

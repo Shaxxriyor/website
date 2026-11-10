@@ -26,7 +26,7 @@ async function request(path, { body, params } = {}) {
   }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    if (res.status === 401 && !['auth', 'me', 'leaderboard'].includes(path)) onUnauthorized();
+    if (res.status === 401 && !['auth', 'me', 'leaderboard', 'rating'].includes(path)) onUnauthorized();
     throw new ApiError(data.error || `Request failed (${res.status})`, res.status, data.fields);
   }
   return data;
@@ -52,8 +52,10 @@ export const api = {
   newCode: (id) => request('students', { body: { action: 'new-code', id } }),
 
   // Student side
-  leaderboard: (period) => request('leaderboard', { params: { period } }),
-  studentPage: (id) => request('leaderboard', { params: { id } }),
+  // "rating", not "leaderboard": content blockers in Safari block addresses with "leaderboard".
+  leaderboard: (period) => request('rating', { params: { period } }),
+  studentPage: (id) => request('rating', { params: { id } }),
+  activityFeed: (before) => request('rating', { params: { feed: 1, before } }),
   me: () => request('me'),
   setAccess: (id, access) => request('students', { body: { action: 'access', id, access } }),
   studentLogin: (code) => request('me', { body: { action: 'login', code } }),

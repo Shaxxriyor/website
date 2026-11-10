@@ -5,15 +5,22 @@ import { formatBand } from '../lib/band.js';
 import { ChevronRight, TrophyIcon } from './Icons.jsx';
 import { Avatar } from './Avatar.jsx';
 import { EmptyState, ErrorNote, Segmented, Skeleton, useLoad } from './admin/ui.jsx';
+import { ActivityFeed } from './ActivityFeed.jsx';
 
 const PERIODS = [
   { value: 'week', label: 'This week' },
   { value: 'month', label: 'This month' },
   { value: 'all', label: 'All time' },
 ];
-/** Shared rating: every active student's study time, progress and badges. */
+const VIEWS = [
+  { value: 'rating', label: 'Rating' },
+  { value: 'activity', label: 'Live activity' },
+];
+
+/** Shared rating (every active student's study time, progress and badges) and the Live activity feed. */
 export function RatingView({ signedIn, version }) {
   const [period, setPeriod] = useState('month');
+  const [view, setView] = useState(() => (location.hash.includes('activity') ? 'activity' : 'rating'));
   const { data, error, loading, reload } = useLoad(() => api.leaderboard(period), [period, signedIn, version]);
 
   return (
@@ -21,10 +28,15 @@ export function RatingView({ signedIn, version }) {
       <header className="page-head">
         <div>
           <h1 className="hero-title hero-title--page">Rating</h1>
-          <p className="muted-sm">Who studied the most. Tap a student to see everything they did.</p>
+          <p className="muted-sm">
+            {view === 'activity'
+              ? 'Everything every student does, as it happens. Tap a name to see their page.'
+              : 'Who studied the most. Tap a student to see everything they did.'}
+          </p>
         </div>
         <div className="rating__period">
-          <Segmented label="Period" value={period} onChange={setPeriod} options={PERIODS} />
+          <Segmented label="View" value={view} onChange={setView} options={VIEWS} />
+          {view === 'rating' && <Segmented label="Period" value={period} onChange={setPeriod} options={PERIODS} />}
         </div>
       </header>
 
@@ -32,6 +44,8 @@ export function RatingView({ signedIn, version }) {
         <EmptyState icon={TrophyIcon} title="Sign in to see the rating">
           Sign in with the code from your teacher on the home page.
         </EmptyState>
+      ) : view === 'activity' ? (
+        <ActivityFeed me={data?.me} />
       ) : error ? (
         <ErrorNote error={error} onRetry={reload} />
       ) : loading && !data ? (

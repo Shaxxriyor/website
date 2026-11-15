@@ -193,6 +193,16 @@ const SEEDS = [
       );
     },
   },
+  {
+    // The teacher accepted every request waiting on 15 November 2026 (new sign-ups still wait).
+    id: 'approve-all-waiting-2026-11-15',
+    async apply(c) {
+      await c.query(
+        `UPDATE students SET access = $1, practice_access = true, updated_at = now() WHERE COALESCE(cardinality(access), 0) = 0`,
+        [SECTION_KEYS],
+      );
+    },
+  },
 ];
 
 /** The last failure of each one-time change in this instance (shown on the teacher's check page). */

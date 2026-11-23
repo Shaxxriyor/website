@@ -379,6 +379,8 @@ for (const [path, status] of [
   ['vocab/essential-words-5/unit-01.json', 200],
   ['vocab/essential-words-5/unit-02.json', 403],
   ['mock/full-mock-06-11-2026.html', 403],
+  ['prediction/listening/pred-l-p1-accommodation-enquiry.html', 200],
+  ['prediction/listening/pred-l-p2-beach-clean-up-day.html', 403],
 ]) {
   r = await get(path, azizCookie);
   assert.equal(r.status, status, `trial: ${path}`);
@@ -437,6 +439,12 @@ r = await get('vocab/evil.js', studentCookie);
 assert.equal(r.status, 404, 'scripts only from the shared engine folder');
 r = await asStudent('track', { method: 'POST', body: { kind: 'exercise', skill: 'listening', item: 'test-9', topic: 'Listening Test 9', seconds: 120, correct: 31, total: 40, sitting: 'listen0001' } });
 assert.equal(r.status, 200, 'listening test score saved');
+r = await asStudent('track', { method: 'POST', body: { kind: 'exercise', skill: 'listening', item: 'pred-l-p1-lawson-primary-school', topic: 'Prediction · Part 1 · Lawson Primary School', seconds: 60, correct: 8, total: 10, sitting: 'pred000001' } });
+assert.equal(r.status, 200, 'December Prediction scores are saved');
+r = await get('prediction/listening/pred-l-p4-history-of-paint.html', studentCookie);
+assert.equal(r.status, 200, 'students the teacher registers get every section, December Prediction too');
+r = await get('prediction/listening/_shared/' + readdirSync('content/prediction/listening/_shared').find((f) => f.endsWith('.js')));
+assert.equal(r.status, 200, 'the prediction engine is public, like the practice one');
 r = await asStudent('track', { method: 'POST', body: { kind: 'exercise', skill: 'listening', item: 'p1-rubber', topic: 'x', correct: 1, total: 40 } });
 assert.equal(r.status, 422, 'listening items are test-N');
 r = await asStudent('me');

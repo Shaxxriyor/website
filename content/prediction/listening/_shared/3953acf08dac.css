@@ -1,0 +1,527 @@
+
+/* ── COSMIC DUST → DEEP FIELD ─────────────────────────────────────────────
+   The sky's own host, first child of body, under every wrapper stage. Shown
+   only while a wrapper stage is .active — the exam never carries it. The
+   CSS ground here is painted before the WebGL canvas fades up (and is the
+   whole sky if WebGL is missing), so there is never a black frame. Colours
+   are literal: html2canvas cannot read color-mix(). */
+#cdi-stars-host{position:fixed;inset:0;z-index:0;display:none;pointer-events:none;
+  overflow:hidden;contain:strict;
+  background:
+    radial-gradient(60% 48% at 62% 40%,rgba(22,54,72,.34),transparent 70%),
+    radial-gradient(48% 40% at 84% 78%,rgba(78,46,30,.22),transparent 66%),
+    linear-gradient(180deg,#0a0c16 0%,#05060e 55%,#02020a 100%)}
+#cdi-stars-host #cdi-stars{position:absolute;left:0;top:0;display:block}
+/* CSS-only sky (no WebGL): the baked star layer sits under a soft vignette */
+#cdi-stars-host.cdi-css-sky::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(76% 62% at 50% 47%,transparent 34%,rgba(1,2,6,.34) 72%,rgba(0,0,3,.76) 100%)}
+@media print{#cdi-stars-host{display:none!important}}
+/* The particle prelude is retired: the field is the atmosphere now. */
+#ch-strike,#ch-bloom{display:none!important}
+/* ── COSMOS · the compact registration console ──────────────────────────────
+   DEEP FIELD · the cards. Four glass panels floating over a photographic sky.
+   Nothing here touches the DOM: every id, class, label and handler on the
+   registration, briefing and completion stages is untouched; this sheet only
+   restyles and re-spaces them. Deleting this block restores the wide chamber
+   card exactly.
+
+   Rules of this sheet
+   · literal rgba()/hex only — color-mix() breaks html2canvas 1.4.1 (the PDF)
+   · every selector is scoped to a wrapper stage id; .btn/.btn-primary are
+     shared with the exam and must never be restyled bare
+   · the glass recipe, the type scale and the button family are defined ONCE
+     as custom properties on the three stages and read everywhere below, so
+     the three cards cannot drift apart
+
+   The glass: a warm-dark tint (blue-black, never grey), an 18px blur that
+   lets the star field bleed through, a 1px "starlight" border, a warm hairline
+   of light along the top edge, a faint nebula colour bleed (rust top-left,
+   oxygen-teal bottom-right) and a long, soft shadow that reads as a panel
+   floating in a vacuum. Corner radius 20px. */
+
+:is(#stage-registration,#stage-listening-intro,#stage-completion){
+  /* glass */
+  --cx-glass:linear-gradient(180deg,rgba(14,18,30,.50),rgba(5,8,16,.68));
+  --cx-edge:rgba(255,240,220,.22);
+  --cx-edge-2:rgba(255,240,220,.22);
+  --cx-radius:20px;
+  --cx-shadow:0 0 0 1px rgba(0,0,0,.26) inset,
+              0 1px 0 rgba(255,240,220,.28) inset,
+              0 1px 2px rgba(0,0,0,.5),
+              0 12px 28px -12px rgba(0,0,0,.7),
+              0 40px 90px -24px rgba(0,0,0,.85),
+              0 110px 200px -60px rgba(0,0,0,.75);
+  /* ink — warm-neutral, tuned for ≥ 7:1 on the glass */
+  --cx-ink:#f6f4ef;
+  --cx-ink-2:#c6ccd8;
+  --cx-ink-3:#aab4c4;
+  --cx-ink-4:#7c889b;
+  /* the sun — the one accent every hover borrows */
+  --cx-sun:#ffcf8a;
+  --cx-sun-glow:0 0 0 1px rgba(255,200,120,.25),0 8px 30px rgba(255,170,80,.25);
+  /* the one primary family: the blue the registration card already used */
+  --cx-btn:linear-gradient(180deg,#2c82d4,#14538f);
+  --cx-btn-hover:linear-gradient(180deg,#3a93e4,#17609f);
+  --cx-btn-shadow:inset 0 1px 0 rgba(255,255,255,.24),inset 0 -1px 0 rgba(0,0,0,.26),
+                  0 1px 2px rgba(0,0,0,.4),0 14px 30px -20px rgba(80,160,240,.9);
+  --cx-t:150ms ease;
+  /* re-point the chamber tokens the base rules read */
+  --ch-ink:var(--cx-ink);--ch-ink-2:var(--cx-ink-2);--ch-ink-3:var(--cx-ink-3);--ch-ink-4:var(--cx-ink-4);
+  --ch-line:rgba(255,240,220,.10);--ch-line-2:rgba(255,240,220,.16);--ch-line-3:rgba(255,240,220,.26);
+  --ink:var(--cx-ink);--ink-soft:var(--cx-ink-2);--ink-mute:var(--cx-ink-3);
+  --line:rgba(255,240,220,.10);--line-2:rgba(255,240,220,.16);--line-3:rgba(255,240,220,.16);
+  --pw-ink:var(--cx-ink);--pw-ink-2:var(--cx-ink-2);--pw-ink-3:var(--cx-ink-3);
+  --pw-line:rgba(255,240,220,.10);--pw-line-2:rgba(255,240,220,.16);
+  color:var(--cx-ink-2)}
+
+/* the stage vignette: lighter than the chamber's, so the sky stays a photograph
+   and the card does the darkening, not the corners */
+:is(#stage-registration,#stage-listening-intro,#stage-completion)::after{
+  background:radial-gradient(80% 64% at 50% 42%,transparent 44%,rgba(2,3,8,.22) 78%,rgba(1,2,6,.58) 100%)}
+
+/* ── the glass, once ─────────────────────────────────────────────────────── */
+#stage-registration .start-card,
+#stage-listening-intro .trans-card,
+#stage-completion .complete-card{
+  background:var(--cx-glass);
+  border:1px solid var(--cx-edge);
+  border-radius:var(--cx-radius);
+  box-shadow:var(--cx-shadow);
+  -webkit-backdrop-filter:blur(18px) saturate(1.3);backdrop-filter:blur(18px) saturate(1.3)}
+
+/* the hairline of starlight along the top edge — warm, brightest just left of
+   centre, the way a panel catches a light source sitting upper-left */
+#stage-registration .start-card::before,
+#stage-listening-intro .trans-card::before,
+#stage-completion .complete-card::before{
+  background:linear-gradient(90deg,transparent,rgba(255,244,228,.10) 8%,rgba(255,236,208,.48) 30%,
+    rgba(255,250,240,.86) 44%,rgba(255,236,208,.44) 62%,rgba(255,244,228,.10) 90%,transparent)}
+
+/* the nebula bleeding through: rust from the top-left (where the sun sits),
+   oxygen-teal from the lower right. Painted UNDER the content — the base rule
+   put it at z-index:0, which in the card's own stacking context is above the
+   in-flow text. -1 paints it between the card background and the copy. */
+#stage-registration .start-card::after,
+#stage-listening-intro .trans-card::after,
+#stage-completion .complete-card::after{
+  z-index:-1;
+  background:radial-gradient(150% 120% at 4% -10%,rgba(255,176,110,.14),rgba(255,176,110,.045) 50%,transparent 84%),
+             radial-gradient(130% 110% at 106% 112%,rgba(72,158,166,.13),rgba(72,158,166,.04) 50%,transparent 82%),
+             linear-gradient(0deg,rgba(255,244,228,.06),transparent 1px),
+             linear-gradient(115deg,rgba(255,255,255,.04),transparent 38%),
+             linear-gradient(180deg,rgba(255,255,255,.025),transparent 26%)}
+
+/* ── shared type ─────────────────────────────────────────────────────────── */
+:is(#stage-registration,#stage-listening-intro,#stage-completion) :is(.start-title,.trans-title,.complete-title){
+  font-family:var(--ch-display);font-weight:600;letter-spacing:-.026em;color:var(--cx-ink);line-height:1.06}
+
+:is(#stage-registration,#stage-listening-intro,#stage-completion) :is(.ch-kicker,.trans-eyebrow){
+  font-family:var(--ch-ui);font-size:10px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--cx-ink-3)}
+
+/* the kicker's dot was the chamber's red; here it is the sun */
+:is(#stage-registration,#stage-listening-intro,#stage-completion) .ch-dot{
+  background:var(--cx-sun);
+  box-shadow:0 0 0 3px rgba(255,200,120,.16),0 0 12px rgba(255,190,110,.65)}
+
+:is(#stage-registration,#stage-listening-intro,#stage-completion) .ch-fineprint{
+  color:var(--cx-ink-3);letter-spacing:.005em}
+
+:is(#stage-registration,#stage-listening-intro,#stage-completion) kbd{
+  color:var(--cx-ink-2);border-color:rgba(255,240,220,.20);background:rgba(255,255,255,.04)}
+
+/* ── the one button family ───────────────────────────────────────────────── */
+:is(#stage-registration,#stage-listening-intro,#stage-completion) .btn-primary{
+  background:var(--cx-btn);
+  border-radius:12px;
+  box-shadow:var(--cx-btn-shadow);
+  transition:transform var(--cx-t),box-shadow var(--cx-t),background var(--cx-t),filter var(--cx-t)}
+
+/* hover: the sun's light on the glass, not a brighter blue */
+:is(#stage-registration,#stage-listening-intro,#stage-completion) .btn-primary:hover{
+  transform:translateY(-1px);
+  background:var(--cx-btn-hover);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.30),inset 0 -1px 0 rgba(0,0,0,.24),
+             0 1px 2px rgba(0,0,0,.38),var(--cx-sun-glow)}
+
+:is(#stage-registration,#stage-listening-intro,#stage-completion) .btn-primary:active{
+  transform:translateY(0) scale(.994);
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.34),0 1px 2px rgba(0,0,0,.3),0 0 0 1px rgba(255,200,120,.18)}
+
+:is(#stage-registration,#stage-listening-intro,#stage-completion) .btn-primary:focus-visible{
+  outline:2px solid rgba(255,214,160,.9);outline-offset:3px}
+
+/* dormant (name not yet valid): the SAME blue, at 55% and desaturated — clearly
+   not yet live, still unmistakably the primary action. No glow, no lift. */
+:is(#stage-registration,#stage-listening-intro,#stage-completion) .btn-primary:disabled,
+:is(#stage-registration,#stage-listening-intro,#stage-completion) .btn-primary.is-dormant{
+  background:var(--cx-btn);
+  color:#fff;
+  opacity:.55;filter:saturate(.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),inset 0 -1px 0 rgba(0,0,0,.22),0 1px 2px rgba(0,0,0,.35);
+  transform:none}
+
+:is(#stage-registration,#stage-listening-intro,#stage-completion) .btn-primary.is-dormant:hover{
+  background:var(--cx-btn);color:#fff;
+  opacity:.68;filter:saturate(.75);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.20),inset 0 -1px 0 rgba(0,0,0,.22),0 1px 2px rgba(0,0,0,.35);
+  transform:none}
+
+/* the moment the name is valid: full opacity, full colour, then the ignition ring */
+:is(#stage-registration,#stage-listening-intro,#stage-completion) .btn-primary.is-live{opacity:1;filter:none}
+
+/* the ignition ring, re-coloured from the chamber red to the sun */
+@keyframes cxIgnite{
+  0%{box-shadow:var(--cx-btn-shadow),0 0 0 0 rgba(255,200,120,.55)}
+  100%{box-shadow:var(--cx-btn-shadow),0 0 0 14px rgba(255,200,120,0)}}
+:is(#stage-registration,#stage-listening-intro,#stage-completion) .btn-primary.is-live{
+  animation:cxIgnite .72s var(--ch-e) 1}
+
+/* all three primaries share one height, one radius, one weight */
+#stage-registration #start-btn,
+#stage-listening-intro .btn-lg,
+#stage-completion .btn-lg{
+  height:48px;padding:0 22px;font-size:13.5px;font-weight:700;letter-spacing:.01em;
+  border-radius:12px;margin-top:0}
+
+/* ── the card's entrance (briefing / completion) ─────────────────────────────
+   goToStage re-adds .cdi-enter on every visit. The chamber's entrance only ran
+   under body.cdi-3d-on, which no longer exists, so the cards simply popped. */
+@keyframes cxCardIn{from{opacity:0;transform:translate3d(0,16px,0) scale(.985)}to{opacity:1;transform:none}}
+#stage-listening-intro.cdi-enter .trans-card,
+#stage-completion.cdi-enter .complete-card{animation:cxCardIn .7s var(--ch-e) both}
+
+/* ── REGISTRATION · the console ──────────────────────────────────────────────
+   Two columns of copy became one small console, low on the frame, carrying
+   only what a candidate needs in the ten seconds before they type their name.
+   `margin:auto auto <n>`: the stage centres the card with auto margins, so
+   leaving the top auto and pinning the bottom drops it without touching the
+   stage's own flex layout — and keeps it clear of the solar system, which the
+   sky places upper-left. */
+#stage-registration .start-card{
+  max-width:600px;
+  margin:auto auto clamp(14px,4vh,56px)}
+
+#stage-registration .ch-grid{display:block}
+
+#stage-registration .ch-ident{
+  border-right:0;border-bottom:0;background:none;display:block;
+  padding:clamp(18px,2vw,22px) clamp(20px,2.4vw,28px) 0}
+
+#stage-registration .ch-action{
+  padding:clamp(12px,1.4vw,14px) clamp(20px,2.4vw,28px) clamp(16px,1.8vw,20px);
+  display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;align-items:start}
+
+/* the words the sky, the briefing screen or the field itself says better */
+#stage-registration :is(.brand-tagline,.ch-lede,.start-rules,.ch-label,.input-label,
+  .ch-credit,.channel-promo .channel-desc,.channel-promo .channel-cta){display:none}
+
+/* the hint is the field's error channel — hidden until it has something to say */
+#stage-registration .ch-hint{display:none;margin:8px 2px 0}
+
+#stage-registration .ch-field.is-invalid .ch-hint{display:flex}
+
+/* identity, at a fraction of the weight */
+#stage-registration .brand-block{gap:10px;margin:0 0 14px}
+
+#stage-registration .brand-logo{width:30px;height:30px;border-radius:9px;
+  box-shadow:0 4px 12px -5px rgba(9,38,92,.9),0 0 0 1px rgba(255,255,255,.10)}
+
+#stage-registration .brand-eyebrow{font-size:12px;font-weight:600;letter-spacing:.01em;color:var(--cx-ink)}
+
+#stage-registration .ch-kicker{gap:8px}
+
+#stage-registration .start-title{font-size:clamp(22px,2vw,28px);margin:7px 0 0!important;max-width:none}
+
+/* 40 · 40 · 4 as one line of reading, not a scoreboard */
+#stage-registration .start-meta{
+  display:flex;flex-wrap:wrap;align-items:baseline;justify-content:flex-start;gap:5px 16px;
+  margin:10px 0 0;padding:0;border:0;background:none;box-shadow:none}
+
+#stage-registration .start-meta-item{display:flex;align-items:baseline;gap:6px;flex:0 0 auto;text-align:left}
+
+#stage-registration .start-meta-item .n{font-size:15px;letter-spacing:-.01em;color:var(--cx-ink)}
+
+#stage-registration .start-meta-item .l{font-size:9.5px;letter-spacing:.14em;margin:0;color:var(--cx-ink-3)}
+
+#stage-registration .start-meta-divider{align-self:center;height:10px;background:rgba(255,240,220,.16)}
+
+/* name and Begin on one row, matched heights so the pair reads as one control */
+#stage-registration .ch-field{grid-column:1;grid-row:1;margin:0;padding:0}
+
+#stage-registration .input-field{
+  height:48px;padding:0 15px;font-size:14px;border-radius:12px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,240,220,.16);color:var(--cx-ink)}
+
+#stage-registration .input-field::placeholder{color:var(--cx-ink-4)}
+
+#stage-registration .input-field:hover{background:rgba(255,255,255,.07);border-color:rgba(255,240,220,.26)}
+
+#stage-registration .ch-input-wrap,
+#stage-registration .ch-input-wrap::after{border-radius:12px}
+
+#stage-registration .ch-input-wrap::after{inset:-1px;border-radius:13px;
+  background:linear-gradient(115deg,rgba(176,212,255,1),rgba(128,168,235,.45) 52%,rgba(255,206,150,.55))}
+
+#stage-registration .input-field:focus{
+  background:rgba(130,180,240,.075);border-color:transparent;
+  box-shadow:0 0 0 5px rgba(130,180,240,.10),0 10px 30px -16px rgba(150,195,245,.7)}
+
+#stage-registration #start-btn{grid-column:2;grid-row:1;width:auto;white-space:nowrap;margin:0;
+  transition:transform var(--cx-t),box-shadow var(--cx-t),background var(--cx-t),filter var(--cx-t),opacity var(--cx-t)}
+#stage-registration #start-btn.is-dormant .ch-arrow{opacity:.9}
+
+#stage-registration .ch-fineprint{grid-column:1/-1;grid-row:2;text-align:left;
+  margin:12px 2px 0;font-size:11px;line-height:1.5}
+
+/* ── the Telegram strip: the same glass, a darker foot ───────────────────────
+   A hairline above, a slightly deeper tint below it, the brand blue kept only
+   on the icon. Registration and completion share it. */
+:is(#stage-registration,#stage-completion) .channel-promo{
+  padding:10px clamp(20px,2.4vw,28px);gap:10px;
+  background:linear-gradient(180deg,rgba(3,5,11,.16),rgba(2,4,9,.34));
+  border-top:1px solid rgba(255,240,220,.10);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+  transition:background var(--cx-t)}
+
+:is(#stage-registration,#stage-completion) .channel-promo:hover{
+  background:linear-gradient(180deg,rgba(34,158,217,.10),rgba(2,4,9,.34))}
+
+:is(#stage-registration,#stage-completion) .channel-promo .tg-icon{
+  width:22px;height:22px;border-radius:7px;font-size:11px;
+  box-shadow:0 4px 12px -4px rgba(34,158,217,.9),0 0 0 1px rgba(255,255,255,.08)}
+
+:is(#stage-registration,#stage-completion) .channel-promo .channel-name{
+  font-size:11.5px;font-weight:600;color:var(--cx-ink-2)}
+
+:is(#stage-registration,#stage-completion) .channel-promo:hover .channel-name{color:var(--cx-ink)}
+
+#stage-completion :is(.channel-promo .channel-desc,.channel-promo .channel-cta){display:none}
+
+@media (max-width:560px){
+  #stage-registration .ch-action{grid-template-columns:1fr}
+  #stage-registration #start-btn{grid-column:1;grid-row:2;width:100%;margin-top:9px}
+  #stage-registration .ch-fineprint{grid-row:3}
+  #stage-registration .start-card{margin-bottom:16px}
+}
+
+/* ── the briefing's vignette must still leave with it ─────────────────────── */
+#stage-listening-intro::after{transition:opacity .24s ease}
+
+body.cdi-exit #stage-listening-intro::after{opacity:0}
+
+/* ── BRIEFING ────────────────────────────────────────────────────────────────
+   Same width, same place on the frame as the registration console, so moving
+   between the two screens the card stays put and only its contents change. */
+#stage-listening-intro .trans-card{
+  max-width:600px;margin:auto auto clamp(14px,4vh,56px);
+  padding:clamp(18px,2vw,22px) clamp(20px,2.4vw,28px) clamp(16px,1.8vw,20px)}
+
+#stage-listening-intro .ch-head{gap:12px;margin-bottom:12px}
+
+#stage-listening-intro .ch-mark{width:32px;height:32px;border-radius:10px;
+  background:linear-gradient(158deg,rgba(255,220,170,.16),rgba(255,220,170,.03));
+  border:1px solid rgba(255,240,220,.18);color:#ffd9a6;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 10px 24px -12px rgba(255,190,110,.55)}
+
+#stage-listening-intro .ch-mark svg{width:16px;height:16px}
+
+#stage-listening-intro .trans-title{font-size:clamp(22px,2vw,28px);margin:4px 0 0}
+
+#stage-listening-intro .trans-sub{font-size:12.5px;line-height:1.55;margin:0 0 12px;max-width:none;color:var(--cx-ink-2)}
+
+#stage-listening-intro .ch-greet{color:var(--cx-ink)}
+
+/* the one rule that is a property of the medium: a red-edged inset, not a
+   pink slab. The red stays because there it is the message. */
+#stage-listening-intro .ch-once{
+  padding:11px 14px 11px 13px;border-radius:12px;gap:12px;margin:0 0 14px;
+  background:linear-gradient(90deg,rgba(225,29,60,.07),rgba(225,29,60,.015) 62%,rgba(255,255,255,.015));
+  border:1px solid rgba(255,240,220,.09);border-left:2px solid rgba(255,90,116,.78);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03),inset 0 0 0 1px rgba(0,0,0,.18)}
+
+#stage-listening-intro .ch-once .ch-once-ic{
+  width:24px;height:24px;border-radius:8px;
+  background:rgba(225,29,60,.12);border:1px solid rgba(255,90,116,.26);color:#ff8f9f}
+
+#stage-listening-intro .ch-once .ch-once-ic svg{width:13px;height:13px}
+
+#stage-listening-intro .ch-once b{font-size:12.5px;color:#ffd6dc;margin-bottom:2px}
+
+#stage-listening-intro .ch-once p{font-size:12.5px;line-height:1.5;color:var(--cx-ink-2)}
+
+/* the part chips and the pacing prose: said already, one line up */
+#stage-listening-intro .ch-tasks{display:none}
+
+#stage-listening-intro .trans-notes{display:none}
+
+#stage-listening-intro .ch-fineprint{margin-top:10px;font-size:11px;line-height:1.5}
+
+@media (max-width:560px){
+  #stage-listening-intro .trans-card{margin-bottom:16px}
+}
+
+/* ── COMPLETION ──────────────────────────────────────────────────────────────
+   The third screen in the same frame. The three marking steps stay: they tick
+   as the paper is marked. The pep talk and the credit go. */
+#stage-completion .complete-card{
+  max-width:600px;margin:auto auto clamp(14px,4vh,56px)}
+
+#stage-completion .ch-comp-body{
+  padding:clamp(18px,2vw,22px) clamp(20px,2.4vw,28px) clamp(16px,1.8vw,20px)}
+
+#stage-completion .ch-comp-head{gap:14px;margin-bottom:0}
+
+#stage-completion .ch-seal,#stage-completion .ch-seal svg{width:44px;height:44px}
+
+#stage-completion .ch-seal-core{inset:6px}
+
+#stage-completion .ch-seal-core svg{width:15px;height:15px}
+
+#stage-completion .ch-seal-pct{font-size:10.5px}
+
+/* the ring ran blue → blue → chamber red; the last stop goes to starlight */
+#stage-completion #chSealGrad stop:last-child{stop-color:#cfe6ff}
+
+/* the moment: when the seal closes, a soft emerald ring blooms once around it
+   and settles to a faint halo. Pure CSS on a pseudo-element — the seal's own
+   JS (arc offset, percentage, .is-sealed) is untouched. */
+#stage-completion .ch-seal::after{
+  content:"";position:absolute;inset:-7px;border-radius:50%;pointer-events:none;
+  opacity:0;transform:scale(.8);
+  box-shadow:0 0 0 1px rgba(99,200,160,.20),0 0 22px 1px rgba(99,200,160,.22),inset 0 0 16px rgba(99,200,160,.10);
+  transition:opacity .6s var(--ch-e),transform .7s var(--ch-e)}
+
+@keyframes cxSealBloom{
+  0%{opacity:0;transform:scale(.8)}
+  35%{opacity:1;transform:scale(1.08)}
+  100%{opacity:.75;transform:scale(1)}}
+
+#stage-completion.is-sealed .ch-seal::after{
+  opacity:.75;transform:scale(1);animation:cxSealBloom 1.1s var(--ch-e) 1}
+
+#stage-completion.is-sealed .ch-seal-core{
+  box-shadow:0 0 0 1px rgba(99,200,160,.22),0 0 22px -4px rgba(99,200,160,.65)}
+
+#stage-completion .complete-title{font-size:clamp(22px,2vw,28px);margin:4px 0 0}
+
+#stage-completion .complete-sub{font-size:12.5px;margin:5px 0 0;color:var(--cx-ink-3)}
+
+#stage-completion.is-sealed .complete-sub{color:#8ed3b3}
+
+#stage-completion .ch-steps{padding-top:13px;margin-top:14px;border-top:1px solid rgba(255,240,220,.10)}
+
+#stage-completion .ch-steps li{font-size:12px;gap:10px;margin-bottom:7px}
+
+#stage-completion .ch-step-dot{width:14px;height:14px}
+
+#stage-completion .ch-step-dot::before{left:4.4px;top:2.4px;width:3.2px;height:6.2px}
+
+/* the pep talk goes, and the credit with it (said twice already) */
+#stage-completion .ch-note{display:none}
+
+#stage-completion .ch-cta-slot{margin-top:14px;min-height:48px}
+
+#stage-completion .ch-wait{font-size:11.5px;color:var(--cx-ink-3)}
+
+/* ── wide frames: the console steps up one notch, never towards the hero ──── */
+@media (min-width:1700px){
+  #stage-registration .start-card,
+  #stage-listening-intro .trans-card,
+  #stage-completion .complete-card{max-width:640px}
+  #stage-registration .start-title,
+  #stage-listening-intro .trans-title,
+  #stage-completion .complete-title{font-size:29px}
+  #stage-listening-intro .trans-sub,
+  #stage-listening-intro .ch-once p,
+  #stage-completion .ch-steps li{font-size:13px}
+}
+
+/* ── short viewports (1280×640 and the like) ─────────────────────────────── */
+@media (max-height:700px){
+  #stage-registration .start-card,
+  #stage-listening-intro .trans-card,
+  #stage-completion .complete-card{margin-bottom:18px}
+}
+
+@media (max-height:620px){
+  #stage-registration .ch-ident{padding-top:14px}
+  #stage-registration .brand-block{margin-bottom:10px}
+  #stage-listening-intro .trans-card{padding-top:14px;padding-bottom:14px}
+  #stage-listening-intro .ch-head{margin-bottom:8px}
+  #stage-listening-intro .trans-sub{margin-bottom:10px}
+  #stage-completion .ch-comp-body{padding-top:14px;padding-bottom:14px}
+  #stage-completion .ch-steps{padding-top:10px;margin-top:10px}
+  #stage-completion .ch-steps li{margin-bottom:5px}
+}
+
+/* ── reduced motion: nothing on the cards moves ────────────────────────────── */
+body.cdi-reduced :is(#stage-registration,#stage-listening-intro,#stage-completion) *,
+body.cdi-reduced :is(#stage-registration,#stage-listening-intro,#stage-completion) *::before,
+body.cdi-reduced :is(#stage-registration,#stage-listening-intro,#stage-completion) *::after,
+body.cdi-reduced :is(#stage-registration,#stage-listening-intro,#stage-completion) :is(.start-card,.trans-card,.complete-card)::before,
+body.cdi-reduced :is(#stage-registration,#stage-listening-intro,#stage-completion) :is(.start-card,.trans-card,.complete-card)::after{
+  animation:none!important;transition:none!important}
+body.cdi-reduced #stage-completion .ch-seal::after{opacity:0}
+body.cdi-reduced #stage-completion.is-sealed .ch-seal::after{opacity:.75;transform:scale(1)}
+
+/* ── the revealed answer wraps (review mode) ────────────────────────────────
+   .fb-ans inherits white-space:nowrap from the exam pill, and Listening never
+   overrode it for review the way Reading does — so a long accepted answer was
+   pinned to one line and ran past the pill instead of breaking. */
+body.review-mode .feedback-pill .fb-ans{
+  font-family:inherit;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  max-width:30ch;
+  text-align:left;
+  padding:1px 12px 2px 8px;
+  line-height:1.35;
+}
+body.review-mode .feedback-pill{align-items:center}
+
+/* ── the timecode, in Cosmos ────────────────────────────────────────────────
+   The jump button keeps its shape, its play glyph and its tabular figures —
+   only the colour changes to the azure the rest of the Cosmos chrome uses.
+   Plain values, never color-mix(): html2canvas cannot parse color(srgb …). */
+body.review-mode .q-jump-btn{
+  border:1px solid #c9d6ea;
+  background:#fff;
+  color:#2c5fa8;
+}
+body.review-mode .q-jump-btn:hover{
+  background:#2c5fa8;border-color:#2c5fa8;color:#fff;
+  box-shadow:0 3px 10px -5px rgba(44,95,168,.8);
+}
+body.review-mode .q-jump-btn.is-correct{
+  border-color:rgba(31,122,67,.42);background:rgba(31,122,67,.08);color:#1f7a43}
+body.review-mode .q-jump-btn.is-correct:hover{
+  background:#1f7a43;border-color:#1f7a43;color:#fff}
+body.review-mode .q-jump-btn.is-wrong{
+  border-color:rgba(173,58,44,.42);background:rgba(173,58,44,.08);color:#ad3a2c}
+body.review-mode .q-jump-btn.is-wrong:hover{
+  background:#ad3a2c;border-color:#ad3a2c;color:#fff}
+
+/* the third verdict: a question left blank */
+body.review-mode .q-jump-btn.is-skipped{
+  border-color:rgba(16,24,40,.16);background:rgba(16,24,40,.03);color:#7c88a0}
+body.review-mode .q-jump-btn.is-skipped:hover{
+  background:#44506a;border-color:#44506a;color:#fff}
+
+/* ── the transcript panel, in Cosmos ────────────────────────────────────────
+   Built on --rv-* tokens, so re-pointing them inside its own scope re-skins
+   the whole thing without touching one tp-* rule. Scoped to #transcript-panel
+   on purpose: --rv-navy is also read by controls outside the panel. */
+body.review-mode #transcript-panel{
+  --rv-paper:#fbfcff; --rv-paper-2:#f5f8fd; --rv-paper-3:#eef3fb;
+  --rv-ink:#101828;   --rv-ink-2:#44506a; --rv-ink-3:#7c88a0; --rv-ink-4:#98a3b8;
+  --rv-line:rgba(16,24,40,.10); --rv-line-2:rgba(16,24,40,.17);
+  --rv-navy:#2c5fa8;  --rv-navy-ink:#ffffff;
+  --rv-green:#1f7a43; --rv-rose:#ad3a2c;
+  --rv-cur:rgba(44,95,168,.07);
+  --rv-mark:rgba(232,213,183,.22); --rv-mark-edge:rgba(232,213,183,.48);
+  --rv-track:#dbe3ef; --rv-buffer:#c3d0e4;
+  --rv-panel-shadow:-20px 0 64px -22px rgba(2,6,20,.30);
+  background:#fbfcff;
+  border-left:1px solid rgba(16,24,40,.10);
+}

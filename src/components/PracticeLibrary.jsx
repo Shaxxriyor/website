@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { readingPractice } from '../data/readingPractice.js';
 import { listeningPractice } from '../data/listeningPractice.js';
+import { predictionListening } from '../data/predictionListening.js';
 import { BookIcon, ListeningIcon, LockIcon, SearchIcon, Tick } from './Icons.jsx';
 import { askToSignIn, isTrialPractice } from '../lib/access.js';
 import { PracticeSummary } from './PracticeSummary.jsx';
@@ -34,6 +35,20 @@ const LIBRARIES = {
     subtitle: (items) => `${items.length} full IELTS Listening tests · 4 parts, 40 questions each, with audio and transcripts`,
     search: 'Find a test by number, e.g. 25',
   },
+  'prediction-listening': {
+    title: 'December Prediction · Listening',
+    icon: ListeningIcon,
+    unit: 'tests',
+    path: 'prediction/listening',
+    section: 'prediction',
+    summary: false,
+    trialName: 'one test',
+    items: predictionListening.map((t) => ({ ...t, group: t.part, badge: `P${t.part}`, meta: `Part ${t.part} · audio included` })),
+    filters: [1, 2, 3, 4].map((n) => ({ id: n, label: `Part ${n}` })),
+    subtitle: (items) =>
+      `${items.length} predicted Listening parts for December · Part 1 (${count(items, 1)}), Part 2 (${count(items, 2)}), Part 3 (${count(items, 3)}), Part 4 (${count(items, 4)})`,
+    search: 'Search tests, e.g. museum, school, history',
+  },
 };
 
 /** Reading or Listening Practice: every test, with the signed-in student's best score. */
@@ -41,7 +56,7 @@ export function PracticeLibrary({ skill = 'reading', results = [], attempts = []
   const lib = LIBRARIES[skill];
   const all = lib.items;
   const Icon = lib.icon;
-  const href = (id) => `${import.meta.env.BASE_URL}practice/${skill}/${id}.html`;
+  const href = (id) => `${import.meta.env.BASE_URL}${lib.path ?? `practice/${skill}`}/${id}.html`;
   const FILTERS = [{ id: 0, label: 'All' }, ...lib.filters];
   const [passage, setPassage] = useState(0);
   const [q, setQ] = useState('');
@@ -62,7 +77,7 @@ export function PracticeLibrary({ skill = 'reading', results = [], attempts = []
   const visible = all.filter(
     (p) =>
       (!passage || p.group === passage) &&
-      (!needle || p.title.toLowerCase().includes(needle) || (skill === 'listening' && String(p.no) === needle)),
+      (!needle || p.title.toLowerCase().includes(needle) || (p.no != null && String(p.no) === needle)),
   );
 
   return (
@@ -94,7 +109,7 @@ export function PracticeLibrary({ skill = 'reading', results = [], attempts = []
         <div className="practice-gate" key={gate} role="status">
           <p>
             <LockIcon size={16} /> <b>{lib.title} is not open for your account yet.</b> You can try{' '}
-            {skill === 'reading' ? 'one passage' : 'Test 1'} for free; your teacher opens all {all.length} {lib.unit} for you.
+            {lib.trialName ?? (skill === 'reading' ? 'one passage' : 'Test 1')} for free; your teacher opens all {all.length} {lib.unit} for you.
           </p>
           <a className="btn btn--dark btn--sm" href="https://t.me/READING_CDI" target="_blank" rel="noopener">
             Ask on Telegram
@@ -102,7 +117,7 @@ export function PracticeLibrary({ skill = 'reading', results = [], attempts = []
         </div>
       )}
 
-      {signedIn && mine.length > 0 && <PracticeSummary skill={skill} results={mine} attempts={attempts} title="My results" />}
+      {signedIn && lib.summary !== false && mine.length > 0 && <PracticeSummary skill={skill} results={mine} attempts={attempts} title="My results" />}
 
       <div className="toolbar">
         <label className="search">

@@ -2,11 +2,13 @@ import { formatDate } from '../lib/format.js';
 import { formatBand } from '../lib/band.js';
 import { readingPractice } from '../data/readingPractice.js';
 import { listeningPractice } from '../data/listeningPractice.js';
+import { predictionListening } from '../data/predictionListening.js';
 import { readingMarathon } from '../data/mock.js';
 
 const practiceTitle = new Map([
   ...readingPractice.map((p) => [p.id, `Passage ${p.passage} · ${p.title}`]),
   ...listeningPractice.map((t) => [t.id, `Listening Practice · Test ${t.no}`]),
+  ...predictionListening.map((t) => [t.id, `Prediction · Part ${t.part} · ${t.title}`]),
 ]);
 const readingDay = new Map(readingMarathon.days.map((d) => [d.day, d.title]));
 const ORD = ['1st', '2nd', '3rd'];

@@ -22,6 +22,7 @@ const SHORT = {
   'listening-practice': 'L. Practice',
   vocabulary: 'Vocab',
   mock: 'Mock',
+  prediction: 'Prediction',
 };
 // Signed up on the site and nothing opened yet.
 const isWaiting = (s) => s.self_registered && !(s.access ?? []).length;

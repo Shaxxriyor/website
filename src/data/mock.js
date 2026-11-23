@@ -6,9 +6,11 @@ import {
   ListeningMarathonIcon,
   VocabularyIcon,
   MockTestIcon,
+  SparkleIcon,
 } from '../components/Icons.jsx';
 import { LISTENING_QUESTIONS, READING_QUESTIONS } from '../lib/marathons.js';
 import { MOCKS } from '../lib/mocks.js';
+import { predictionListening } from './predictionListening.js';
 
 // Static files in /public are served next to index.html, wherever it lives.
 const asset = (path) => `${import.meta.env.BASE_URL}${path}`;
@@ -21,6 +23,7 @@ export const sectionTones = {
   'listening-practice': 'lilac',
   vocabulary: 'sky',
   mock: 'lemon',
+  prediction: 'sky',
 };
 
 export const categories = [
@@ -30,11 +33,24 @@ export const categories = [
   { id: 'reading-marathon', label: 'Reading Marathon', icon: ReadingMarathonIcon },
   { id: 'listening-marathon', label: 'Listening Marathon', icon: ListeningMarathonIcon },
   { id: 'vocabulary', label: 'Vocabulary', icon: VocabularyIcon },
+  { id: 'prediction', label: 'December Prediction', icon: SparkleIcon },
   { id: 'mock', label: 'Mock Tests', icon: MockTestIcon },
 ];
 
 // Home page cards. `tab` opens that tab; cards without one are announced as coming soon.
 export const popularCourses = [
+  {
+    id: 'prediction',
+    tone: 'sky',
+    category: 'December Prediction',
+    skill: 'listening',
+    icon: SparkleIcon,
+    figure: String(predictionListening.length),
+    unit: 'tests',
+    title: 'December Prediction',
+    meta: 'The Listening (and soon Reading) tests predicted for this month',
+    tab: 'prediction',
+  },
   {
     id: 'reading-marathon',
     tone: 'mint',

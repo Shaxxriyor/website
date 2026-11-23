@@ -1,0 +1,155 @@
+
+/* Print goes; Download writes the same sheet in one click, and the print
+   handler stays bound so Cmd/Ctrl+P still works. */
+#stage-results .topbar #results-print-btn,
+#results-print-btn{display:none!important}
+/* Writing carries a second one with no id — "Print them instead", in the
+   grading-error fallback beside "Download my answers as PDF". Matching on the
+   handler rather than an id catches that one and any future sibling. */
+#stage-results button[onclick*="printReport"]{display:none!important}
+
+/* The results floor. This file only makes it transparent under body.cdi-3d-on,
+   a class the three.js layer sets — and this build retires that layer, so the
+   floor stayed opaque and the certificate sat on a grey slab instead of on the
+   star field the way Reading's does. */
+#stage-results{background:transparent}
+
+/* ── the certificate, in Cosmos ──────────────────────────────────────────────
+   Paper, not a black rectangle. What ties it to the field is temperature and
+   light: the cream goes cool, the brown ink goes navy, and the sheet carries a
+   deep wide shadow so it reads as lit paper held in front of the stars.
+   Appended last, so it wins on source order at equal specificity. */
+#stage-results .cert{
+  --c-paper:#fbfcff; --c-paper-2:#eef3fb; --c-paper-3:#f5f8fd; --c-paper-4:#e9f0fa;
+  --c-ink:#101828;   --c-ink-2:#44506a;   --c-ink-3:#7c88a0;
+  --c-line:rgba(16,24,40,.10); --c-line-2:rgba(16,24,40,.17);
+  --c-track:rgba(16,24,40,.08);
+  --pw-paper:#fbfcff; --pw-ink:#101828; --pw-ink-2:#44506a; --pw-ink-3:#7c88a0;
+  --pw-line:rgba(16,24,40,.10); --pw-line-2:rgba(16,24,40,.17);
+  background:#fbfcff;
+  border:1px solid rgba(255,255,255,.16);
+  /* lit paper floating over the sky: a tight contact shadow, then a long,
+     wide, very soft one — the same family of shadow the glass cards carry */
+  box-shadow:0 1px 3px rgba(2,6,20,.55),
+             0 14px 30px -14px rgba(2,6,20,.7),
+             0 0 90px -6px rgba(0,0,0,.55),
+             0 50px 110px -30px rgba(0,0,0,.9),
+             0 140px 240px -70px rgba(0,0,0,.8);
+}
+
+/* ── the certificate, staged for export ─────────────────────────────────────
+   PDFX moves #results-content off-screen at the printed column width and reads
+   computed styles off it. Two things must be true at that moment.
+
+   1 · Nothing may still be animating. The sheet arrives in parts on a certPart
+       keyframe with `both` fill, so a section caught before its delay elapses
+       is read at opacity 0 and exports blank.
+   2 · The answer summary must keep its two columns. 180mm is narrow enough to
+       trip the stacked rule, which doubles the sheet's height and forces the
+       fit-to-page backstop to shrink the whole certificate. */
+#results-content.pdfx-stage *,
+#results-content.pdfx-stage *::before,
+#results-content.pdfx-stage *::after{
+  animation:none!important;transition:none!important}
+#results-content.pdfx-stage .answer-cols{grid-template-columns:1fr 1fr!important}
+/* and the review call-to-action does not survive the trip to paper: it is a
+   button, and nobody can press it there */
+#results-content.pdfx-stage .review-cta{display:none!important}
+
+/* ── the answer record, two columns ─────────────────────────────────────────
+   The card stays one card; the two tables sit inside it side by side. Twenty
+   rows a column instead of forty in a line, which is most of what stops the
+   certificate needing to be shrunk to fit a page. */
+#stage-results .answer-cols{
+  display:grid;gap:0 18px;align-items:start;
+  /* minmax(0,1fr), not 1fr: a grid track's min-width is auto, so the tables
+     were sizing to their widest cell and running out past the card, which
+     clips them. Letting the tracks shrink is what makes two columns fit. */
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+#stage-results .answer-cols .answer-table{table-layout:fixed;width:100%}
+/* With table-layout:fixed and no widths declared, the five columns split the
+   track evenly — so "Accepted", which carries every permitted variant and is
+   the only long text here, got the same room as "#". These proportions give it
+   the space instead, which is what actually shortens the sheet: the wrapping
+   was costing more height than the extra rows ever did. */
+#stage-results .answer-cols .answer-table :is(th,td):nth-child(1){width:8%}
+#stage-results .answer-cols .answer-table :is(th,td):nth-child(2){width:30%}
+#stage-results .answer-cols .answer-table :is(th,td):nth-child(3){width:42%}
+#stage-results .answer-cols .answer-table :is(th,td):nth-child(4){width:15%}
+#stage-results .answer-cols .answer-table :is(th,td):nth-child(5){width:5%}
+/* the timecode column earns its place on screen, where the figure is a link to
+   the moment. On paper it is a number nobody can press, and it is the width
+   that forces every accepted answer to wrap. */
+#results-content.pdfx-stage .answer-table th:nth-child(4),
+#results-content.pdfx-stage .answer-table td:nth-child(4),
+#results-content.pdfx-stage .answer-table th:nth-child(5),
+#results-content.pdfx-stage .answer-table td:nth-child(5){display:none}
+/* the second column opens on question 21, which the generator marks as a part
+   break — a rule across the top of a column is just a stray line */
+#stage-results .answer-cols .answer-table tbody tr:first-child.pbreak{
+  border-top:0;box-shadow:none}
+@media (max-width:820px){
+  #stage-results .answer-cols{grid-template-columns:1fr}
+}
+/* ── the results topbar: glass over the field ───────────────────────────────
+   56px, the same recipe as the three cards — an 18px blur that lets the star
+   field bleed through, a starlight hairline underneath, a warm highlight along
+   the top edge. The brand span pins `color:var(--ink)` inline, so the token is
+   re-pointed rather than out-specified. */
+#stage-results .topbar{
+  --ink:#f6f4ef;
+  height:56px;
+  background:linear-gradient(180deg,rgba(14,18,30,.58),rgba(5,8,16,.76));
+  -webkit-backdrop-filter:blur(18px) saturate(1.3);backdrop-filter:blur(18px) saturate(1.3);
+  border-bottom:1px solid rgba(255,240,220,.16);
+  box-shadow:inset 0 1px 0 rgba(255,244,228,.10),0 12px 30px -14px rgba(0,0,0,.7),0 30px 60px -30px rgba(0,0,0,.6);
+}
+#stage-results .topbar>div>span{color:#f6f4ef}
+#stage-results .topbar .logo-mark{box-shadow:0 6px 16px -6px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.08)}
+
+/* pills, in the wrapper family: 34px tall, one transition, the sun on hover */
+#stage-results .topbar .btn{
+  height:34px;padding:0 16px;border-radius:999px;
+  font-size:12.5px;font-weight:700;letter-spacing:.01em;
+  transition:background 150ms ease,border-color 150ms ease,color 150ms ease,box-shadow 150ms ease,transform 150ms ease}
+#stage-results .topbar .btn:focus-visible{outline:2px solid rgba(255,214,160,.9);outline-offset:3px}
+
+/* primary: the same blue the cards' Begin / Start / See-my-band-score use */
+#stage-results .topbar .btn-primary{
+  background:linear-gradient(180deg,#2c82d4,#14538f);
+  border:1px solid rgba(255,255,255,.14);
+  color:#fff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 1px 2px rgba(0,0,0,.4),0 10px 24px -14px rgba(80,160,240,.9)}
+#stage-results .topbar .btn-primary:hover{
+  background:linear-gradient(180deg,#3a93e4,#17609f);
+  transform:translateY(-1px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 1px 2px rgba(0,0,0,.38),
+             0 0 0 1px rgba(255,200,120,.25),0 8px 30px rgba(255,170,80,.25)}
+
+/* secondary: glass outline */
+#stage-results .topbar .btn-ghost{
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,240,220,.16);
+  color:#c6ccd8;font-weight:600}
+#stage-results .topbar .btn-ghost:hover{
+  background:rgba(255,255,255,.09);
+  border-color:rgba(255,240,220,.30);
+  color:#f6f4ef;
+  box-shadow:0 0 0 1px rgba(255,200,120,.12),0 8px 24px -10px rgba(255,170,80,.25)}
+
+/* tertiary: a sun-gold hairline, no slab */
+#stage-results .topbar .btn-gold{
+  background:transparent;
+  border:1px solid rgba(255,207,138,.48);
+  color:#f0d49a}
+#stage-results .topbar .btn-gold:hover{
+  background:rgba(255,200,120,.12);
+  border-color:rgba(255,207,138,.85);
+  color:#ffe2b4;
+  box-shadow:0 0 0 1px rgba(255,200,120,.18),0 8px 26px -10px rgba(255,170,80,.35)}
+
+/* the certificate is the subject: give it a touch more air under the bar */
+#stage-results .results-content{padding-top:48px}
+
+/* reduced motion: the pills do not move */
+body.cdi-reduced #stage-results .topbar .btn{transition:none!important;transform:none!important}

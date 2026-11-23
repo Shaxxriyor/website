@@ -5552,3 +5552,8 @@ a.rating__row:hover .rating__chev {
   margin-left: 6px;
   vertical-align: 1px;
 }
+
+/* ---------- December Prediction ---------- */
+.pred-switch {
+  margin-bottom: 12px;
+}

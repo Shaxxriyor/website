@@ -7,7 +7,10 @@
   // Marathon day pages and Reading Practice passages.
   var m = location.pathname.match(/marathon\/(reading|listening)\/day-(\d+)\.html$/);
   var pm = location.pathname.match(/practice\/reading\/(p([1-3])-[a-z0-9-]+)\.html$/);
-  var lm = location.pathname.match(/practice\/listening\/(test-(\d{1,3}))\.html$/);
+  var lm = location.pathname.match(/practice\/listening\/(test-(\d{1,3}))\.html$/) ||
+    // December Prediction, Listening: one part per test, the same exam engine.
+    location.pathname.match(/prediction\/listening\/(pred-l-p([1-4])-[a-z0-9-]+)\.html$/);
+  var predicted = /\/prediction\//.test(location.pathname);
   if ((!m && !pm && !lm) || !window.fetch) return;
   var kind = m ? 'marathon' : 'exercise';
   var skill = m ? m[1] : lm ? 'listening' : 'reading';
@@ -17,7 +20,7 @@
   var base = new URL('../../', location.href).href;
 
   // ---- "back to the site" button, for everyone ----
-  var backTab = lm ? 'listening-practice' : item ? 'reading-practice' : skill === 'reading' ? 'reading-marathon' : 'listening-marathon';
+  var backTab = predicted ? 'prediction' : lm ? 'listening-practice' : item ? 'reading-practice' : skill === 'reading' ? 'reading-marathon' : 'listening-marathon';
   function addBackButton() {
     if (document.getElementById('rcdi-back')) return;
     var a = document.createElement('a');
@@ -125,6 +128,12 @@
   }
 
   function topic() {
+    if (predicted) {
+      // "IELTS Prediction test - Part 1 · Lawson Primary School · @READING_CDI" → "Prediction · Part 1 · Lawson Primary School"
+      var tt = (document.title || '').replace(/&middot;|·/g, '|').split('|');
+      var name = (tt[1] || tt[0] || '').trim();
+      return 'Prediction · Part ' + lm[2] + (name ? ' · ' + name : '');
+    }
     if (lm) return 'Listening Test ' + lm[2];
     if (item) {
       // "Passage 2: Coral Reefs" → "Passage 2 · Coral Reefs"

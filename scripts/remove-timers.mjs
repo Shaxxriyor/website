@@ -20,7 +20,7 @@ const RULES = [
   },
   {
     name: 'listening practice: no "Time is up" submit',
-    dirs: ['content/practice/listening'],
+    dirs: ['content/practice/listening', 'content/prediction/listening'],
     find: 'if(state.timers[section]<=0){pauseTimer();timeUp(onExpire);}',
     replace: '/* READING_CDI: no time limit */',
   },

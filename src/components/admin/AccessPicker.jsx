@@ -8,6 +8,7 @@ const TONES = {
   'listening-practice': 'lilac',
   vocabulary: 'sky',
   mock: 'lemon',
+  prediction: 'sky',
 };
 
 /** One switch per section: which parts of the site are opened for a student. */

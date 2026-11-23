@@ -203,6 +203,17 @@ const SEEDS = [
       );
     },
   },
+  {
+    // December Prediction is a new section: students who had every section open get it too.
+    id: 'prediction-for-full-access-2026-11-23',
+    async apply(c) {
+      await c.query(
+        `UPDATE students SET access = array_append(access, 'prediction'), updated_at = now()
+         WHERE NOT ('prediction' = ANY(COALESCE(access, '{}')))
+           AND access @> ARRAY['reading-marathon','listening-marathon','reading-practice','listening-practice','vocabulary','mock']::text[]`,
+      );
+    },
+  },
 ];
 
 /** The last failure of each one-time change in this instance (shown on the teacher's check page). */

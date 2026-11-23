@@ -1,4 +1,5 @@
 import { readingPractice } from '../data/readingPractice.js';
+import { predictionListening } from '../data/predictionListening.js';
 
 // Who may open what. Shared by the server (api/content) and the UI.
 //
@@ -14,6 +15,7 @@ export const SECTIONS = [
   { key: 'listening-practice', label: 'Listening Practice', trial: 'Test 1' },
   { key: 'vocabulary', label: 'Vocabulary', trial: 'Unit 1' },
   { key: 'mock', label: 'Mock Tests', trial: null },
+  { key: 'prediction', label: 'December Prediction', trial: 'one test' },
 ];
 export const SECTION_KEYS = SECTIONS.map((s) => s.key);
 export const sectionLabel = (key) => SECTIONS.find((s) => s.key === key)?.label ?? key;
@@ -29,6 +31,7 @@ export function sectionOf(path) {
   if (path.startsWith('practice/listening/')) return 'listening-practice';
   if (path.startsWith('vocab/')) return 'vocabulary';
   if (path.startsWith('mock/')) return 'mock';
+  if (path.startsWith('prediction/')) return 'prediction';
   return null;
 }
 
@@ -37,6 +40,7 @@ export const TRIAL_PRACTICE_ID = readingPractice.find((p) => p.passage === 1)?.i
 export const TRIAL_LISTENING_ID = 'test-1';
 export const TRIAL_DAY = 1;
 export const TRIAL_UNIT = 1;
+export const TRIAL_PREDICTION_ID = predictionListening[0]?.id;
 
 const TRIAL = new Set([
   'marathon/reading/day-01.html',
@@ -45,10 +49,11 @@ const TRIAL = new Set([
   `practice/listening/${TRIAL_LISTENING_ID}.html`,
   'vocab/essential-words-5/unit-01.json',
   'vocab/collocations/unit-01.json',
+  `prediction/listening/${TRIAL_PREDICTION_ID}.html`,
 ]);
 
 export const isTrialPath = (path) => TRIAL.has(path);
-export const isTrialPractice = (id) => id === TRIAL_PRACTICE_ID || id === TRIAL_LISTENING_ID;
+export const isTrialPractice = (id) => id === TRIAL_PRACTICE_ID || id === TRIAL_LISTENING_ID || id === TRIAL_PREDICTION_ID;
 
 /** A visitor tapped a locked item: the side panel asks them to create an account. */
 export function askToSignIn(what, kind = 'marathon') {

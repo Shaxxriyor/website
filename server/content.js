@@ -20,13 +20,13 @@ const TYPES = {
 };
 
 /** The Listening Practice exam engine, shared by every test page (no test content in it). */
-export const isEngine = (path) => /^practice\/listening\/_shared\/[a-f0-9]{12}\.(js|css)$/.test(path);
+export const isEngine = (path) => /^(practice|prediction)\/listening\/_shared\/[a-f0-9]{12}\.(js|css)$/.test(path);
 
 /** Clean a requested path; null when it tries to leave /content or isn't a known file type. */
 export function cleanPath(raw) {
   const path = normalize(String(raw || '')).replace(/^([/\\])+/, '');
   if (!path || path.startsWith('..') || path.includes('\0') || !TYPES[extname(path)]) return null;
-  if (!/^(marathon|practice|vocab|mock)\//.test(path)) return null;
+  if (!/^(marathon|practice|vocab|mock|prediction)\//.test(path)) return null;
   if (path.endsWith('.json') && !/^vocab\/[a-z0-9-]+\/unit-\d{2}\.json$/.test(path)) return null;
   // Scripts and styles only for the shared engine.
   if (/\.(js|css)$/.test(path) && !isEngine(path)) return null;

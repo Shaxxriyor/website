@@ -21,6 +21,10 @@
     {
       "source": "/mock/:path*",
       "destination": "/api/content?path=mock/:path*"
+    },
+    {
+      "source": "/prediction/:path*",
+      "destination": "/api/content?path=prediction/:path*"
     }
   ],
   "headers": [

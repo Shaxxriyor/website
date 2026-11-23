@@ -6,6 +6,7 @@ import { MarathonView } from './MarathonView.jsx';
 import { PracticeLibrary } from './PracticeLibrary.jsx';
 import { VocabularyView } from './VocabularyView.jsx';
 import { MockView } from './MockView.jsx';
+import { PredictionView } from './PredictionView.jsx';
 import { ReadingMarathonIcon, ListeningMarathonIcon, LogoMark, Wordmark, SparkleIcon } from './Icons.jsx';
 import { categories, popularCourses, listeningMarathon, readingMarathon } from '../data/mock.js';
 
@@ -54,6 +55,8 @@ export function HomeView({ onChanged, tab: routeTab, results = [], practice = []
           <MarathonView marathon={listeningMarathon} icon={ListeningMarathonIcon} skill="listening" results={results} attempts={me?.attempts} signedIn={signedIn} unlocked={has('listening-marathon')} />
         ) : tab === 'reading-marathon' ? (
           <MarathonView marathon={readingMarathon} icon={ReadingMarathonIcon} skill="reading" results={results} attempts={me?.attempts} signedIn={signedIn} unlocked={has('reading-marathon')} />
+        ) : tab === 'prediction' ? (
+          <PredictionView results={practice} attempts={me?.attempts} signedIn={signedIn} unlocked={has('prediction')} />
         ) : tab === 'mock' ? (
           <MockView unlocked={has('mock')} isStudent={Boolean(me)} teacher={Boolean(admin)} />
         ) : SOON[tab] ? (

@@ -1,5 +1,6 @@
 import { readingPractice } from '../data/readingPractice.js';
 import { predictionListening } from '../data/predictionListening.js';
+import { predictionReading } from '../data/predictionReading.js';
 
 // Who may open what. Shared by the server (api/content) and the UI.
 //
@@ -41,6 +42,7 @@ export const TRIAL_LISTENING_ID = 'test-1';
 export const TRIAL_DAY = 1;
 export const TRIAL_UNIT = 1;
 export const TRIAL_PREDICTION_ID = predictionListening[0]?.id;
+export const TRIAL_PREDICTION_READING_ID = predictionReading[0]?.id;
 
 const TRIAL = new Set([
   'marathon/reading/day-01.html',
@@ -50,10 +52,11 @@ const TRIAL = new Set([
   'vocab/essential-words-5/unit-01.json',
   'vocab/collocations/unit-01.json',
   `prediction/listening/${TRIAL_PREDICTION_ID}.html`,
+  `prediction/reading/${TRIAL_PREDICTION_READING_ID}.html`,
 ]);
 
 export const isTrialPath = (path) => TRIAL.has(path);
-export const isTrialPractice = (id) => id === TRIAL_PRACTICE_ID || id === TRIAL_LISTENING_ID || id === TRIAL_PREDICTION_ID;
+export const isTrialPractice = (id) => id === TRIAL_PRACTICE_ID || id === TRIAL_LISTENING_ID || id === TRIAL_PREDICTION_ID || id === TRIAL_PREDICTION_READING_ID;
 
 /** A visitor tapped a locked item: the side panel asks them to create an account. */
 export function askToSignIn(what, kind = 'marathon') {

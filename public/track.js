@@ -11,11 +11,13 @@
     // December Prediction, Listening: one part per test, the same exam engine.
     location.pathname.match(/prediction\/listening\/(pred-l-p([1-4])-[a-z0-9-]+)\.html$/);
   var predicted = /\/prediction\//.test(location.pathname);
-  if ((!m && !pm && !lm) || !window.fetch) return;
+  // December Prediction, Reading: full tests (3 passages), the Reading Practice engine with its timer.
+  var rp = location.pathname.match(/prediction\/reading\/(pred-r-test-(\d{1,2}))\.html$/);
+  if ((!m && !pm && !lm && !rp) || !window.fetch) return;
   var kind = m ? 'marathon' : 'exercise';
   var skill = m ? m[1] : lm ? 'listening' : 'reading';
   var day = m ? parseInt(m[2], 10) : null;
-  var item = pm ? pm[1] : lm ? lm[1] : null;
+  var item = pm ? pm[1] : lm ? lm[1] : rp ? rp[1] : null;
   var passageNo = pm ? pm[2] : null;
   var base = new URL('../../', location.href).href;
 
@@ -100,7 +102,7 @@
     'body,#stage-article{background-image:none!important}' +
     // Reading Practice keeps its timer; the marathon and listening tests have no time limit
     // (scripts/remove-timers.mjs stops those countdowns), so their clocks are hidden.
-    (pm ? '' : '#timer-reading,') + '#hdr-clock,#h-time{display:none!important}';
+    (pm || rp ? '' : '#timer-reading,') + '#hdr-clock,#h-time{display:none!important}';
   if (lm) {
     // Listening tests: header clear of the back button, plus the phone layout and helpers.
     guard.textContent += '#hdr-left{padding-left:46px}';
@@ -128,13 +130,14 @@
   }
 
   function topic() {
-    if (predicted) {
+    if (predicted && lm) {
       // "IELTS Prediction test - Part 1 · Lawson Primary School · @READING_CDI" → "Prediction · Part 1 · Lawson Primary School"
       var tt = (document.title || '').replace(/&middot;|·/g, '|').split('|');
       var name = (tt[1] || tt[0] || '').trim();
       return 'Prediction · Part ' + lm[2] + (name ? ' · ' + name : '');
     }
     if (lm) return 'Listening Test ' + lm[2];
+    if (rp) return 'Reading Prediction ' + rp[2];
     if (item) {
       // "Passage 2: Coral Reefs" → "Passage 2 · Coral Reefs"
       var pt = (document.title || '').replace(/^\s*Passage\s*\d+\s*[:\-–—]\s*/i, '').trim();

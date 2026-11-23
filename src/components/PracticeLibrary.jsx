@@ -2,11 +2,12 @@ import { useMemo, useState } from 'react';
 import { readingPractice } from '../data/readingPractice.js';
 import { listeningPractice } from '../data/listeningPractice.js';
 import { predictionListening } from '../data/predictionListening.js';
+import { predictionReading } from '../data/predictionReading.js';
 import { BookIcon, ListeningIcon, LockIcon, SearchIcon, Tick } from './Icons.jsx';
 import { askToSignIn, isTrialPractice } from '../lib/access.js';
 import { PracticeSummary } from './PracticeSummary.jsx';
 
-const tones = { 1: 'mint', 2: 'peach', 3: 'lilac', 4: 'rose' };
+const tones = { 0: 'sky', 1: 'mint', 2: 'peach', 3: 'lilac', 4: 'rose' };
 const count = (list, n) => list.filter((p) => p.group === n).length;
 
 // Reading: single passages grouped by passage number. Listening: full tests in blocks of 25.
@@ -49,6 +50,26 @@ const LIBRARIES = {
       `${items.length} predicted Listening parts for December · Part 1 (${count(items, 1)}), Part 2 (${count(items, 2)}), Part 3 (${count(items, 3)}), Part 4 (${count(items, 4)})`,
     search: 'Search tests, e.g. museum, school, history',
   },
+  'prediction-reading': {
+    title: 'December Prediction · Reading',
+    icon: BookIcon,
+    unit: 'tests',
+    path: 'prediction/reading',
+    section: 'prediction',
+    summary: false,
+    trialName: 'Reading Prediction 1',
+    // The printable version of each test.
+    pdf: (p) => (p.pdf ? `prediction/reading/${p.id}.pdf` : null),
+    items: predictionReading.map((t) => ({
+      ...t,
+      group: 0,
+      badge: String(t.no),
+      meta: t.passages.map((x) => `${x.title}${x.twice ? ' ×2' : ''}`).join(' · '),
+    })),
+    filters: [],
+    subtitle: (items) => `${items.length} full Reading tests · 3 passages, 40 questions, 60 minutes · passages seen in exams from 17 October to 22 November`,
+    search: 'Search by passage, e.g. potato, tea, Voynich',
+  },
 };
 
 /** Reading or Listening Practice: every test, with the signed-in student's best score. */
@@ -77,7 +98,7 @@ export function PracticeLibrary({ skill = 'reading', results = [], attempts = []
   const visible = all.filter(
     (p) =>
       (!passage || p.group === passage) &&
-      (!needle || p.title.toLowerCase().includes(needle) || (p.no != null && String(p.no) === needle)),
+      (!needle || p.title.toLowerCase().includes(needle) || (p.meta || '').toLowerCase().includes(needle) || (p.no != null && String(p.no) === needle)),
   );
 
   return (
@@ -130,6 +151,7 @@ export function PracticeLibrary({ skill = 'reading', results = [], attempts = []
             aria-label={`Search ${lib.unit}`}
           />
         </label>
+        {lib.filters.length > 0 && (
         <div className="seg-tabs" role="tablist" aria-label="Group">
           {FILTERS.map((f) => (
             <button
@@ -143,6 +165,7 @@ export function PracticeLibrary({ skill = 'reading', results = [], attempts = []
             </button>
           ))}
         </div>
+        )}
       </div>
 
       {visible.length === 0 ? (
@@ -160,7 +183,7 @@ export function PracticeLibrary({ skill = 'reading', results = [], attempts = []
             const locked = !unlocked && !trial;
             const Item = locked ? 'button' : 'a';
             return (
-              <li key={p.id}>
+              <li key={p.id} className={lib.pdf && !locked && lib.pdf(p) ? 'plib__row--pdf' : undefined}>
                 <Item
                   className={`plib__item tone-${tones[p.group]} ${r ? 'is-done' : ''} ${locked ? 'is-locked' : ''}`}
                   {...(locked ? { type: 'button', onClick: () => askForPractice(p.title) } : { href: href(p.id) })}
@@ -189,6 +212,17 @@ export function PracticeLibrary({ skill = 'reading', results = [], attempts = []
                     </span>
                   )}
                 </Item>
+                {lib.pdf && !locked && lib.pdf(p) && (
+                  <a
+                    className="plib__pdf"
+                    href={`${import.meta.env.BASE_URL}${lib.pdf(p)}`}
+                    target="_blank"
+                    rel="noopener"
+                    title={`${p.title} as a PDF, to print`}
+                  >
+                    PDF
+                  </a>
+                )}
               </li>
             );
           })}

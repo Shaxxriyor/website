@@ -11,6 +11,7 @@ const DIRS = [
   join('content', 'practice', 'reading'),
   join('content', 'practice', 'listening'),
   join('content', 'prediction', 'listening'),
+  join('content', 'prediction', 'reading'),
 ];
 for (const dir of DIRS) {
   for (const file of readdirSync(dir).filter((f) => f.endsWith('.html'))) {

@@ -381,6 +381,9 @@ for (const [path, status] of [
   ['mock/full-mock-06-11-2026.html', 403],
   ['prediction/listening/pred-l-p1-accommodation-enquiry.html', 200],
   ['prediction/listening/pred-l-p2-beach-clean-up-day.html', 403],
+  ['prediction/reading/pred-r-test-1.html', 200],
+  ['prediction/reading/pred-r-test-2.html', 403],
+  ['prediction/reading/table.pdf', 403],
 ]) {
   r = await get(path, azizCookie);
   assert.equal(r.status, status, `trial: ${path}`);
@@ -441,6 +444,11 @@ r = await asStudent('track', { method: 'POST', body: { kind: 'exercise', skill: 
 assert.equal(r.status, 200, 'listening test score saved');
 r = await asStudent('track', { method: 'POST', body: { kind: 'exercise', skill: 'listening', item: 'pred-l-p1-lawson-primary-school', topic: 'Prediction · Part 1 · Lawson Primary School', seconds: 60, correct: 8, total: 10, sitting: 'pred000001' } });
 assert.equal(r.status, 200, 'December Prediction scores are saved');
+r = await asStudent('track', { method: 'POST', body: { kind: 'exercise', skill: 'reading', item: 'pred-r-test-3', topic: 'Reading Prediction 3', seconds: 60, correct: 31, total: 40, sitting: 'predr00001' } });
+assert.equal(r.status, 200, 'Reading Prediction scores are saved');
+r = await get('prediction/reading/pred-r-test-3.pdf', studentCookie);
+assert.equal(r.status, 200, 'the PDF of a test');
+assert.equal(r.headers.get('content-type'), 'application/pdf');
 r = await get('prediction/listening/pred-l-p4-history-of-paint.html', studentCookie);
 assert.equal(r.status, 200, 'students the teacher registers get every section, December Prediction too');
 r = await get('prediction/listening/_shared/' + readdirSync('content/prediction/listening/_shared').find((f) => f.endsWith('.js')));

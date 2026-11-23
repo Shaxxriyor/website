@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { PracticeLibrary } from './PracticeLibrary.jsx';
-import { SparkleIcon } from './Icons.jsx';
+import { DownloadIcon } from './Icons.jsx';
+import { predictionTable } from '../data/predictionReading.js';
 
 const PARTS = [
   { id: 'listening', label: 'Listening' },
@@ -22,13 +23,14 @@ export function PredictionView({ results = [], attempts = [], signedIn = false, 
       {part === 'listening' ? (
         <PracticeLibrary key="prediction-listening" skill="prediction-listening" results={results} attempts={attempts} signedIn={signedIn} unlocked={unlocked} />
       ) : (
-        <div className="empty card-white">
-          <span className="empty__icon">
-            <SparkleIcon size={20} />
-          </span>
-          <h3 className="empty__title">Reading predictions are coming</h3>
-          <p className="muted-sm">The December Reading prediction tests will appear here very soon.</p>
-        </div>
+        <>
+          {predictionTable && unlocked && (
+            <a className="btn btn--glass btn--sm pred-table" href={`${import.meta.env.BASE_URL}prediction/reading/table.pdf`} target="_blank" rel="noopener">
+              <DownloadIcon size={15} /> The prediction table: every passage, when and where it appeared (PDF)
+            </a>
+          )}
+          <PracticeLibrary key="prediction-reading" skill="prediction-reading" results={results} attempts={attempts} signedIn={signedIn} unlocked={unlocked} />
+        </>
       )}
     </>
   );

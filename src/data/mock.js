@@ -11,6 +11,7 @@ import {
 import { LISTENING_QUESTIONS, READING_QUESTIONS } from '../lib/marathons.js';
 import { MOCKS } from '../lib/mocks.js';
 import { predictionListening } from './predictionListening.js';
+import { predictionReading } from './predictionReading.js';
 
 // Static files in /public are served next to index.html, wherever it lives.
 const asset = (path) => `${import.meta.env.BASE_URL}${path}`;
@@ -45,10 +46,10 @@ export const popularCourses = [
     category: 'December Prediction',
     skill: 'listening',
     icon: SparkleIcon,
-    figure: String(predictionListening.length),
+    figure: String(predictionListening.length + predictionReading.length),
     unit: 'tests',
     title: 'December Prediction',
-    meta: 'The Listening (and soon Reading) tests predicted for this month',
+    meta: 'The Listening parts and Reading tests predicted for this month',
     tab: 'prediction',
   },
   {

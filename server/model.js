@@ -452,7 +452,7 @@ export async function track(studentId, input) {
     // A Reading Practice passage or Listening Practice test, identified by its page id.
     item = String(input.item ?? '');
     // Reading Practice passages, Listening Practice tests and the December Prediction tests.
-    const known = skill === 'reading' ? /^(p[1-3]|pred-r-p[1-3])-[a-z0-9-]{1,90}$/ : /^(test-\d{1,3}|pred-l-p[1-4]-[a-z0-9-]{1,90})$/;
+    const known = skill === 'reading' ? /^(p[1-3]-[a-z0-9-]{1,90}|pred-r-test-\d{1,2})$/ : /^(test-\d{1,3}|pred-l-p[1-4]-[a-z0-9-]{1,90})$/;
     if (!known.test(item)) fail('item', 'Unknown passage');
     if (!topic) fail('topic', 'Missing title');
     correct = optionalInt(input, 'correct', 0, 60);

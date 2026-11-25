@@ -6,6 +6,69 @@ import { MARKS_FULL } from './seeds/mock-2026-11-08-full.js';
 import { MARKS_MIN5 } from './seeds/mock-2026-11-08-min5.js';
 import { ESSAYS, MARKS_FINAL } from './seeds/mock-2026-11-08-final.js';
 import { SECTION_KEYS } from '../src/lib/access.js';
+import { nameScore } from '../src/lib/mockTable.js';
+
+// Students the teacher opened everything for on 25 November 2026 (as they wrote their names).
+const FULL_ACCESS_2026_11_25 = [
+  'Shuxratjon Mirzanabiyev',
+  'Mirzakarimov Shaxzod',
+  'Mukhammedalieva Marta',
+  'Abdulloh Nosirov',
+  'Zokirmatov Muhammadnodir',
+  'Azatbaeva Nadira',
+  'Siddikova Shakhrizoda',
+  'Abdulaziz Khudoyberdiev',
+  'Munisa Otajonova',
+  'Nozigul Tohirova',
+  'Iminjonova Kumushoy',
+  'Shakhina Abdukayumova',
+  'Abduraufova Umida',
+  'Farxodova Dilnoza',
+  'Tursunov Bexruz',
+  'Olimjonova Shohsanam',
+  'Alimjanov Saydullo',
+  'Abdumalikov Murodjon',
+  'Movarounbek Mubinov',
+  'Ashurov Diyorbek',
+  "Yo'ldosheva Odina",
+  'Meliqulova Madina',
+  'Jahongir Kholikov',
+  'Mavlonova Maftuna',
+  'Salavatov Azamat',
+  'Shomuratov Mirzobek',
+];
+
+// Open every section for the students with these names: every word of the name must match
+// (any order or case; x/h, apostrophes and one-letter slips allowed). What was found is logged.
+async function openEverythingFor(c, seed, names, { until = null } = {}) {
+  // Later runs (for names not found the first time) only touch accounts still waiting for approval.
+  const [{ n: runs }] = await c.query(`SELECT COUNT(*)::int AS n FROM seed_log WHERE seed = $1`, [seed]);
+  const students = await c.query(
+    runs ? `SELECT id, full_name FROM students WHERE COALESCE(cardinality(access), 0) = 0` : `SELECT id, full_name FROM students`,
+  );
+  const found = [];
+  const missing = [];
+  for (const name of names) {
+    const words = name.split(/\s+/).filter((w) => w.replace(/[^a-z]/gi, '').length >= 3).length;
+    const hits = students.filter((s) => nameScore(name, s.full_name) >= words);
+    if (!hits.length) {
+      missing.push(name);
+      continue;
+    }
+    for (const s of hits) {
+      await c.query(`UPDATE students SET access = $2, practice_access = true, updated_at = now() WHERE id = $1`, [s.id, SECTION_KEYS]);
+      found.push(`${name} -> ${s.full_name} (#${s.id})`);
+    }
+  }
+  await c.query(`INSERT INTO seed_log (seed, note) VALUES ($1, $2)`, [
+    seed,
+    `Opened everything for ${found.length}: ${found.join('; ') || '-'} | Not found (${missing.length}): ${missing.join('; ') || '-'}`,
+  ]);
+  // Someone not registered yet: look again on the next start, until the deadline.
+  if (until && Date.now() < Date.parse(until)) {
+    if (missing.length) throw Object.assign(new Error(`${missing.length} not registered yet`), { retry: true });
+  }
+}
 
 const words = (t) => (String(t || '').match(/[A-Za-z0-9À-ɏ][A-Za-z0-9À-ɏ'’-]*/g) || []).length;
 
@@ -214,6 +277,10 @@ const SEEDS = [
       );
     },
   },
+  {
+    id: 'full-access-2026-11-25',
+    apply: (c) => openEverythingFor(c, 'full-access-2026-11-25', FULL_ACCESS_2026_11_25, { until: '2026-12-02T00:00:00+05:00' }),
+  },
 ];
 
 /** The last failure of each one-time change in this instance (shown on the teacher's check page). */
@@ -226,7 +293,7 @@ export async function runSeeds(c) {
     try {
       await seed.apply(c);
     } catch (err) {
-      console.error('[seed]', seed.id, err);
+      if (!err?.retry) console.error('[seed]', seed.id, err);
       await c.query(`DELETE FROM data_seeds WHERE id = $1`, [seed.id]).catch(() => {});
       lastErrors[seed.id] = String(err?.message || err).slice(0, 300);
     }

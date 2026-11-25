@@ -19,7 +19,8 @@ export const GET = route(async (request) => {
           FROM mock_results r WHERE r.student_id = s.id) AS sittings
        FROM students s WHERE lower(full_name) LIKE '%marjona%' OR lower(full_name) LIKE '%rasul%'`,
     );
-    return json({ seeds, errors: lastErrors, marjona: students });
+    const log = await query(`SELECT seed, note, at FROM seed_log ORDER BY at DESC LIMIT 20`);
+    return json({ seeds, errors: lastErrors, log, marjona: students });
   }
   if (params.get('table')) {
     requireAdmin(request);

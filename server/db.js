@@ -179,6 +179,8 @@ const SCHEMA = [
   `ALTER TABLE mock_marks ADD COLUMN IF NOT EXISTS task2 NUMERIC(2,1)`,
   // One-time data changes already applied (server/seeds.js).
   `CREATE TABLE IF NOT EXISTS data_seeds (id TEXT PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL DEFAULT now())`,
+  // What a one-time change did (e.g. which names it found), shown on the teacher's check page.
+  `CREATE TABLE IF NOT EXISTS seed_log (seed TEXT NOT NULL, note TEXT NOT NULL, at TIMESTAMPTZ NOT NULL DEFAULT now())`,
 ];
 
 // Two fresh instances can start at once (e.g. right after a deploy) and run the

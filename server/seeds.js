@@ -38,6 +38,18 @@ const FULL_ACCESS_2026_11_25 = [
   'Shomuratov Mirzobek',
 ];
 
+// More students the teacher opened everything for on 25 November 2026 (one name in both alphabets).
+const FULL_ACCESS_2026_11_25_B = [
+  'Daulanova Khulkar',
+  'Yermekbay Nurislam',
+  'Mahliyo Ramidinova',
+  'Qodirova Sevara',
+  'Авазов Иброхим',
+  'Avazov Ibrohim',
+  'Sultanov Sohib',
+  'Hojiyeva Ezoza',
+];
+
 // Open every section for the students with these names: every word of the name must match
 // (any order or case; x/h, apostrophes and one-letter slips allowed). What was found is logged.
 async function openEverythingFor(c, seed, names, { until = null } = {}) {
@@ -49,8 +61,9 @@ async function openEverythingFor(c, seed, names, { until = null } = {}) {
   const found = [];
   const missing = [];
   for (const name of names) {
-    const words = name.split(/\s+/).filter((w) => w.replace(/[^a-z]/gi, '').length >= 3).length;
-    const hits = students.filter((s) => nameScore(name, s.full_name) >= words);
+    // Words of 3+ letters in any alphabet (Latin or Cyrillic); a name with none matches nobody.
+    const words = name.split(/\s+/).filter((w) => w.replace(/[^\p{L}]/gu, '').length >= 3).length;
+    const hits = words ? students.filter((s) => nameScore(name, s.full_name) >= words) : [];
     if (!hits.length) {
       missing.push(name);
       continue;
@@ -280,6 +293,10 @@ const SEEDS = [
   {
     id: 'full-access-2026-11-25',
     apply: (c) => openEverythingFor(c, 'full-access-2026-11-25', FULL_ACCESS_2026_11_25, { until: '2026-12-02T00:00:00+05:00' }),
+  },
+  {
+    id: 'full-access-2026-11-25-b',
+    apply: (c) => openEverythingFor(c, 'full-access-2026-11-25-b', FULL_ACCESS_2026_11_25_B, { until: '2026-12-02T00:00:00+05:00' }),
   },
 ];
 
